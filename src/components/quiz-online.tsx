@@ -52,12 +52,13 @@ function uid() {
 
 export function QuizOnline() {
   const sbRef = useRef<SupabaseClient | null>(null);
-  const params = useParams<{ join?: string }>();
-  const cameByLink = Boolean(params.join);
+  const params = useParams<{ join?: string; [key: string]: string | string[] | undefined }>();
+  const joinParam = (params.join as string | undefined) ?? (params["j"] as string | undefined) ?? "";
+  const cameByLink = Boolean(joinParam);
   const [role, setRole] = useState<Role>("host");
   const [myId, setMyId] = useState<string>(() => uid());
   const [myName, setMyName] = useState("");
-  const [joinCode, setJoinCode] = useState(params.join ?? "");
+  const [joinCode, setJoinCode] = useState(joinParam);
   const [room, setRoom] = useState<QuizRoom | null>(null);
   const [phase, setPhase] = useState<QuizPhase>("lobby");
   const [error, setError] = useState("");
@@ -99,7 +100,7 @@ export function QuizOnline() {
     }).select().single();
     if (e || !data) { setError("Ошибка: " + (e?.message ?? "?")); return; }
     const r = data as QuizRoom;
-    const link = `${window.location.origin}/quiz/join/${code}`;
+    const link = `${window.location.origin}/j/${code}`;
     setRoom(r);
     setInviteLink(link);
     setPhase("lobby");
@@ -370,7 +371,7 @@ export function QuizOnline() {
               <div className="mt-3 flex items-center gap-2 text-sm text-stone-500">
                 <span>Код комнаты:</span>
                 <span className="font-mono font-bold text-stone-900 bg-stone-100 rounded px-2 py-0.5">
-                  {(params.join ?? "").toUpperCase()}
+                  {joinParam.toUpperCase()}
                 </span>
               </div>
               <button
