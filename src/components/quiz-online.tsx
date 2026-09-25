@@ -23,6 +23,7 @@ type QuizRoom = {
   host_name: string;
   players: Player[];
   scores: Record<string, number>;
+  answers: Record<number, Record<string, number>>; // { questionIndex: { playerId: optionIndex } }
 };
 
 const TOTAL_QUESTIONS = 10;
@@ -76,6 +77,7 @@ export function QuizOnline() {
       host_name: name,
       players: [{ id: myId, name, isHost: true }],
       scores: { [myId]: 0 },
+      answers: {},
     }).select().single();
     if (e || !data) { setError("Ошибка: " + (e?.message ?? "?")); return; }
     setRoom(data as QuizRoom);
@@ -102,9 +104,10 @@ export function QuizOnline() {
 
     const newPlayers = [...r.players, { id: myId, name, isHost: false }];
     const newScores = { ...r.scores, [myId]: 0 };
+    const newAnswers = { ...(r.answers ?? {}) };
     const { error: upE } = await sb
       .from("quiz_rooms")
-      .update({ players: newPlayers, scores: newScores })
+      .update({ players: newPlayers, scores: newScores, answers: newAnswers })
       .eq("id", r.id);
     if (upE) { setError("Не удалось подключиться: " + upE.message); return; }
 
@@ -124,20 +127,35 @@ export function QuizOnline() {
     setSelected(null);
   }, [room, role, initSb]);
 
-  // ---------- Хост: завершить раунд (reveal) ----------
+  // ---------- Хост: завершить раунд (reveal) + начислить очки ----------
   const revealAnswers = useCallback(async () => {
     if (!room || role !== "host") return;
     const sb = initSb();
     if (!sb) return;
-    const next = room.current_q + 1;
+    
+    const qIdx = room.current_q;
+    const q = questions[qIdx];
+    if (!q) return;
+    
+    // Считаем очки: +10 за правильный ответ
+    const answersForQ = room.answers?.[qIdx] ?? {};
+    const newScores = { ...room.scores };
+    for (const player of room.players) {
+      const ans = answersForQ[player.id];
+      if (ans === q.correct) {
+        newScores[player.id] = (newScores[player.id] ?? 0) + 10;
+      }
+    }
+    
+    const next = qIdx + 1;
     if (next >= TOTAL_QUESTIONS) {
-      await sb.from("quiz_rooms").update({ status: "finished" }).eq("id", room.id);
+      await sb.from("quiz_rooms").update({ status: "finished", scores: newScores }).eq("id", room.id);
       setPhase("end");
     } else {
-      await sb.from("quiz_rooms").update({ q_state: "reveal", current_q: next }).eq("id", room.id);
+      await sb.from("quiz_rooms").update({ q_state: "reveal", current_q: next, scores: newScores }).eq("id", room.id);
       setPhase("reveal");
     }
-  }, [room, role, initSb]);
+  }, [room, role, initSb, questions]);
 
   // ---------- Хост: следующий вопрос ----------
   const nextQuestion = useCallback(async () => {
@@ -149,13 +167,20 @@ export function QuizOnline() {
     setSelected(null);
   }, [room, role, initSb]);
 
-  // ---------- Ответ (хост — только за себя, гости — за себя) ----------
+  // ---------- Ответ (каждый игрок — за себя) ----------
   const lockAnswer = useCallback(
     (optIdx: number) => {
-      if (!room || role === "guest") return; // гости не блокируют
+      if (!room || selected !== null) return;
       setSelected(optIdx);
+      // Сохраняем ответ на сервер
+      const sb = initSb();
+      if (!sb) return;
+      const qIdx = room.current_q;
+      const newAnswers = { ...(room.answers ?? {}) };
+      newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
+      sb.from("quiz_rooms").update({ answers: newAnswers }).eq("id", room.id);
     },
-    [room, role]
+    [room, selected, myId, initSb]
   );
 
   // ---------- Realtime ----------
@@ -200,13 +225,10 @@ export function QuizOnline() {
     return () => clearInterval(t);
   }, [phase, room?.current_q]);
 
-  // ---------- Очки (локальный расчёт для отображения) ----------
+  // ---------- Очки ----------
   const q = questions[room?.current_q ?? 0];
   const computeScores = () => {
-    if (!room || !q) return room?.scores ?? {};
-    // В реальной игре хост должен сохранить ответы — упрощённо:
-    // за правильный +10, за скорость бонус
-    return room.scores;
+    return room?.scores ?? {};
   };
 
   const sortedPlayers = Object.entries(computeScores())
@@ -347,20 +369,19 @@ export function QuizOnline() {
             <h2 className="text-xl sm:text-2xl font-bold">{q.q}</h2>
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
               {q.options.map((opt, i) => {
-                const isCorrect = phase === "reveal" && i === q.correct;
-                const isMine = phase === "reveal" && i === selected;
+                const isCorrect = i === q.correct;
+                const isMine = selected === i;
+                // Покажем правильный ответ сразу (все видят)
                 return (
                   <button
                     key={i}
-                    disabled={phase !== "playing" || selected !== null}
-                    onClick={() => iAmHost && lockAnswer(i)}
+                    disabled={selected !== null}
+                    onClick={() => lockAnswer(i)}
                     className={`rounded-xl border-2 px-4 py-4 text-left text-sm font-medium transition ${
                       isCorrect
                         ? "border-emerald-500 bg-emerald-50 text-emerald-800"
                         : isMine
                         ? "border-red-400 bg-red-50 text-red-700"
-                        : selected === i
-                        ? "border-stone-900 bg-stone-900 text-white"
                         : "border-stone-200 bg-white hover:border-stone-400"
                     } disabled:opacity-70`}
                   >

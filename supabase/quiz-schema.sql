@@ -8,6 +8,7 @@ create table if not exists public.quiz_rooms (
   host_name text not null default 'Хост',
   players jsonb not null default '[]'::jsonb,  -- [{id, name, isHost, joinedAt}]
   scores jsonb not null default '{}'::jsonb,   -- { playerId: points }
+  answers jsonb not null default '{}'::jsonb,  -- { qIndex: { playerId: optionIndex } }
   created_at timestamptz not null default now()
 );
 
