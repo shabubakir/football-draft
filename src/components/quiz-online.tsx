@@ -780,6 +780,16 @@ export function QuizOnline() {
           </div>
 
           <div className="rounded-2xl border border-stone-200 bg-white/80 p-6">
+            {q.image && (
+              <div className="mb-5 flex justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={q.image}
+                  alt="Вопрос"
+                  className="max-h-64 w-auto rounded-xl object-cover border-2 border-stone-200"
+                />
+              </div>
+            )}
             <h2 className="text-xl sm:text-2xl font-bold">{q.q}</h2>
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
               {q.options.map((opt, i) => {
