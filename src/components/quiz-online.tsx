@@ -117,13 +117,20 @@ export function QuizOnline() {
   }, [initSb, myName, myId]);
 
   // ---------- Гость: подключиться ----------
-  const joinRoom = useCallback(async (codeArg?: string) => {
+  // myName через ref — чтобы auto-join (запущенный один раз при старте)
+  // брал ВСЕГДА актуальное имя, даже если пользователь ещё печатает.
+  const myNameRef = useRef(myName);
+  myNameRef.current = myName;
+
+  const joinRoom = useCallback(async (codeArg?: string, nameArg?: string) => {
     setError("");
     const sb = initSb();
     if (!sb) { setError("Supabase не настроен."); return; }
     const code = (codeArg ?? joinCode).trim().toUpperCase();
     if (code.length < 4) { setError("Введите код из 5 символов."); return; }
-    const name = myName.trim() || "Игрок " + myId.slice(0, 3);
+    const name = (nameArg ?? myNameRef.current).trim() ||
+      (typeof window !== "undefined" && localStorage.getItem("quiz_player_name") || "").trim() ||
+      "Игрок " + myId.slice(0, 3);
 
     const { data, error: e } = await sb
       .from("quiz_rooms").select().eq("code", code).maybeSingle();
@@ -137,13 +144,14 @@ export function QuizOnline() {
       r.status === "finished" ? "end" :
       r.status === "playing" ? (r.q_state === "reveal" ? "reveal" : "playing") : "lobby";
 
-    if (r.players.some((p) => p.id === myId)) {
+    const existing = r.players.find((p) => p.id === myId);
+    if (existing) {
       // Уже подключены — просто показываем текущее состояние
       setRole("guest");
       setJoinedByLink(true);
       setRoom(r);
       setPhase(phaseFromState());
-      setMsg(`Вы уже в игре как «${r.players.find((p) => p.id === myId)?.name}».`);
+      setMsg(`Вы уже в игре как «${existing.name}».`);
       return;
     }
 
@@ -337,20 +345,33 @@ export function QuizOnline() {
   }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
   // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
+  // Ждём ввод имени (или 10 сек по умолчанию) — чтобы гость успел ввести имя,
+  // но при этом не завис на бесконечном ожидании.
   const autoJoinStarted = useRef(false);
+  const didAutoJoin = useRef(false);
   useEffect(() => {
-    if (!cameByLink || autoJoinStarted.current || !joinParam) return;
+    if (!cameByLink || autoJoinStarted.current || !joinParam || didAutoJoin.current) return;
     autoJoinStarted.current = true;
     const code = joinParam.trim().toUpperCase();
     if (code.length < 4) {
       setError("Код в ссылке некорректный.");
       return;
     }
-    const doJoin = () => joinRoomRef.current?.(code);
-    // Дождаёмся готовности Supabase (небольшая задержка для инициализации)
-    const t = setTimeout(doJoin, 500);
+    const doJoin = () => {
+      if (didAutoJoin.current) return;
+      didAutoJoin.current = true;
+      // Берём ИМЯ НА МОМЕНТ ДОСТУПА (актуальное состояние)
+      joinRoomRef.current?.(code, myNameRef.current);
+    };
+    // Если имя уже есть (сохранено ранее) — подключаемся сразу
+    if (myNameRef.current.trim()) {
+      const t = setTimeout(doJoin, 400);
+      return () => clearTimeout(t);
+    }
+    // Иначе ждём, пока пользователь введёт имя (макс. 10 сек)
+    const t = setTimeout(doJoin, 10000);
     return () => clearTimeout(t);
-  }, [cameByLink, joinParam]);
+  }, [cameByLink, joinParam, myName]);
 
   // Сброс выбора при смене вопроса
   const lastQRef = useRef<number>(-1);
