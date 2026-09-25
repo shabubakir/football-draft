@@ -58,13 +58,20 @@ export function QuizOnline() {
   const cameByLink = Boolean(joinParam);
   const [role, setRole] = useState<Role>("host");
   const [myId, setMyId] = useState<string>(() => uid());
-  const [myName, setMyName] = useState("");
+  const [myName, setMyName] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("quiz_player_name") ?? "";
+  });
+  useEffect(() => {
+    if (myName) localStorage.setItem("quiz_player_name", myName);
+  }, [myName]);
   const [joinCode, setJoinCode] = useState(joinParam);
   const [room, setRoom] = useState<QuizRoom | null>(null);
   const [phase, setPhase] = useState<QuizPhase>("lobby");
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [joinedByLink, setJoinedByLink] = useState(false);
 
   const [questions, setQuestions] = useState<ReturnType<typeof shuffleQuestions>>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -110,11 +117,11 @@ export function QuizOnline() {
   }, [initSb, myName, myId]);
 
   // ---------- Гость: подключиться ----------
-  const joinRoom = useCallback(async () => {
+  const joinRoom = useCallback(async (codeArg?: string) => {
     setError("");
     const sb = initSb();
     if (!sb) { setError("Supabase не настроен."); return; }
-    const code = joinCode.trim().toUpperCase();
+    const code = (codeArg ?? joinCode).trim().toUpperCase();
     if (code.length < 4) { setError("Введите код из 5 символов."); return; }
     const name = myName.trim() || "Игрок " + myId.slice(0, 3);
 
@@ -133,9 +140,10 @@ export function QuizOnline() {
     if (r.players.some((p) => p.id === myId)) {
       // Уже подключены — просто показываем текущее состояние
       setRole("guest");
+      setJoinedByLink(true);
       setRoom(r);
       setPhase(phaseFromState());
-      setMsg(`Вы уже в комнате как «${r.players.find((p) => p.id === myId)?.name}».`);
+      setMsg(`Вы уже в игре как «${r.players.find((p) => p.id === myId)?.name}».`);
       return;
     }
 
@@ -152,10 +160,15 @@ export function QuizOnline() {
     if (upE) { setError("Не удалось подключиться: " + upE.message); return; }
 
     setRole("guest");
+    setJoinedByLink(true);
     setRoom({ ...r, players: newPlayers, scores: newScores });
     setPhase("lobby");
-    setMsg(`Вы подключены как «${name}»! Ждите старта.`);
+    setMsg(`Вы в игре как «${name}»! Ждите старта.`);
   }, [initSb, joinCode, myName, myId, questions]);
+
+  // Ref для авто-join (joinRoom меняется при смене имени/кода)
+  const joinRoomRef = useRef<typeof joinRoom | null>(null);
+  joinRoomRef.current = joinRoom;
 
   // ---------- Хост: старт ----------
   const startGame = useCallback(async () => {
@@ -323,6 +336,22 @@ export function QuizOnline() {
     else setPhase("lobby");
   }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
+  // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
+  const autoJoinStarted = useRef(false);
+  useEffect(() => {
+    if (!cameByLink || autoJoinStarted.current || !joinParam) return;
+    autoJoinStarted.current = true;
+    const code = joinParam.trim().toUpperCase();
+    if (code.length < 4) {
+      setError("Код в ссылке некорректный.");
+      return;
+    }
+    const doJoin = () => joinRoomRef.current?.(code);
+    // Дождаёмся готовности Supabase (небольшая задержка для инициализации)
+    const t = setTimeout(doJoin, 500);
+    return () => clearTimeout(t);
+  }, [cameByLink, joinParam]);
+
   // Сброс выбора при смене вопроса
   const lastQRef = useRef<number>(-1);
   useEffect(() => {
@@ -334,16 +363,26 @@ export function QuizOnline() {
 
   // ---------- Ответ (можно менять, пока идёт answering) ----------
   const lockAnswer = useCallback(
-    (optIdx: number) => {
+    async (optIdx: number) => {
       const r = roomRef.current;
       if (!r || r.q_state !== "answering" || r.status !== "playing") return;
       setSelected(optIdx);
       const sb = sbClient.current;
-      if (!sb) return;
+      if (!sb) {
+        setError("⚠️ Supabase недоступен — ответ не сохранён. Перезагрузи страницу.");
+        return;
+      }
       const qIdx = r.current_q;
       const newAnswers = { ...(r.answers ?? {}) };
       newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
-      sb.from("quiz_rooms").update({ answers: newAnswers }).eq("id", r.id);
+      const { error: upE } = await sb
+        .from("quiz_rooms")
+        .update({ answers: newAnswers })
+        .eq("id", r.id);
+      if (upE) {
+        console.error("quiz: failed to save answer", upE);
+        setError(`⚠️ Ответ не сохранился: ${upE.message}`);
+      }
     },
     [myId]
   );
@@ -396,36 +435,55 @@ export function QuizOnline() {
       </div>
 
       {error && <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>}
-      {msg && !error && <div className="rounded-xl bg-sky-50 border border-sky-200 text-sky-700 text-sm px-4 py-3">{msg}</div>}
+      {msg && !error && <div className="rounded-xl bg-sky-50 border border-sky-200 text-sky-700 text-sm px-4 py-3 whitespace-pre-line">{msg}</div>}
+      {joinedByLink && room && (
+        <div className="flex items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-300 px-4 py-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white font-bold text-lg">✓</span>
+          <div>
+            <div className="font-bold text-emerald-800">ТЫ В ИГРЕ!</div>
+            <div className="text-xs text-emerald-600">
+              Ты подключён как «{room.players.find((p) => p.id === myId)?.name ?? myName}» · Комната {room.code}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Лобби */}
       {phase === "lobby" && (
         <div className={`grid ${cameByLink ? "" : "md:grid-cols-2"} gap-4`}>
           {cameByLink ? (
-            /* Пришёл по ссылке — только подключение */
+            /* Пришёл по ссылке — авто-подключение */
             <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
               <h3 className="font-bold text-lg">Присоединиться к игре</h3>
-              <p className="mt-1 text-sm text-stone-600">
-                Вы пришли по приглашению. Введите имя и подключайтесь.
-              </p>
-              <input
-                value={myName}
-                onChange={(e) => setMyName(e.target.value)}
-                placeholder="Ваше имя"
-                className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
-              />
-              <div className="mt-3 flex items-center gap-2 text-sm text-stone-500">
-                <span>Код комнаты:</span>
-                <span className="font-mono font-bold text-stone-900 bg-stone-100 rounded px-2 py-0.5">
-                  {joinParam.toUpperCase()}
-                </span>
-              </div>
-              <button
-                onClick={joinRoom}
-                className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
-              >
-                ПОДКЛЮЧИТЬСЯ
-              </button>
+              {joinedByLink ? (
+                <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800">
+                  ✅ Вы подключены! Комната загружается…
+                </div>
+              ) : (
+                <>
+                  <p className="mt-1 text-sm text-stone-600">
+                    Вы пришли по приглашению. Подключаем вас…
+                  </p>
+                  <input
+                    value={myName}
+                    onChange={(e) => setMyName(e.target.value)}
+                    placeholder="Ваше имя"
+                    className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+                  />
+                  <div className="mt-3 flex items-center gap-2 text-sm text-stone-500">
+                    <span>Код комнаты:</span>
+                    <span className="font-mono font-bold text-stone-900 bg-stone-100 rounded px-2 py-0.5">
+                      {joinParam.toUpperCase()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => joinRoom()}
+                    className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+                  >
+                    ПОДКЛЮЧИТЬСЯ
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <>
@@ -465,7 +523,7 @@ export function QuizOnline() {
                   className="mt-3 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-mono tracking-widest outline-none focus:border-stone-500 uppercase"
                 />
                 <button
-                  onClick={joinRoom}
+                  onClick={() => joinRoom()}
                   className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
                 >
                   ПОДКЛЮЧИТЬСЯ
