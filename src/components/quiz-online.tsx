@@ -79,6 +79,7 @@ export function QuizOnline() {
   const [topic, setTopic] = useState<QuizTopic>("football");
 
   const [questions, setQuestions] = useState<ReturnType<typeof shuffleQuestions>>([]);
+  const [brokenImgs, setBrokenImgs] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(ANSWER_SECONDS);
   const [revealLeft, setRevealLeft] = useState(REVEAL_SECONDS);
@@ -210,6 +211,23 @@ export function QuizOnline() {
     }).eq("id", room.id);
     setPhase("playing");
     setSelected(null);
+  }, [room, role, initSb, questions]);
+
+  // ---------- Хост: СОЛО-ТЕСТ (1 игрок, без friends) ----------
+  const startSoloTest = useCallback(async () => {
+    if (!room || role !== "host") return;
+    const sb = initSb();
+    if (!sb) return;
+    const firstQ = questions[0];
+    const answerTime = firstQ?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
+    const nextAt = new Date(Date.now() + answerTime * 1000).toISOString();
+    await sb.from("quiz_rooms").update({
+      status: "playing", q_state: "answering", current_q: 0,
+      rematch_votes: null, next_at: nextAt,
+    }).eq("id", room.id);
+    setPhase("playing");
+    setSelected(null);
+    setMsg("🧪 Соло-тест запущен — отвечай на все вопросы сам.");
   }, [room, role, initSb, questions]);
 
   // ---------- Реванш: хост ПРЕДЛАГАЕТ, остальные СОГЛАСОВЫВАЮТ ----------
@@ -750,13 +768,21 @@ export function QuizOnline() {
                 ))}
               </ul>
               {iAmHost && (
-                <button
-                  onClick={startGame}
-                  disabled={room.players.length < 2}
-                  className="mt-5 w-full rounded-xl bg-emerald-600 text-white font-bold py-3 hover:bg-emerald-500 disabled:opacity-40 transition"
-                >
-                  НАЧАТЬ ИГРУ ({TOTAL_QUESTIONS} вопросов)
-                </button>
+                <>
+                  <button
+                    onClick={startGame}
+                    disabled={room.players.length < 2}
+                    className="mt-5 w-full rounded-xl bg-emerald-600 text-white font-bold py-3 hover:bg-emerald-500 disabled:opacity-40 transition"
+                  >
+                    НАЧАТЬ ИГРУ ({TOTAL_QUESTIONS} вопросов)
+                  </button>
+                  <button
+                    onClick={startSoloTest}
+                    className="mt-2 w-full rounded-xl bg-amber-500 text-white font-bold py-3 hover:bg-amber-400 transition"
+                  >
+                    🧪 ТЕСТ (1 игрок) — прогнать самому
+                  </button>
+                </>
               )}
               {!iAmHost && (
                 <div className="mt-5 rounded-xl bg-stone-100 p-4 text-sm text-stone-600 animate-pulse">
@@ -788,14 +814,22 @@ export function QuizOnline() {
           </div>
 
           <div className="rounded-2xl border border-stone-200 bg-white/80 p-6">
-            {q.image && (
+            {q.image && !brokenImgs.has(q.image) && (
               <div className="mb-5 flex justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={q.image}
                   alt="Вопрос"
                   className="max-h-64 w-auto rounded-xl object-cover border-2 border-stone-200"
+                  onError={() => setBrokenImgs((prev) => new Set(prev).add(q.image!))}
                 />
+              </div>
+            )}
+            {q.image && brokenImgs.has(q.image) && (
+              <div className="mb-5 flex justify-center">
+                <div className="flex h-40 w-64 items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-100 text-stone-400 text-sm">
+                  📷 Картинка не загрузилась
+                </div>
               </div>
             )}
             <h2 className="text-xl sm:text-2xl font-bold">{q.q}</h2>
