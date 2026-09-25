@@ -11,6 +11,7 @@ create table if not exists public.quiz_rooms (
   answers jsonb not null default '{}'::jsonb,  -- { qIndex: { playerId: optionIndex } }
   seed int,  -- порядок вопросов (общий для всех)
   rematch_votes jsonb,  -- { playerId: true/false } — голос за реванш
+  next_at timestamptz,  -- серверный таймер: когда продвинуть
   created_at timestamptz not null default now()
 );
 

@@ -27,6 +27,7 @@ type QuizRoom = {
   answers: Record<number, Record<string, number>>; // { questionIndex: { playerId: optionIndex } }
   seed?: number; // порядок вопросов — общий для всех
   rematch_votes?: Record<string, boolean>; // { playerId: да/нет } — голос за реванш
+  next_at?: string | null; // ISO время, когда нужно продвинуть (серверный таймер)
 };
 
 const TOTAL_QUESTIONS = 10;
@@ -110,6 +111,12 @@ export function QuizOnline() {
     }).select().single();
     if (e || !data) { setError("Ошибка: " + (e?.message ?? "?")); return; }
     const r = data as QuizRoom;
+    console.log("QUIZ DEBUG: Created room, seed in DB =", r.seed, "expected seed =", seed);
+    if (r.seed !== seed) {
+      console.warn("QUIZ WARNING: Seed mismatch! Fixing...");
+      await sb.from("quiz_rooms").update({ seed }).eq("id", r.id);
+      r.seed = seed;
+    }
     const link = `${window.location.origin}/j/${code}`;
     setRoom(r);
     setInviteLink(link);
@@ -139,7 +146,14 @@ export function QuizOnline() {
     if (!data) { setError("Комната не найдена."); return; }
     const r = data as QuizRoom;
     // Общий порядок вопросов (из seed комнаты) — одинаковый у всех
-    setQuestions(shuffleQuestions(TOTAL_QUESTIONS, r.seed));
+    // Защита: если seed не сохранился — генерируем и сохраняем
+    if (r.seed === undefined || r.seed === null) {
+      const newSeed = Math.floor(Math.random() * 1000000);
+      await sb.from("quiz_rooms").update({ seed: newSeed }).eq("id", r.id);
+      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, newSeed));
+    } else {
+      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, r.seed));
+    }
 
     const phaseFromState = (): QuizPhase =>
       r.status === "finished" ? "end" :
@@ -180,7 +194,11 @@ export function QuizOnline() {
     if (!room || role !== "host") return;
     const sb = initSb();
     if (!sb) return;
-    await sb.from("quiz_rooms").update({ status: "playing", q_state: "answering", current_q: 0, rematch_votes: null }).eq("id", room.id);
+    const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
+    await sb.from("quiz_rooms").update({
+      status: "playing", q_state: "answering", current_q: 0,
+      rematch_votes: null, next_at: nextAt,
+    }).eq("id", room.id);
     setPhase("playing");
     setSelected(null);
   }, [room, role, initSb]);
@@ -194,11 +212,13 @@ export function QuizOnline() {
     for (const p of r.players) newScores[p.id] = 0;
     const newQs = shuffleQuestions(TOTAL_QUESTIONS, newSeed);
     setQuestions(newQs);
+    const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
     await sb
       .from("quiz_rooms")
       .update({
         status: "playing", q_state: "answering", current_q: 0,
         scores: newScores, answers: {}, seed: newSeed, rematch_votes: null,
+        next_at: nextAt,
       })
       .eq("id", r.id);
     setPhase("playing");
@@ -291,73 +311,47 @@ export function QuizOnline() {
     }
   }, [initSb]);
 
-  // ---------- НАДЁЖНЫЙ таймер-менеджер (один, без гонок) ----------
-  // Каждое изменение фазы/вопроса/ответов:
-  //   1. отменяет предыдущий таймер
-  //   2. вычисляет ДЕЙСТВИТЕЛЬНОЕ время до следующего действия
-  //   3. ставит ОДИН новый таймер
-  // Гонки исключены: новый эффект всегда видит актуальное состояние.
-  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scheduleAdvance = useCallback((r: QuizRoom) => {
-    // Отменяем предыдущий (любой) таймер
-    if (advanceTimerRef.current) {
-      clearTimeout(advanceTimerRef.current);
-      advanceTimerRef.current = null;
-    }
-    if (!r || r.status !== "playing") return;
-
-    let delay: number;
-    let action: "reveal" | "next" | "finish";
-
+  // ---------- СЕРВЕРНЫЙ таймер: next_at ----------
+  // Вместо клиентского setTimeout — пишем в базу время, КОГДА нужно продвинуть.
+  // Любой клиент (хост или гость) через polling видит: «next_at прошёл?» → advance().
+  // Никаких lost timers, никаких гонок.
+  const scheduleAdvance = useCallback(async (r: QuizRoom) => {
+    const sb = initSb();
+    if (!sb || !r || r.status !== "playing") return;
+    const now = new Date();
+    let delayMs: number;
     if (r.q_state === "reveal") {
-      action = r.current_q + 1 >= TOTAL_QUESTIONS ? "finish" : "next";
-      delay = REVEAL_SECONDS * 1000;
+      delayMs = REVEAL_SECONDS * 1000;
     } else {
-      action = "reveal";
       const allAnswered = r.players.length > 0 &&
         r.players.every((p) => (r.answers?.[r.current_q] ?? {})[p.id] !== undefined);
-      // Все ответили → reveal через 0.5 сек, иначе полный таймер
-      delay = allAnswered ? 500 : ANSWER_SECONDS * 1000;
+      delayMs = allAnswered ? 500 : ANSWER_SECONDS * 1000;
     }
+    const nextAt = new Date(now.getTime() + delayMs).toISOString();
+    // PATCH next_at (read-then-write не нужен: next_at не зависит от answers)
+    await sb.from("quiz_rooms").update({ next_at: nextAt }).eq("id", r.id);
+  }, [initSb]);
 
-    advanceTimerRef.current = setTimeout(async () => {
-      advanceTimerRef.current = null;
-      const cur = roomRef.current;
-      if (!cur || cur.status !== "playing") return;
-      // Защита от stale: фаза/вопрос должны совпадать с теми, что были при установке
-      if (cur.q_state !== r.q_state || cur.current_q !== r.current_q) return;
-      if (action === "reveal") await advance(cur, "reveal");
-      else if (action === "next") await advance(cur, "answering");
-      else await advance(cur, "finished");
-    }, delay);
-  }, [advance]);
-
-  // Запускаем/перезапускаем при каждом изменении, влияющем на тайминг
+  // При каждом изменении фазы/вопроса/ответов — назначаем next_at
   useEffect(() => {
-    if (!room) return;
-    if (room.status !== "playing") return;
+    if (!room || room.status !== "playing") return;
     scheduleAdvance(room);
-    return () => {
-      if (advanceTimerRef.current) {
-        clearTimeout(advanceTimerRef.current);
-        advanceTimerRef.current = null;
-      }
-    };
   }, [room?.current_q, room?.q_state, room?.status, room?.answers, scheduleAdvance]);
 
-  // ---------- Таймеры отображения ----------
+  // ---------- Таймеры отображения (из next_at, точные) ----------
+  const [, forceTick] = useState(0);
   useEffect(() => {
-    if (phase === "playing") {
-      setTimeLeft(ANSWER_SECONDS);
-      const t = setInterval(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000);
-      return () => clearInterval(t);
-    }
-    if (phase === "reveal") {
-      setRevealLeft(REVEAL_SECONDS);
-      const t = setInterval(() => setRevealLeft((s) => Math.max(0, s - 1)), 1000);
-      return () => clearInterval(t);
-    }
-  }, [phase, room?.current_q]);
+    const t = setInterval(() => forceTick((x) => x + 1), 500);
+    return () => clearInterval(t);
+  }, []);
+  const remainingSec = room?.next_at
+    ? Math.max(0, Math.ceil((new Date(room.next_at).getTime() - Date.now()) / 1000))
+    : 0;
+  // Используем remainingSec для отображения (timeLeft / revealLeft)
+  useEffect(() => {
+    if (phase === "playing") setTimeLeft(remainingSec);
+    else if (phase === "reveal") setRevealLeft(remainingSec);
+  }, [remainingSec, phase]);
 
   // ---------- Realtime ----------
   // Клиент создаём при первом рендере (не ждём действий пользователя),
@@ -402,9 +396,22 @@ export function QuizOnline() {
     else setPhase("lobby");
   }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
-  // ---------- Polling: backup для realtime ----------
-  // Опрашиваем базу: 1 сек во время игры, 0.5 сек во время голосования за реванш.
+  // КРИТИЧНО: при каждом изменении seed — пере-вычисляем вопросы
+  // Это гарантирует, что ВСЕ игроки видят ОДИН И ТОТ ЖЕ порядок
+  const lastSeedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!room?.seed) return;
+    if (lastSeedRef.current !== room.seed) {
+      lastSeedRef.current = room.seed;
+      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, room.seed));
+    }
+  }, [room?.seed]);
+
+  // ---------- Polling + серверный таймер ----------
+  // Опрашиваем базу каждые 1 сек. Если next_at просрочен — продвигаем игру.
+  // Это НАДЁЖНЫЙ механизм: не зависит от setTimeout, не теряется.
   const lastSyncRef = useRef(0);
+  const advancingRef = useRef(false);
   useEffect(() => {
     const sb = sbClient.current;
     if (!sb || !room) return;
@@ -412,21 +419,40 @@ export function QuizOnline() {
     const isPlaying = room.status === "playing";
     if (!isVoting && !isPlaying) return;
     const interval = isVoting ? 500 : 1000;
-    const minGap = isVoting ? 350 : 800;
+    const minGap = isVoting ? 350 : 700;
     const roomId = room.id;
     const poll = setInterval(async () => {
       const now = Date.now();
       if (now - lastSyncRef.current < minGap) return;
       try {
         const { data } = await sb.from("quiz_rooms").select().eq("id", roomId).maybeSingle();
-        if (data) {
-          lastSyncRef.current = now;
-          setRoom((prev) => (prev ? { ...prev, ...(data as QuizRoom) } : (data as QuizRoom)));
+        if (!data) return;
+        lastSyncRef.current = now;
+        const fresh = data as QuizRoom;
+        setRoom((prev) => (prev ? { ...prev, ...fresh } : fresh));
+
+        // СЕРВЕРНЫЙ ТАЙМЕР: если next_at просрочен и мы ещё не продвигаем — advance
+        if (fresh.status === "playing" && fresh.next_at && !advancingRef.current) {
+          const nextAtMs = new Date(fresh.next_at).getTime();
+          if (now >= nextAtMs) {
+            advancingRef.current = true;
+            try {
+              if (fresh.q_state === "answering") {
+                await advance(fresh, "reveal");
+              } else {
+                const nextQ = fresh.current_q + 1;
+                if (nextQ >= TOTAL_QUESTIONS) await advance(fresh, "finished");
+                else await advance(fresh, "answering");
+              }
+            } finally {
+              advancingRef.current = false;
+            }
+          }
         }
       } catch { /* ignore */ }
     }, interval);
     return () => clearInterval(poll);
-  }, [room?.id, room?.status, room?.rematch_votes]);
+  }, [room?.id, room?.status, room?.rematch_votes, advance]);
 
   // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
   // ОТКЛЮЧЕНО: гость вводит имя ПОЛНОСТЬЮ и сам нажимает кнопку.
