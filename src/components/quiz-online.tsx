@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { shuffleQuestions, QUIZ_QUESTIONS } from "@/lib/quiz";
+import { shuffleQuestions } from "@/lib/quiz";
 
 type QuizPhase = "lobby" | "playing" | "reveal" | "end";
 type Role = "host" | "guest";
@@ -28,7 +28,8 @@ type QuizRoom = {
 };
 
 const TOTAL_QUESTIONS = 10;
-const ANSWER_SECONDS = 15;
+const ANSWER_SECONDS = 7;
+const REVEAL_SECONDS = 4;
 
 function makeCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -38,7 +39,15 @@ function makeCode() {
 }
 
 function uid() {
-  return Math.random().toString(36).slice(2, 10);
+  // Стабильный ID игрока (переживает перезагрузку страницы)
+  if (typeof window !== "undefined") {
+    const existing = localStorage.getItem("quiz_player_id");
+    if (existing) return existing;
+    const id = "p" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    localStorage.setItem("quiz_player_id", id);
+    return id;
+  }
+  return "p" + Math.random().toString(36).slice(2, 10);
 }
 
 export function QuizOnline() {
@@ -54,10 +63,15 @@ export function QuizOnline() {
   const [msg, setMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
 
-  // Для хоста — порядок вопросов (общий для всех)
   const [questions, setQuestions] = useState<ReturnType<typeof shuffleQuestions>>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(ANSWER_SECONDS);
+  const [revealLeft, setRevealLeft] = useState(REVEAL_SECONDS);
+
+  const roomRef = useRef<QuizRoom | null>(null);
+  roomRef.current = room;
+  const questionsRef = useRef(questions);
+  questionsRef.current = questions;
 
   const initSb = useCallback(() => {
     const c = getSupabaseBrowser();
@@ -107,6 +121,14 @@ export function QuizOnline() {
     const r = data as QuizRoom;
     if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
     if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
+    if (r.players.some((p) => p.id === myId)) {
+      // Уже подключены — просто показываем лобби
+      setRole("guest");
+      setRoom(r);
+      setPhase("lobby");
+      setMsg(`Вы уже в комнате как «${r.players.find((p) => p.id === myId)?.name}».`);
+      return;
+    }
 
     const newPlayers = [...r.players, { id: myId, name, isHost: false }];
     const newScores = { ...r.scores, [myId]: 0 };
@@ -133,61 +155,90 @@ export function QuizOnline() {
     setSelected(null);
   }, [room, role, initSb]);
 
-  // ---------- Хост: завершить раунд (reveal) + начислить очки ----------
-  const revealAnswers = useCallback(async () => {
-    if (!room || role !== "host") return;
+  // ---------- Прогрессия: reveal + очки + следующий вопрос (только хост, автоматически) ----------
+  const advance = useCallback(async (r: QuizRoom, next: "reveal" | "answering" | "finished") => {
     const sb = initSb();
     if (!sb) return;
-    
-    const qIdx = room.current_q;
-    const q = questions[qIdx];
-    if (!q) return;
-    
-    // Считаем очки: +10 за правильный ответ
-    const answersForQ = room.answers?.[qIdx] ?? {};
-    const newScores = { ...room.scores };
-    for (const player of room.players) {
-      const ans = answersForQ[player.id];
-      if (ans === q.correct) {
-        newScores[player.id] = (newScores[player.id] ?? 0) + 10;
+    const qs = questionsRef.current;
+
+    if (next === "reveal") {
+      // Начисляем очки за текущий вопрос
+      const qIdx = r.current_q;
+      const q = qs[qIdx];
+      const answersForQ = r.answers?.[qIdx] ?? {};
+      const newScores = { ...r.scores };
+      if (q) {
+        for (const p of r.players) {
+          if (answersForQ[p.id] === q.correct) {
+            newScores[p.id] = (newScores[p.id] ?? 0) + 10;
+          }
+        }
       }
-    }
-    
-    const next = qIdx + 1;
-    if (next >= TOTAL_QUESTIONS) {
-      await sb.from("quiz_rooms").update({ status: "finished", scores: newScores }).eq("id", room.id);
-      setPhase("end");
+      await sb.from("quiz_rooms").update({ q_state: "reveal", scores: newScores }).eq("id", r.id);
+    } else if (next === "answering") {
+      const nextQ = r.current_q + 1;
+      if (nextQ >= TOTAL_QUESTIONS) {
+        await sb.from("quiz_rooms").update({ status: "finished" }).eq("id", r.id);
+      } else {
+        await sb.from("quiz_rooms").update({ q_state: "answering", current_q: nextQ }).eq("id", r.id);
+      }
     } else {
-      await sb.from("quiz_rooms").update({ q_state: "reveal", current_q: next, scores: newScores }).eq("id", room.id);
-      setPhase("reveal");
+      await sb.from("quiz_rooms").update({ status: "finished" }).eq("id", r.id);
     }
-  }, [room, role, initSb, questions]);
+  }, [initSb]);
 
-  // ---------- Хост: следующий вопрос ----------
-  const nextQuestion = useCallback(async () => {
-    if (!room || role !== "host") return;
-    const sb = initSb();
-    if (!sb) return;
-    await sb.from("quiz_rooms").update({ q_state: "answering" }).eq("id", room.id);
-    setPhase("playing");
-    setSelected(null);
-  }, [room, role, initSb]);
+  // ---------- Auto-advance: таймер истёк (только хост двигает сервер) ----------
+  useEffect(() => {
+    if (role !== "host" || !room || room.status !== "playing") return;
+    const isReveal = room.q_state === "reveal";
+    const seconds = isReveal ? REVEAL_SECONDS : ANSWER_SECONDS;
 
-  // ---------- Ответ (каждый игрок — за себя) ----------
-  const lockAnswer = useCallback(
-    (optIdx: number) => {
-      if (!room || selected !== null) return;
-      setSelected(optIdx);
-      // Сохраняем ответ на сервер
-      const sb = initSb();
-      if (!sb) return;
-      const qIdx = room.current_q;
-      const newAnswers = { ...(room.answers ?? {}) };
-      newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
-      sb.from("quiz_rooms").update({ answers: newAnswers }).eq("id", room.id);
-    },
-    [room, selected, myId, initSb]
-  );
+    const t = setTimeout(async () => {
+      const cur = roomRef.current;
+      if (!cur || cur.status !== "playing") return;
+      if (cur.q_state === "reveal") {
+        const nextQ = cur.current_q + 1;
+        if (nextQ >= TOTAL_QUESTIONS) {
+          await advance(cur, "finished");
+        } else {
+          await advance(cur, "answering");
+        }
+      } else {
+        await advance(cur, "reveal");
+      }
+    }, seconds * 1000);
+    return () => clearTimeout(t);
+  }, [phase, room?.current_q, room?.q_state, role, room?.status, advance]);
+
+  // ---------- Все ответили → хост сразу переходит в reveal ----------
+  useEffect(() => {
+    if (role !== "host" || !room || room.status !== "playing" || room.q_state !== "answering") return;
+    const qIdx = room.current_q;
+    const answersForQ = room.answers?.[qIdx] ?? {};
+    const allAnswered = room.players.every((p) => answersForQ[p.id] !== undefined);
+    if (allAnswered) {
+      const t = setTimeout(async () => {
+        const cur = roomRef.current;
+        if (!cur || cur.status !== "playing" || cur.q_state !== "answering" || cur.current_q !== qIdx) return;
+        await advance(cur, "reveal");
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [room, role, advance]);
+
+  // ---------- Таймеры отображения ----------
+  useEffect(() => {
+    if (phase === "playing") {
+      setTimeLeft(ANSWER_SECONDS);
+      const t = setInterval(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000);
+      return () => clearInterval(t);
+    }
+    if (phase === "reveal") {
+      setRevealLeft(REVEAL_SECONDS);
+      const t = setInterval(() => setRevealLeft((s) => Math.max(0, s - 1)), 1000);
+      return () => clearInterval(t);
+    }
+  }, [phase, room?.current_q]);
 
   // ---------- Realtime ----------
   useEffect(() => {
@@ -205,11 +256,9 @@ export function QuizOnline() {
             setPhase("end");
           } else if (r.status === "playing") {
             if (r.q_state === "reveal") setPhase("reveal");
-            else setPhase("playing");
-            // сбрасываем таймер и выбор при новом вопросе
-            if (r.q_state === "answering") {
+            else {
+              setPhase("playing");
               setSelected(null);
-              setTimeLeft(ANSWER_SECONDS);
             }
           }
         }
@@ -218,26 +267,30 @@ export function QuizOnline() {
     return () => { sb.removeChannel(ch); };
   }, [room?.id]);
 
-  // ---------- Таймер (только на reveal-фазе у хоста; у всех видимый) ----------
-  useEffect(() => {
-    if (phase !== "playing") return;
-    setTimeLeft(ANSWER_SECONDS);
-    const t = setInterval(() => {
-      setTimeLeft((s) => {
-        if (s <= 1) { clearInterval(t); return 0; }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [phase, room?.current_q]);
+  // ---------- Ответ (каждый игрок — за себя, один раз) ----------
+  const lockAnswer = useCallback(
+    (optIdx: number) => {
+      const r = roomRef.current;
+      if (!r || selected !== null || r.q_state !== "answering" || r.status !== "playing") return;
+      setSelected(optIdx);
+      const sb = initSb();
+      if (!sb) return;
+      const qIdx = r.current_q;
+      const newAnswers = { ...(r.answers ?? {}) };
+      newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
+      sb.from("quiz_rooms").update({ answers: newAnswers }).eq("id", r.id);
+    },
+    [selected, myId, initSb]
+  );
 
-  // ---------- Очки ----------
+  // ---------- Вычисления ----------
   const q = questions[room?.current_q ?? 0];
-  const computeScores = () => {
-    return room?.scores ?? {};
-  };
+  const qIdx = room?.current_q ?? 0;
+  const answersForQ: Record<string, number> = room?.answers?.[qIdx] ?? {};
+  const answeredCount = room ? room.players.filter((p) => answersForQ[p.id] !== undefined).length : 0;
+  const totalPlayers = room?.players.length ?? 0;
 
-  const sortedPlayers = Object.entries(computeScores())
+  const sortedPlayers = Object.entries(room?.scores ?? {})
     .map(([id, score]) => ({
       id,
       score,
@@ -304,7 +357,7 @@ export function QuizOnline() {
 
           <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
             <h3 className="font-bold text-lg">Подключиться</h3>
-            <p className="mt-1 text-sm text-stone-600">Введите код от хоста.</p>
+            <p className="mt-1 text-sm text-stone-600">Введите код от хоста или откройте ссылку.</p>
             <input
               value={myName}
               onChange={(e) => setMyName(e.target.value)}
@@ -329,7 +382,7 @@ export function QuizOnline() {
           {room && (
             <div className="md:col-span-2 rounded-2xl border border-stone-200 bg-white/70 p-5">
               <h3 className="font-bold">Игроки в комнате ({room.players.length}/5)</h3>
-              
+
               {/* Ссылка для приглашения */}
               {inviteLink && (
                 <div className="mt-4 rounded-xl bg-sky-50 border border-sky-200 p-4">
@@ -358,7 +411,7 @@ export function QuizOnline() {
                   </p>
                 </div>
               )}
-              
+
               <ul className="mt-3 grid sm:grid-cols-2 gap-2">
                 {room.players.map((p) => (
                   <li key={p.id} className="flex items-center gap-2 rounded-xl bg-stone-50 px-4 py-2.5 text-sm">
@@ -395,8 +448,13 @@ export function QuizOnline() {
               Вопрос <b className="text-stone-900">{room.current_q + 1}</b> из {TOTAL_QUESTIONS}
             </span>
             {phase === "playing" && (
-              <span className={`text-sm font-bold ${timeLeft <= 5 ? "text-red-600" : "text-stone-700"}`}>
+              <span className={`text-sm font-bold ${timeLeft <= 3 ? "text-red-600" : "text-stone-700"}`}>
                 ⏱ {timeLeft}с
+              </span>
+            )}
+            {phase === "reveal" && (
+              <span className="text-sm font-bold text-stone-700">
+                ⏱ {revealLeft}с до следующего
               </span>
             )}
           </div>
@@ -405,19 +463,21 @@ export function QuizOnline() {
             <h2 className="text-xl sm:text-2xl font-bold">{q.q}</h2>
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
               {q.options.map((opt, i) => {
-                const isCorrect = i === q.correct;
-                const isMine = selected === i;
-                // Покажем правильный ответ сразу (все видят)
+                const isReveal = phase === "reveal";
+                const isCorrect = isReveal && i === q.correct;
+                const isMine = isReveal && selected === i;
                 return (
                   <button
                     key={i}
-                    disabled={selected !== null}
+                    disabled={phase !== "playing" || selected !== null}
                     onClick={() => lockAnswer(i)}
                     className={`rounded-xl border-2 px-4 py-4 text-left text-sm font-medium transition ${
                       isCorrect
                         ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                        : isMine
+                        : isMine && !isCorrect
                         ? "border-red-400 bg-red-50 text-red-700"
+                        : selected === i && phase === "playing"
+                        ? "border-stone-900 bg-stone-900 text-white"
                         : "border-stone-200 bg-white hover:border-stone-400"
                     } disabled:opacity-70`}
                   >
@@ -425,11 +485,38 @@ export function QuizOnline() {
                       {String.fromCharCode(65 + i)}
                     </span>
                     {opt}
+                    {/* Кто выбрал этот вариант (видно в reveal) */}
+                    {isReveal && (() => {
+                      const voters = room.players.filter((p) => answersForQ[p.id] === i);
+                      if (voters.length === 0) return null;
+                      return (
+                        <span className="block mt-1.5 text-[11px] text-stone-500">
+                          👤 {voters.map((p) => p.name).join(", ")}
+                        </span>
+                      );
+                    })()}
                   </button>
                 );
               })}
             </div>
           </div>
+
+          {/* Прогресс ответов */}
+          {phase === "playing" && (
+            <div className="rounded-xl bg-white/60 border border-stone-200 px-4 py-3 flex items-center justify-between text-sm">
+              <span className="text-stone-600">
+                Ответили: <b className="text-stone-900">{answeredCount}</b> из {totalPlayers}
+              </span>
+              {answeredCount === totalPlayers && totalPlayers > 0 && (
+                <span className="text-emerald-600 font-semibold">✓ Все ответили</span>
+              )}
+            </div>
+          )}
+          {phase === "reveal" && (
+            <div className="rounded-xl bg-white/60 border border-stone-200 px-4 py-3 text-sm text-stone-600">
+              Следующий вопрос через <b className="text-stone-900">{revealLeft}с</b>…
+            </div>
+          )}
 
           {/* Очки */}
           <div className="rounded-2xl border border-stone-200 bg-white/60 p-4">
@@ -450,28 +537,6 @@ export function QuizOnline() {
               ))}
             </ul>
           </div>
-
-          {iAmHost && phase === "playing" && (
-            <button
-              onClick={revealAnswers}
-              className="w-full rounded-xl bg-amber-500 text-white font-bold py-3 hover:bg-amber-400 transition"
-            >
-              ОТКРЫТЬ ОТВЕТЫ
-            </button>
-          )}
-          {iAmHost && phase === "reveal" && (
-            <button
-              onClick={nextQuestion}
-              className="w-full rounded-xl bg-stone-900 text-white font-bold py-3 hover:bg-stone-700 transition"
-            >
-              СЛЕДУЮЩИЙ ВОПРОС →
-            </button>
-          )}
-          {!iAmHost && phase === "reveal" && (
-            <div className="rounded-xl bg-stone-100 p-4 text-sm text-stone-600 text-center">
-              Правильный ответ открыт. Ждём хоста…
-            </div>
-          )}
         </div>
       )}
 
