@@ -10,6 +10,7 @@ create table if not exists public.quiz_rooms (
   scores jsonb not null default '{}'::jsonb,   -- { playerId: points }
   answers jsonb not null default '{}'::jsonb,  -- { qIndex: { playerId: optionIndex } }
   seed int,  -- порядок вопросов (общий для всех)
+  rematch_votes jsonb,  -- { playerId: true/false } — голос за реванш
   created_at timestamptz not null default now()
 );
 

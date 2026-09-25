@@ -26,6 +26,7 @@ type QuizRoom = {
   scores: Record<string, number>;
   answers: Record<number, Record<string, number>>; // { questionIndex: { playerId: optionIndex } }
   seed?: number; // порядок вопросов — общий для всех
+  rematch_votes?: Record<string, boolean>; // { playerId: да/нет } — голос за реванш
 };
 
 const TOTAL_QUESTIONS = 10;
@@ -179,29 +180,65 @@ export function QuizOnline() {
     if (!room || role !== "host") return;
     const sb = initSb();
     if (!sb) return;
-    await sb.from("quiz_rooms").update({ status: "playing", q_state: "answering", current_q: 0 }).eq("id", room.id);
+    await sb.from("quiz_rooms").update({ status: "playing", q_state: "answering", current_q: 0, rematch_votes: null }).eq("id", room.id);
     setPhase("playing");
     setSelected(null);
   }, [room, role, initSb]);
 
-  // ---------- Реванш: хост перезапускает игру с теми же игроками ----------
-  const rematch = useCallback(async () => {
-    if (!room || role !== "host") return;
+  // ---------- Реванш: хост ПРЕДЛАГАЕТ, остальные СОГЛАСОВЫВАЮТ ----------
+  const runRematch = useCallback(async (r: QuizRoom) => {
     const sb = initSb();
     if (!sb) return;
     const newSeed = Math.floor(Math.random() * 1000000);
     const newScores: Record<string, number> = {};
-    for (const p of room.players) newScores[p.id] = 0;
+    for (const p of r.players) newScores[p.id] = 0;
     const newQs = shuffleQuestions(TOTAL_QUESTIONS, newSeed);
     setQuestions(newQs);
     await sb
       .from("quiz_rooms")
-      .update({ status: "playing", q_state: "answering", current_q: 0, scores: newScores, answers: {}, seed: newSeed })
-      .eq("id", room.id);
+      .update({
+        status: "playing", q_state: "answering", current_q: 0,
+        scores: newScores, answers: {}, seed: newSeed, rematch_votes: null,
+      })
+      .eq("id", r.id);
     setPhase("playing");
     setSelected(null);
-    setMsg("🔄 Реванш! Новый порядок вопросов, все очки обнулены.");
-  }, [room, role, initSb]);
+    lastQRef.current = -1;
+    setMsg("🔄 Реванш! Все очки обнулены, новый порядок вопросов.");
+  }, [initSb]);
+
+  // Хост: предложить реванш (заполняем голоса: хост = true, остальные = undefined)
+  const proposeRematch = useCallback(async () => {
+    const r = roomRef.current;
+    if (!r || role !== "host") return;
+    const sb = initSb();
+    if (!sb) return;
+    const votes: Record<string, boolean> = {};
+    for (const p of r.players) votes[p.id] = p.isHost; // хост голосует «да» автоматически
+    await sb.from("quiz_rooms").update({ rematch_votes: votes }).eq("id", r.id);
+    setMsg("🔄 Хост предложил реванш. Ждём остальных…");
+  }, [role, initSb]);
+
+  // Гость: проголосовать за/против реванша
+  const voteRematch = useCallback(async (yes: boolean) => {
+    const r = roomRef.current;
+    if (!r || role !== "guest" || !r.rematch_votes) return;
+    const sb = initSb();
+    if (!sb) return;
+    const votes = { ...r.rematch_votes, [myId]: yes };
+    await sb.from("quiz_rooms").update({ rematch_votes: votes }).eq("id", r.id);
+  }, [role, myId, initSb]);
+
+  // Авто-старт реванша: когда ВСЕ проголосовали «да»
+  useEffect(() => {
+    const r = roomRef.current;
+    if (!r || r.status !== "finished" || !r.rematch_votes) return;
+    const allYes = r.players.every((p) => r.rematch_votes?.[p.id] === true);
+    if (allYes) {
+      const t = setTimeout(() => runRematch(r), 400);
+      return () => clearTimeout(t);
+    }
+  }, [room?.rematch_votes, room?.status, runRematch]);
 
   // ---------- Прогрессия: reveal + очки + следующий вопрос (только хост, автоматически) ----------
   const advance = useCallback(async (r: QuizRoom, next: "reveal" | "answering" | "finished") => {
@@ -360,16 +397,20 @@ export function QuizOnline() {
   }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
   // ---------- Polling: backup для realtime ----------
-  // Опрашиваем базу каждые 2 сек, если игра идёт. Если realtime терял событие
-  // (например, гость ответил, но хост не получил push) — polling подхватит.
+  // Опрашиваем базу: 1 сек во время игры, 0.5 сек во время голосования за реванш.
   const lastSyncRef = useRef(0);
   useEffect(() => {
     const sb = sbClient.current;
-    if (!sb || !room || room.status !== "playing") return;
+    if (!sb || !room) return;
+    const isVoting = room.status === "finished" && !!room.rematch_votes;
+    const isPlaying = room.status === "playing";
+    if (!isVoting && !isPlaying) return;
+    const interval = isVoting ? 500 : 1000;
+    const minGap = isVoting ? 350 : 800;
     const roomId = room.id;
     const poll = setInterval(async () => {
       const now = Date.now();
-      if (now - lastSyncRef.current < 1500) return; // не чаще 1.5 сек
+      if (now - lastSyncRef.current < minGap) return;
       try {
         const { data } = await sb.from("quiz_rooms").select().eq("id", roomId).maybeSingle();
         if (data) {
@@ -377,9 +418,9 @@ export function QuizOnline() {
           setRoom((prev) => (prev ? { ...prev, ...(data as QuizRoom) } : (data as QuizRoom)));
         }
       } catch { /* ignore */ }
-    }, 2000);
+    }, interval);
     return () => clearInterval(poll);
-  }, [room?.id, room?.status]);
+  }, [room?.id, room?.status, room?.rematch_votes]);
 
   // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
   // ОТКЛЮЧЕНО: гость вводит имя ПОЛНОСТЬЮ и сам нажимает кнопку.
@@ -750,22 +791,107 @@ export function QuizOnline() {
               </div>
             ))}
           </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {iAmHost && (
+          {/* Реванш: голосование */}
+          <div className="mt-6 space-y-4">
+            {iAmHost && !room.rematch_votes && (
               <button
-                onClick={rematch}
-                className="rounded-xl bg-emerald-600 text-white px-6 py-3 text-sm font-bold hover:bg-emerald-500 transition"
+                onClick={proposeRematch}
+                className="w-full rounded-xl bg-emerald-600 text-white px-6 py-3 text-sm font-bold hover:bg-emerald-500 transition"
               >
-                🔄 Реванш (те же игроки)
+                🔄 Предложить реванш (те же игроки)
               </button>
             )}
-            <a href="/quiz/online" className="rounded-xl bg-stone-900 text-white px-6 py-3 text-sm font-semibold hover:bg-stone-700">
-              ↩ В лобби (новая комната)
-            </a>
+
+            {room.rematch_votes && (() => {
+              const votes = room.rematch_votes;
+              const yesCount = room.players.filter((p) => votes[p.id] === true).length;
+              const noCount = room.players.filter((p) => votes[p.id] === false).length;
+              const pending = room.players.length - yesCount - noCount;
+              const allYes = room.players.every((p) => votes[p.id] === true);
+              const iVoted = votes[myId] !== undefined;
+              return (
+                <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-stone-700">
+                      🔄 Хост предложил реванш
+                    </span>
+                    <span className="text-xs text-stone-500">
+                      {yesCount}/{room.players.length} за
+                    </span>
+                  </div>
+
+                  {/* Кто уже проголосовал, кто ещё нет */}
+                  <ul className="space-y-1.5">
+                    {room.players.map((p) => {
+                      const v = votes[p.id];
+                      const isMe = p.id === myId;
+                      return (
+                        <li key={p.id} className="flex items-center justify-between text-sm">
+                          <span className={`flex items-center gap-2 ${isMe ? "font-bold text-stone-900" : "text-stone-600"}`}>
+                            {p.isHost ? "👑" : "👤"} {p.name}
+                            {isMe && <span className="text-[10px] text-stone-400">(ты)</span>}
+                          </span>
+                          {v === true && <span className="text-emerald-600 font-bold text-xs">✓ Да</span>}
+                          {v === false && <span className="text-red-500 font-bold text-xs">✗ Нет</span>}
+                          {v === undefined && (
+                            <span className="text-[11px] text-amber-600 animate-pulse">… ждём</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* Моя плашка */}
+                  {!iAmHost && (
+                    !iVoted ? (
+                      <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                        ⚠️ Ты ещё не проголосовал!
+                      </div>
+                    ) : votes[myId] ? (
+                      <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
+                        ✓ Ты проголосовал «Да». Ждём остальных…
+                      </div>
+                    ) : (
+                      <div className="rounded-lg bg-stone-100 border border-stone-200 px-3 py-2 text-xs text-stone-500">
+                        Ты проголосовал «Нет». Реванш не запустится.
+                      </div>
+                    )
+                  )}
+
+                  {/* Гость: кнопки (пока не проголосовал) */}
+                  {!iAmHost && !iVoted && (
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => voteRematch(true)}
+                        className="flex-1 rounded-xl bg-emerald-600 text-white font-bold py-3 hover:bg-emerald-500 transition"
+                      >
+                        ✓ Да, реванш
+                      </button>
+                      <button
+                        onClick={() => voteRematch(false)}
+                        className="flex-1 rounded-xl bg-stone-200 text-stone-700 font-bold py-3 hover:bg-stone-300 transition"
+                      >
+                        ✗ Нет
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Хост: статус */}
+                  {iAmHost && (
+                    <div className="text-center text-xs text-stone-500">
+                      {allYes ? "Все согласны — запускаем…" : `Ждём: ${pending} из ${room.players.length}`}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            <div className="flex flex-wrap justify-center gap-3">
+              <a href="/quiz/online" className="rounded-xl bg-stone-900 text-white px-6 py-3 text-sm font-semibold hover:bg-stone-700">
+                ↩ В лобби (новая комната)
+              </a>
+            </div>
           </div>
-          {!iAmHost && (
-            <p className="mt-4 text-xs text-stone-500">Ждите реванш от хоста…</p>
-          )}
         </div>
       )}
 
