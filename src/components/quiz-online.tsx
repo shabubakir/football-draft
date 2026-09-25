@@ -550,50 +550,24 @@ export function QuizOnline() {
             /* Хост уже в комнате — только приглашение и игроки */
             null
           ) : (
-            <>
-              <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
-                <h3 className="font-bold text-lg">Создать комнату</h3>
-                <p className="mt-1 text-sm text-stone-600">
-                  Вы будете хостом. До 4 друзей подключатся по коду.
-                </p>
-                <input
-                  value={myName}
-                  onChange={(e) => setMyName(e.target.value)}
-                  placeholder="Ваше имя"
-                  className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
-                />
-                <button
-                  onClick={createRoom}
-                  className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
-                >
-                  СОЗДАТЬ КОМНАТУ
-                </button>
-              </div>
-
-              <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
-                <h3 className="font-bold text-lg">Подключиться</h3>
-                <p className="mt-1 text-sm text-stone-600">Введите код от хоста.</p>
-                <input
-                  value={myName}
-                  onChange={(e) => setMyName(e.target.value)}
-                  placeholder="Ваше имя"
-                  className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
-                />
-                <input
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  placeholder="ABC12"
-                  maxLength={5}
-                  className="mt-3 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-mono tracking-widest outline-none focus:border-stone-500 uppercase"
-                />
-                <button
-                  onClick={() => joinRoom()}
-                  className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
-                >
-                  ПОДКЛЮЧИТЬСЯ
-                </button>
-              </div>
-            </>
+            <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+              <h3 className="font-bold text-lg">Создать комнату</h3>
+              <p className="mt-1 text-sm text-stone-600">
+                Вы будете хостом. Друзья подключатся по ссылке.
+              </p>
+              <input
+                value={myName}
+                onChange={(e) => setMyName(e.target.value)}
+                placeholder="Ваше имя"
+                className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+              />
+              <button
+                onClick={createRoom}
+                className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+              >
+                СОЗДАТЬ КОМНАТУ
+              </button>
+            </div>
           )}
 
           {room && (
