@@ -174,10 +174,6 @@ export function QuizOnline() {
     setMsg(`Вы в игре как «${name}»! Ждите старта.`);
   }, [initSb, joinCode, myName, myId, questions]);
 
-  // Ref для авто-join (joinRoom меняется при смене имени/кода)
-  const joinRoomRef = useRef<typeof joinRoom | null>(null);
-  joinRoomRef.current = joinRoom;
-
   // ---------- Хост: старт ----------
   const startGame = useCallback(async () => {
     if (!room || role !== "host") return;
@@ -186,6 +182,25 @@ export function QuizOnline() {
     await sb.from("quiz_rooms").update({ status: "playing", q_state: "answering", current_q: 0 }).eq("id", room.id);
     setPhase("playing");
     setSelected(null);
+  }, [room, role, initSb]);
+
+  // ---------- Реванш: хост перезапускает игру с теми же игроками ----------
+  const rematch = useCallback(async () => {
+    if (!room || role !== "host") return;
+    const sb = initSb();
+    if (!sb) return;
+    const newSeed = Math.floor(Math.random() * 1000000);
+    const newScores: Record<string, number> = {};
+    for (const p of room.players) newScores[p.id] = 0;
+    const newQs = shuffleQuestions(TOTAL_QUESTIONS, newSeed);
+    setQuestions(newQs);
+    await sb
+      .from("quiz_rooms")
+      .update({ status: "playing", q_state: "answering", current_q: 0, scores: newScores, answers: {}, seed: newSeed })
+      .eq("id", room.id);
+    setPhase("playing");
+    setSelected(null);
+    setMsg("🔄 Реванш! Новый порядок вопросов, все очки обнулены.");
   }, [room, role, initSb]);
 
   // ---------- Прогрессия: reveal + очки + следующий вопрос (только хост, автоматически) ----------
@@ -367,33 +382,8 @@ export function QuizOnline() {
   }, [room?.id, room?.status]);
 
   // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
-  // Ждём ввод имени (или 10 сек по умолчанию) — чтобы гость успел ввести имя,
-  // но при этом не завис на бесконечном ожидании.
-  const autoJoinStarted = useRef(false);
-  const didAutoJoin = useRef(false);
-  useEffect(() => {
-    if (!cameByLink || autoJoinStarted.current || !joinParam || didAutoJoin.current) return;
-    autoJoinStarted.current = true;
-    const code = joinParam.trim().toUpperCase();
-    if (code.length < 4) {
-      setError("Код в ссылке некорректный.");
-      return;
-    }
-    const doJoin = () => {
-      if (didAutoJoin.current) return;
-      didAutoJoin.current = true;
-      // Берём ИМЯ НА МОМЕНТ ДОСТУПА (актуальное состояние)
-      joinRoomRef.current?.(code, myNameRef.current);
-    };
-    // Если имя уже есть (сохранено ранее) — подключаемся сразу
-    if (myNameRef.current.trim()) {
-      const t = setTimeout(doJoin, 400);
-      return () => clearTimeout(t);
-    }
-    // Иначе ждём, пока пользователь введёт имя (макс. 10 сек)
-    const t = setTimeout(doJoin, 10000);
-    return () => clearTimeout(t);
-  }, [cameByLink, joinParam, myName]);
+  // ОТКЛЮЧЕНО: гость вводит имя ПОЛНОСТЬЮ и сам нажимает кнопку.
+  // (раньше auto-join срабатывал раньше, чем гость допечатывал имя)
 
   // Сброс выбора при смене вопроса
   const lastQRef = useRef<number>(-1);
@@ -495,7 +485,7 @@ export function QuizOnline() {
       {phase === "lobby" && (
         <div className={`grid ${cameByLink ? "" : "md:grid-cols-2"} gap-4`}>
           {cameByLink ? (
-            /* Пришёл по ссылке — авто-подключение */
+            /* Пришёл по ссылке — вводит имя полностью и сам нажимает */
             <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
               <h3 className="font-bold text-lg">Присоединиться к игре</h3>
               {joinedByLink ? (
@@ -505,29 +495,33 @@ export function QuizOnline() {
               ) : (
                 <>
                   <p className="mt-1 text-sm text-stone-600">
-                    Вы пришли по приглашению. Подключаем вас…
+                    Введите <b>полное</b> имя — оно будет видно всем игрокам.
                   </p>
                   <input
                     value={myName}
                     onChange={(e) => setMyName(e.target.value)}
-                    placeholder="Ваше имя"
-                    className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+                    placeholder="Ваше имя (например, Шах)"
+                    className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base outline-none focus:border-stone-500"
                   />
                   <div className="mt-3 flex items-center gap-2 text-sm text-stone-500">
-                    <span>Код комнаты:</span>
+                    <span>Комната:</span>
                     <span className="font-mono font-bold text-stone-900 bg-stone-100 rounded px-2 py-0.5">
                       {joinParam.toUpperCase()}
                     </span>
                   </div>
                   <button
                     onClick={() => joinRoom()}
-                    className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+                    disabled={!myName.trim()}
+                    className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 disabled:opacity-40 transition"
                   >
                     ПОДКЛЮЧИТЬСЯ
                   </button>
                 </>
               )}
             </div>
+          ) : role === "host" && room ? (
+            /* Хост уже в комнате — только приглашение и игроки */
+            null
           ) : (
             <>
               <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
@@ -756,11 +750,22 @@ export function QuizOnline() {
               </div>
             ))}
           </div>
-          <div className="mt-6 flex justify-center gap-3">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {iAmHost && (
+              <button
+                onClick={rematch}
+                className="rounded-xl bg-emerald-600 text-white px-6 py-3 text-sm font-bold hover:bg-emerald-500 transition"
+              >
+                🔄 Реванш (те же игроки)
+              </button>
+            )}
             <a href="/quiz/online" className="rounded-xl bg-stone-900 text-white px-6 py-3 text-sm font-semibold hover:bg-stone-700">
-              ↩ В лобби
+              ↩ В лобби (новая комната)
             </a>
           </div>
+          {!iAmHost && (
+            <p className="mt-4 text-xs text-stone-500">Ждите реванш от хоста…</p>
+          )}
         </div>
       )}
 
