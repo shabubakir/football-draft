@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { shuffleQuestions, QUIZ_QUESTIONS } from "@/lib/quiz";
@@ -42,10 +43,11 @@ function uid() {
 
 export function QuizOnline() {
   const sbRef = useRef<SupabaseClient | null>(null);
+  const params = useParams<{ join?: string }>();
   const [role, setRole] = useState<Role>("host");
   const [myId, setMyId] = useState<string>(() => uid());
   const [myName, setMyName] = useState("");
-  const [joinCode, setJoinCode] = useState("");
+  const [joinCode, setJoinCode] = useState(params.join ?? "");
   const [room, setRoom] = useState<QuizRoom | null>(null);
   const [phase, setPhase] = useState<QuizPhase>("lobby");
   const [error, setError] = useState("");
@@ -269,6 +271,23 @@ export function QuizOnline() {
             </span>
           </div>
         )}
+      {room && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-stone-500">Ссылка для друзей:</span>
+          <input
+            readOnly
+            value={`${window.location.origin}/quiz/join/${room.code}`}
+            onClick={(e) => e.currentTarget.select()}
+            className="flex-1 max-w-xs rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-mono outline-none"
+          />
+          <button
+            onClick={() => navigator.clipboard?.writeText(`${window.location.origin}/quiz/join/${room.code}`)}
+            className="rounded-lg bg-stone-900 text-white text-xs font-semibold px-3 py-1.5 hover:bg-stone-700"
+          >
+            Скопировать
+          </button>
+        </div>
+      )}
       </div>
 
       {error && <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>}
