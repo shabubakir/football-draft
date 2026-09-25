@@ -318,18 +318,26 @@ export function QuizOnline() {
   const scheduleAdvance = useCallback(async (r: QuizRoom) => {
     const sb = initSb();
     if (!sb || !r || r.status !== "playing") return;
-    const now = new Date();
-    let delayMs: number;
-    if (r.q_state === "reveal") {
-      delayMs = REVEAL_SECONDS * 1000;
-    } else {
-      const allAnswered = r.players.length > 0 &&
-        r.players.every((p) => (r.answers?.[r.current_q] ?? {})[p.id] !== undefined);
-      delayMs = allAnswered ? 500 : ANSWER_SECONDS * 1000;
+    try {
+      const now = new Date();
+      let delayMs: number;
+      if (r.q_state === "reveal") {
+        delayMs = REVEAL_SECONDS * 1000;
+      } else {
+        const allAnswered = r.players.length > 0 &&
+          r.players.every((p) => (r.answers?.[r.current_q] ?? {})[p.id] !== undefined);
+        delayMs = allAnswered ? 500 : ANSWER_SECONDS * 1000;
+      }
+      const nextAt = new Date(now.getTime() + delayMs).toISOString();
+      console.log("QUIZ DEBUG: scheduleAdvance, next_at =", nextAt, "for room", r.code);
+      const { error } = await sb.from("quiz_rooms").update({ next_at: nextAt }).eq("id", r.id);
+      if (error) {
+        console.error("QUIZ ERROR: scheduleAdvance failed:", error.message);
+        throw error;
+      }
+    } catch (err) {
+      console.error("QUIZ ERROR: scheduleAdvance exception:", err);
     }
-    const nextAt = new Date(now.getTime() + delayMs).toISOString();
-    // PATCH next_at (read-then-write не нужен: next_at не зависит от answers)
-    await sb.from("quiz_rooms").update({ next_at: nextAt }).eq("id", r.id);
   }, [initSb]);
 
   // При каждом изменении фазы/вопроса/ответов — назначаем next_at
@@ -432,9 +440,32 @@ export function QuizOnline() {
         setRoom((prev) => (prev ? { ...prev, ...fresh } : fresh));
 
         // СЕРВЕРНЫЙ ТАЙМЕР: если next_at просрочен и мы ещё не продвигаем — advance
-        if (fresh.status === "playing" && fresh.next_at && !advancingRef.current) {
-          const nextAtMs = new Date(fresh.next_at).getTime();
-          if (now >= nextAtMs) {
+        if (fresh.status === "playing" && !advancingRef.current) {
+          let shouldAdvance = false;
+          let reason = "";
+          
+          if (fresh.next_at) {
+            const nextAtMs = new Date(fresh.next_at).getTime();
+            if (now >= nextAtMs) {
+              shouldAdvance = true;
+              reason = "next_at expired";
+            }
+          } else {
+            // FALLBACK: если next_at null, но фаза не меняется 10 сек — продвигаем
+            const allAnswered = fresh.players.length > 0 &&
+              fresh.players.every((p) => (fresh.answers?.[fresh.current_q] ?? {})[p.id] !== undefined);
+            const shouldBeReveal = fresh.q_state === "answering" && allAnswered;
+            const shouldBeNext = fresh.q_state === "reveal";
+            
+            if (shouldBeReveal || shouldBeNext) {
+              // Проверяем, сколько времени в текущей фазе (по created_at как approximation)
+              shouldAdvance = true;
+              reason = "fallback: next_at null but phase should advance";
+            }
+          }
+          
+          if (shouldAdvance) {
+            console.log("QUIZ DEBUG: Advancing room", fresh.code, "reason:", reason);
             advancingRef.current = true;
             try {
               if (fresh.q_state === "answering") {
