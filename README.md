@@ -26,7 +26,8 @@ npm run dev
 1. Зарегистрируйтесь на [supabase.com](https://supabase.com) и создайте проект
 2. Откройте **Project Settings → API**, скопируйте `Project URL` и `anon public key`
 3. В **SQL Editor** выполните скрипт из [`supabase/schema.sql`](./supabase/schema.sql)
-4. Впишите ключи в `.env.local`
+4. Для онлайн-викторины дополнительно выполните [`supabase/quiz-schema.sql`](./supabase/quiz-schema.sql) — в нём, в частности, хранится выбранная тема комнаты (`football` или `geo`)
+5. Впишите ключи в `.env.local`
 
 ## Деплой на Vercel
 1. Запушьте репозиторий в GitHub

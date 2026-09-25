@@ -10,14 +10,27 @@ create table if not exists public.quiz_rooms (
   scores jsonb not null default '{}'::jsonb,   -- { playerId: points }
   answers jsonb not null default '{}'::jsonb,  -- { qIndex: { playerId: optionIndex } }
   seed int,  -- порядок вопросов (общий для всех)
+  topic text not null default 'football',  -- football | geo
   rematch_votes jsonb,  -- { playerId: true/false } — голос за реванш
   next_at timestamptz,  -- серверный таймер: когда продвинуть
   created_at timestamptz not null default now()
 );
 
 alter table public.quiz_rooms enable row level security;
+alter table public.quiz_rooms add column if not exists topic text not null default 'football';
+
+drop policy if exists "quiz rooms readable" on public.quiz_rooms;
+drop policy if exists "anyone can create quiz rooms" on public.quiz_rooms;
+drop policy if exists "anyone can update quiz rooms" on public.quiz_rooms;
+
 create policy "quiz rooms readable" on public.quiz_rooms for select using (true);
 create policy "anyone can create quiz rooms" on public.quiz_rooms for insert with check (true);
 create policy "anyone can update quiz rooms" on public.quiz_rooms for update using (true);
 
-alter publication supabase_realtime add table public.quiz_rooms;
+do $$
+begin
+  alter publication supabase_realtime add table public.quiz_rooms;
+exception
+  when duplicate_object then null;
+end
+$$;

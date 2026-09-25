@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { shuffleQuestions } from "@/lib/quiz";
+import { shuffleQuestions, type QuizTopic } from "@/lib/quiz";
 
 type QuizPhase = "lobby" | "playing" | "reveal" | "end";
 type Role = "host" | "guest";
@@ -26,6 +26,7 @@ type QuizRoom = {
   scores: Record<string, number>;
   answers: Record<number, Record<string, number>>; // { questionIndex: { playerId: optionIndex } }
   seed?: number; // порядок вопросов — общий для всех
+  topic?: "football" | "geo"; // тема вопросов (футбол / география)
   rematch_votes?: Record<string, boolean>; // { playerId: да/нет } — голос за реванш
   next_at?: string | null; // ISO время, когда нужно продвинуть (серверный таймер)
 };
@@ -74,6 +75,7 @@ export function QuizOnline() {
   const [msg, setMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [joinedByLink, setJoinedByLink] = useState(false);
+  const [topic, setTopic] = useState<QuizTopic>("football");
 
   const [questions, setQuestions] = useState<ReturnType<typeof shuffleQuestions>>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -99,7 +101,7 @@ export function QuizOnline() {
     const name = myName.trim() || "Хост";
     const code = makeCode();
     const seed = Math.floor(Math.random() * 1000000);
-    setQuestions(shuffleQuestions(TOTAL_QUESTIONS, seed));
+    setQuestions(shuffleQuestions(TOTAL_QUESTIONS, seed, topic));
 
     const { data, error: e } = await sb.from("quiz_rooms").insert({
       code,
@@ -108,6 +110,7 @@ export function QuizOnline() {
       scores: { [myId]: 0 },
       answers: {},
       seed,
+      topic,
     }).select().single();
     if (e || !data) { setError("Ошибка: " + (e?.message ?? "?")); return; }
     const r = data as QuizRoom;
@@ -122,7 +125,7 @@ export function QuizOnline() {
     setInviteLink(link);
     setPhase("lobby");
     setMsg(`Комната создана! Ссылка для друзей:\n${link}`);
-  }, [initSb, myName, myId]);
+  }, [initSb, myName, myId, topic]);
 
   // ---------- Гость: подключиться ----------
   // myName через ref — чтобы auto-join (запущенный один раз при старте)
@@ -145,14 +148,17 @@ export function QuizOnline() {
     if (e) { setError("Ошибка: " + e.message); return; }
     if (!data) { setError("Комната не найдена."); return; }
     const r = data as QuizRoom;
+    // Тема комнаты (футбол по умолчанию для старых комнат)
+    const roomTopic: QuizTopic = r.topic === "geo" ? "geo" : "football";
+    setTopic(roomTopic);
     // Общий порядок вопросов (из seed комнаты) — одинаковый у всех
     // Защита: если seed не сохранился — генерируем и сохраняем
     if (r.seed === undefined || r.seed === null) {
       const newSeed = Math.floor(Math.random() * 1000000);
       await sb.from("quiz_rooms").update({ seed: newSeed }).eq("id", r.id);
-      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, newSeed));
+      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, newSeed, roomTopic));
     } else {
-      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, r.seed));
+      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, r.seed, roomTopic));
     }
 
     const phaseFromState = (): QuizPhase =>
@@ -210,7 +216,8 @@ export function QuizOnline() {
     const newSeed = Math.floor(Math.random() * 1000000);
     const newScores: Record<string, number> = {};
     for (const p of r.players) newScores[p.id] = 0;
-    const newQs = shuffleQuestions(TOTAL_QUESTIONS, newSeed);
+    const rematchTopic: QuizTopic = r.topic === "geo" ? "geo" : "football";
+    const newQs = shuffleQuestions(TOTAL_QUESTIONS, newSeed, rematchTopic);
     setQuestions(newQs);
     const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
     await sb
@@ -408,16 +415,19 @@ export function QuizOnline() {
     else setPhase("lobby");
   }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
-  // КРИТИЧНО: при каждом изменении seed — пере-вычисляем вопросы
+  // КРИТИЧНО: при каждом изменении seed/темы — пере-вычисляем вопросы
   // Это гарантирует, что ВСЕ игроки видят ОДИН И ТОТ ЖЕ порядок
   const lastSeedRef = useRef<number | null>(null);
+  const lastTopicRef = useRef<QuizTopic | null>(null);
   useEffect(() => {
     if (!room?.seed) return;
-    if (lastSeedRef.current !== room.seed) {
+    const t: QuizTopic = room.topic === "geo" ? "geo" : "football";
+    if (lastSeedRef.current !== room.seed || lastTopicRef.current !== t) {
       lastSeedRef.current = room.seed;
-      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, room.seed));
+      lastTopicRef.current = t;
+      setQuestions(shuffleQuestions(TOTAL_QUESTIONS, room.seed, t));
     }
-  }, [room?.seed]);
+  }, [room?.seed, room?.topic]);
 
   // ---------- Polling + серверный таймер ----------
   // Опрашиваем базу каждые 1 сек. Если next_at просрочен — продвигаем игру.
@@ -647,6 +657,33 @@ export function QuizOnline() {
               <p className="mt-1 text-sm text-stone-600">
                 Вы будете хостом. Друзья подключатся по ссылке.
               </p>
+              <div className="mt-4">
+                <div className="text-sm font-semibold text-stone-700">Тема вопросов</div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTopic("football")}
+                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                      topic === "football"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                        : "border-stone-200 bg-white text-stone-600 hover:border-stone-400"
+                    }`}
+                  >
+                    ⚽ Футбол
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTopic("geo")}
+                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                      topic === "geo"
+                        ? "border-sky-500 bg-sky-50 text-sky-800"
+                        : "border-stone-200 bg-white text-stone-600 hover:border-stone-400"
+                    }`}
+                  >
+                    🌍 География
+                  </button>
+                </div>
+              </div>
               <input
                 value={myName}
                 onChange={(e) => setMyName(e.target.value)}

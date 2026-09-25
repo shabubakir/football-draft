@@ -255,7 +255,16 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
   { q: "Какой цвет формы у «Аякса»?", options: ["Красно-белый", "Сине-белый", "Чёрно-белый", "Зелёно-белый"], correct: 0 },
 ];
 
-export function shuffleQuestions(count = 10, seed?: number): QuizQuestion[] {
+export type QuizTopic = "football" | "geo";
+
+// Банки по темам (geo импортируется напрямую — оба банка небольшие)
+import { GEO_QUESTIONS } from "./geo";
+const TOPIC_BANKS: Record<QuizTopic, QuizQuestion[]> = {
+  football: QUIZ_QUESTIONS,
+  geo: GEO_QUESTIONS,
+};
+
+export function shuffleQuestions(count = 10, seed?: number, topic: QuizTopic = "football"): QuizQuestion[] {
   // Детерминированная перестановка: один seed → один порядок (для всех игроков)
   let s = seed ?? Math.floor(Math.random() * 1000000);
   const rand = () => {
@@ -265,7 +274,7 @@ export function shuffleQuestions(count = 10, seed?: number): QuizQuestion[] {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-  const arr = [...QUIZ_QUESTIONS];
+  const arr = [...(TOPIC_BANKS[topic] ?? QUIZ_QUESTIONS)];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
