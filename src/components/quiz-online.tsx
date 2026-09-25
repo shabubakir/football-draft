@@ -32,7 +32,8 @@ type QuizRoom = {
 };
 
 const TOTAL_QUESTIONS = 10;
-const ANSWER_SECONDS = 7;
+const ANSWER_SECONDS = 10;
+const ANSWER_SECONDS_IMAGE = 15;
 const REVEAL_SECONDS = 4;
 
 function makeCode() {
@@ -200,14 +201,16 @@ export function QuizOnline() {
     if (!room || role !== "host") return;
     const sb = initSb();
     if (!sb) return;
-    const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
+    const firstQ = questions[0];
+    const answerTime = firstQ?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
+    const nextAt = new Date(Date.now() + answerTime * 1000).toISOString();
     await sb.from("quiz_rooms").update({
       status: "playing", q_state: "answering", current_q: 0,
       rematch_votes: null, next_at: nextAt,
     }).eq("id", room.id);
     setPhase("playing");
     setSelected(null);
-  }, [room, role, initSb]);
+  }, [room, role, initSb, questions]);
 
   // ---------- Реванш: хост ПРЕДЛАГАЕТ, остальные СОГЛАСОВЫВАЮТ ----------
   const runRematch = useCallback(async (r: QuizRoom) => {
@@ -219,7 +222,9 @@ export function QuizOnline() {
     const rematchTopic: QuizTopic = r.topic === "geo" ? "geo" : "football";
     const newQs = shuffleQuestions(TOTAL_QUESTIONS, newSeed, rematchTopic);
     setQuestions(newQs);
-    const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
+    const firstQ = newQs[0];
+    const answerTime = firstQ?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
+    const nextAt = new Date(Date.now() + answerTime * 1000).toISOString();
     await sb
       .from("quiz_rooms")
       .update({
@@ -321,8 +326,10 @@ export function QuizOnline() {
       if (nextQ >= TOTAL_QUESTIONS) {
         await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
       } else {
-        // next_at для answering: ANSWER_SECONDS (или 0.5 если все уже ответили — но это маловероятно)
-        const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
+        // next_at для answering: ANSWER_SECONDS или ANSWER_SECONDS_IMAGE (если вопрос с картинкой)
+        const nextQuestion = questions[nextQ];
+        const answerTime = nextQuestion?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
+        const nextAt = new Date(Date.now() + answerTime * 1000).toISOString();
         await sb.from("quiz_rooms").update({ q_state: "answering", current_q: nextQ, next_at: nextAt }).eq("id", r.id);
       }
     } else {
@@ -556,6 +563,7 @@ export function QuizOnline() {
   const answersForQ: Record<string, number> = room?.answers?.[qIdx] ?? {};
   const answeredCount = room ? room.players.filter((p) => answersForQ[p.id] !== undefined).length : 0;
   const totalPlayers = room?.players.length ?? 0;
+  const answerTime = q?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
 
   const sortedPlayers = Object.entries(room?.scores ?? {})
     .map(([id, score]) => ({
@@ -801,17 +809,17 @@ export function QuizOnline() {
                     key={i}
                     disabled={phase !== "playing"}
                     onClick={() => lockAnswer(i)}
-                    className={`rounded-xl border-2 px-4 py-4 text-left text-sm font-medium transition ${
+                    className={`rounded-xl border-2 px-5 py-5 text-left text-base font-medium transition-all active:scale-95 hover:shadow-md ${
                       isCorrect
                         ? "border-emerald-500 bg-emerald-50 text-emerald-800"
                         : isMine && !isCorrect
                         ? "border-red-400 bg-red-50 text-red-700"
                         : selected === i && phase === "playing"
-                        ? "border-stone-900 bg-stone-900 text-white"
-                        : "border-stone-200 bg-white hover:border-stone-400"
+                        ? "border-stone-900 bg-stone-900 text-white shadow-lg"
+                        : "border-stone-200 bg-white hover:border-stone-400 hover:bg-stone-50"
                     } disabled:opacity-70`}
                   >
-                    <span className="inline-block w-6 h-6 rounded-full bg-stone-100 text-stone-600 text-center leading-6 mr-2 text-xs font-bold">
+                    <span className="inline-block w-7 h-7 rounded-full bg-stone-100 text-stone-600 text-center leading-7 mr-3 text-sm font-bold">
                       {String.fromCharCode(65 + i)}
                     </span>
                     {opt}
