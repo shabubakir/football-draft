@@ -355,6 +355,10 @@ export function QuizOnline() {
     }
   }, [initSb]);
 
+  // Ref на advance — чтобы lockAnswer (созданный раньше) мог вызвать актуальную версию
+  const advanceRef = useRef<typeof advance | null>(null);
+  useEffect(() => { advanceRef.current = advance; }, [advance]);
+
   // ---------- next_at: только advance() и startGame/runRematch ----------
   // next_at НЕ перезаписывается при каждом ответе — только при смене фазы.
   // Это предотвращает сброс таймера, пока игроки отвечают.
@@ -566,6 +570,13 @@ export function QuizOnline() {
         if (upE) {
           console.error("quiz: failed to save answer", upE);
           setError(`⚠️ Ответ не сохранился: ${upE.message}`);
+        }
+        // СОЛО-РЕЖИМ (1 игрок): сразу ревил, не ждём таймер
+        // Короткая задержка 100мс — даём PATCH записаться в БД,
+        // чтобы advance() прочитал свежий answer и начислил очки
+        if (r.players.length <= 1 && !upE) {
+          console.log("QUIZ DEBUG: solo mode — instant reveal");
+          setTimeout(() => advanceRef.current?.(r, "reveal"), 150);
         }
       } catch (err) {
         console.error("quiz: lockAnswer error", err);
