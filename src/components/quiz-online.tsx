@@ -241,8 +241,15 @@ export function QuizOnline() {
   }, [phase, room?.current_q]);
 
   // ---------- Realtime ----------
+  // Клиент создаём при первом рендере (не ждём действий пользователя),
+  // чтобы realtime-подписка не теряла события.
+  const sbClient = useRef<SupabaseClient | null>(null);
+  if (sbClient.current === null) {
+    sbClient.current = getSupabaseBrowser();
+  }
+
   useEffect(() => {
-    const sb = sbRef.current;
+    const sb = sbClient.current;
     if (!sb || !room) return;
     const roomId = room.id;
     const ch = sb.channel(`quiz-${roomId}`)
@@ -258,7 +265,8 @@ export function QuizOnline() {
             if (r.q_state === "reveal") setPhase("reveal");
             else {
               setPhase("playing");
-              setSelected(null);
+              // новый вопрос — сбрасываем только если ещё не отвечали
+              setSelected((prevSel) => prevSel);
             }
           }
         }
@@ -267,20 +275,29 @@ export function QuizOnline() {
     return () => { sb.removeChannel(ch); };
   }, [room?.id]);
 
-  // ---------- Ответ (каждый игрок — за себя, один раз) ----------
+  // Сброс выбора при смене вопроса
+  const lastQRef = useRef<number>(-1);
+  useEffect(() => {
+    if (room && room.status === "playing" && room.q_state === "answering" && room.current_q !== lastQRef.current) {
+      lastQRef.current = room.current_q;
+      setSelected(null);
+    }
+  }, [room?.current_q, room?.q_state, room?.status]);
+
+  // ---------- Ответ (можно менять, пока идёт answering) ----------
   const lockAnswer = useCallback(
     (optIdx: number) => {
       const r = roomRef.current;
-      if (!r || selected !== null || r.q_state !== "answering" || r.status !== "playing") return;
+      if (!r || r.q_state !== "answering" || r.status !== "playing") return;
       setSelected(optIdx);
-      const sb = initSb();
+      const sb = sbClient.current;
       if (!sb) return;
       const qIdx = r.current_q;
       const newAnswers = { ...(r.answers ?? {}) };
       newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
       sb.from("quiz_rooms").update({ answers: newAnswers }).eq("id", r.id);
     },
-    [selected, myId, initSb]
+    [myId]
   );
 
   // ---------- Вычисления ----------
@@ -449,7 +466,7 @@ export function QuizOnline() {
             </span>
             {phase === "playing" && (
               <span className={`text-sm font-bold ${timeLeft <= 3 ? "text-red-600" : "text-stone-700"}`}>
-                ⏱ {timeLeft}с
+                ⏱ {timeLeft}с{selected !== null && " · твой выбор можно поменять"}
               </span>
             )}
             {phase === "reveal" && (
@@ -469,7 +486,7 @@ export function QuizOnline() {
                 return (
                   <button
                     key={i}
-                    disabled={phase !== "playing" || selected !== null}
+                    disabled={phase !== "playing"}
                     onClick={() => lockAnswer(i)}
                     className={`rounded-xl border-2 px-4 py-4 text-left text-sm font-medium transition ${
                       isCorrect
