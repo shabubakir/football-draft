@@ -552,8 +552,7 @@ export function QuizOnline() {
                   </div>
                   <button
                     onClick={() => joinRoom()}
-                    disabled={!myName.trim()}
-                    className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 disabled:opacity-40 transition"
+                    className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
                   >
                     ПОДКЛЮЧИТЬСЯ
                   </button>
