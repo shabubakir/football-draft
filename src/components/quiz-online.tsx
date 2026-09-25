@@ -53,6 +53,7 @@ function uid() {
 export function QuizOnline() {
   const sbRef = useRef<SupabaseClient | null>(null);
   const params = useParams<{ join?: string }>();
+  const cameByLink = Boolean(params.join);
   const [role, setRole] = useState<Role>("host");
   const [myId, setMyId] = useState<string>(() => uid());
   const [myName, setMyName] = useState("");
@@ -352,49 +353,79 @@ export function QuizOnline() {
 
       {/* Лобби */}
       {phase === "lobby" && (
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
-            <h3 className="font-bold text-lg">Создать комнату</h3>
-            <p className="mt-1 text-sm text-stone-600">
-              Вы будете хостом. До 4 друзей подключатся по коду.
-            </p>
-            <input
-              value={myName}
-              onChange={(e) => setMyName(e.target.value)}
-              placeholder="Ваше имя"
-              className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
-            />
-            <button
-              onClick={createRoom}
-              className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
-            >
-              СОЗДАТЬ КОМНАТУ
-            </button>
-          </div>
+        <div className={`grid ${cameByLink ? "" : "md:grid-cols-2"} gap-4`}>
+          {cameByLink ? (
+            /* Пришёл по ссылке — только подключение */
+            <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+              <h3 className="font-bold text-lg">Присоединиться к игре</h3>
+              <p className="mt-1 text-sm text-stone-600">
+                Вы пришли по приглашению. Введите имя и подключайтесь.
+              </p>
+              <input
+                value={myName}
+                onChange={(e) => setMyName(e.target.value)}
+                placeholder="Ваше имя"
+                className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+              />
+              <div className="mt-3 flex items-center gap-2 text-sm text-stone-500">
+                <span>Код комнаты:</span>
+                <span className="font-mono font-bold text-stone-900 bg-stone-100 rounded px-2 py-0.5">
+                  {(params.join ?? "").toUpperCase()}
+                </span>
+              </div>
+              <button
+                onClick={joinRoom}
+                className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+              >
+                ПОДКЛЮЧИТЬСЯ
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+                <h3 className="font-bold text-lg">Создать комнату</h3>
+                <p className="mt-1 text-sm text-stone-600">
+                  Вы будете хостом. До 4 друзей подключатся по коду.
+                </p>
+                <input
+                  value={myName}
+                  onChange={(e) => setMyName(e.target.value)}
+                  placeholder="Ваше имя"
+                  className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+                />
+                <button
+                  onClick={createRoom}
+                  className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+                >
+                  СОЗДАТЬ КОМНАТУ
+                </button>
+              </div>
 
-          <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
-            <h3 className="font-bold text-lg">Подключиться</h3>
-            <p className="mt-1 text-sm text-stone-600">Введите код от хоста или откройте ссылку.</p>
-            <input
-              value={myName}
-              onChange={(e) => setMyName(e.target.value)}
-              placeholder="Ваше имя"
-              className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
-            />
-            <input
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              placeholder="ABC12"
-              maxLength={5}
-              className="mt-3 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-mono tracking-widest outline-none focus:border-stone-500 uppercase"
-            />
-            <button
-              onClick={joinRoom}
-              className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
-            >
-              ПОДКЛЮЧИТЬСЯ
-            </button>
-          </div>
+              <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+                <h3 className="font-bold text-lg">Подключиться</h3>
+                <p className="mt-1 text-sm text-stone-600">Введите код от хоста.</p>
+                <input
+                  value={myName}
+                  onChange={(e) => setMyName(e.target.value)}
+                  placeholder="Ваше имя"
+                  className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+                />
+                <input
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="ABC12"
+                  maxLength={5}
+                  className="mt-3 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-mono tracking-widest outline-none focus:border-stone-500 uppercase"
+                />
+                <button
+                  onClick={joinRoom}
+                  className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+                >
+                  ПОДКЛЮЧИТЬСЯ
+                </button>
+              </div>
+            </>
+          )}
 
           {room && (
             <div className="md:col-span-2 rounded-2xl border border-stone-200 bg-white/70 p-5">
