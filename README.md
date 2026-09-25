@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Football Draft ⚽
 
-## Getting Started
+Футбольные игры для игры с друзьями. Вдохновлено championsdraft.ru.
 
-First, run the development server:
+## Игры
+- **Угадай игрока** (`/guess`) — ежедневная загадка, 10 попыток
+- **Сетка 9 онлайн** (`/grid/online`) — PvP-матч в реальном времени с друзьями через Supabase Realtime
+- *Скоро:* Драфт, Путь футболиста
 
+## Стек
+- Next.js 16 (App Router, TypeScript, Tailwind CSS)
+- Supabase (Realtime + Postgres) — для онлайн-матчей
+- Vercel — деплой
+
+## Запуск локально
 ```bash
+npm install
+cp .env.local.example .env.local
+# заполните NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Онлайн-режим не работает без Supabase — «Угадай игрока» играется и без него.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Supabase настройка
+1. Зарегистрируйтесь на [supabase.com](https://supabase.com) и создайте проект
+2. Откройте **Project Settings → API**, скопируйте `Project URL` и `anon public key`
+3. В **SQL Editor** выполните скрипт из [`supabase/schema.sql`](./supabase/schema.sql)
+4. Впишите ключи в `.env.local`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Деплой на Vercel
+1. Запушьте репозиторий в GitHub
+2. [vercel.com](https://vercel.com) → Import → выберите репозиторий
+3. В Settings → Environment Variables добавьте:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Deploy — готово, скидывайте URL друзьям 🎉
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Как играть онлайн
+1. Друзья открывают `/grid/online`
+2. Один нажимает **«СОЗДАТЬ КОМНАТУ»**, получает код из 5 символов
+3. Второй вводит код в **«ПОДКЛЮЧИТЬСЯ»**
+4. Хост жмёт **«НАЧАТЬ ИГРУ»** — матчи идут в реальном времени
