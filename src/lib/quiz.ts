@@ -320,10 +320,29 @@ export function shuffleQuestions(count = 10, seed?: number, topic: QuizTopic = "
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-  const arr = [...(TOPIC_BANKS[topic] ?? QUIZ_QUESTIONS)];
-  for (let i = arr.length - 1; i > 0; i--) {
+  const bank = [...(TOPIC_BANKS[topic] ?? QUIZ_QUESTIONS)];
+  // Разделяем на визуальные (с картинкой) и обычные
+  const visual = bank.filter(q => q.image);
+  const regular = bank.filter(q => !q.image);
+  // Перемешиваем оба массива
+  for (let i = visual.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [visual[i], visual[j]] = [visual[j], visual[i]];
   }
-  return arr.slice(0, count);
+  for (let i = regular.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [regular[i], regular[j]] = [regular[j], regular[i]];
+  }
+  // Гарантируем минимум 30% визуальных вопросов (или 3, если count=10)
+  const minVisual = Math.max(3, Math.floor(count * 0.3));
+  const visualCount = Math.min(minVisual + Math.floor(rand() * 2), visual.length, count);
+  const regularCount = count - visualCount;
+  // Берём нужное количество из каждого
+  const result = [...visual.slice(0, visualCount), ...regular.slice(0, regularCount)];
+  // Финальное перемешивание
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
