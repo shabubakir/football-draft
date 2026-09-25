@@ -30,10 +30,19 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
   { q: "Золотой бутс 2021 — у кого?", options: ["Холанд", "Месси", "Суарес", "Левандовский"], correct: 0 },
 ];
 
-export function shuffleQuestions(count = 10): QuizQuestion[] {
+export function shuffleQuestions(count = 10, seed?: number): QuizQuestion[] {
+  // Детерминированная перестановка: один seed → один порядок (для всех игроков)
+  let s = seed ?? Math.floor(Math.random() * 1000000);
+  const rand = () => {
+    // mulberry32
+    s |= 0; s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
   const arr = [...QUIZ_QUESTIONS];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr.slice(0, count);

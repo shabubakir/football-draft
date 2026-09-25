@@ -25,6 +25,7 @@ type QuizRoom = {
   players: Player[];
   scores: Record<string, number>;
   answers: Record<number, Record<string, number>>; // { questionIndex: { playerId: optionIndex } }
+  seed?: number; // порядок вопросов — общий для всех
 };
 
 const TOTAL_QUESTIONS = 10;
@@ -88,8 +89,8 @@ export function QuizOnline() {
     if (!sb) { setError("Supabase не настроен."); return; }
     const name = myName.trim() || "Хост";
     const code = makeCode();
-    const qs = shuffleQuestions(TOTAL_QUESTIONS);
-    setQuestions(qs);
+    const seed = Math.floor(Math.random() * 1000000);
+    setQuestions(shuffleQuestions(TOTAL_QUESTIONS, seed));
 
     const { data, error: e } = await sb.from("quiz_rooms").insert({
       code,
@@ -97,6 +98,7 @@ export function QuizOnline() {
       players: [{ id: myId, name, isHost: true }],
       scores: { [myId]: 0 },
       answers: {},
+      seed,
     }).select().single();
     if (e || !data) { setError("Ошибка: " + (e?.message ?? "?")); return; }
     const r = data as QuizRoom;
@@ -121,16 +123,24 @@ export function QuizOnline() {
     if (e) { setError("Ошибка: " + e.message); return; }
     if (!data) { setError("Комната не найдена."); return; }
     const r = data as QuizRoom;
-    if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
-    if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
+    // Общий порядок вопросов (из seed комнаты) — одинаковый у всех
+    setQuestions(shuffleQuestions(TOTAL_QUESTIONS, r.seed));
+
+    const phaseFromState = (): QuizPhase =>
+      r.status === "finished" ? "end" :
+      r.status === "playing" ? (r.q_state === "reveal" ? "reveal" : "playing") : "lobby";
+
     if (r.players.some((p) => p.id === myId)) {
-      // Уже подключены — просто показываем лобби
+      // Уже подключены — просто показываем текущее состояние
       setRole("guest");
       setRoom(r);
-      setPhase("lobby");
+      setPhase(phaseFromState());
       setMsg(`Вы уже в комнате как «${r.players.find((p) => p.id === myId)?.name}».`);
       return;
     }
+
+    if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
+    if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
 
     const newPlayers = [...r.players, { id: myId, name, isHost: false }];
     const newScores = { ...r.scores, [myId]: 0 };
@@ -145,7 +155,7 @@ export function QuizOnline() {
     setRoom({ ...r, players: newPlayers, scores: newScores });
     setPhase("lobby");
     setMsg(`Вы подключены как «${name}»! Ждите старта.`);
-  }, [initSb, joinCode, myName, myId]);
+  }, [initSb, joinCode, myName, myId, questions]);
 
   // ---------- Хост: старт ----------
   const startGame = useCallback(async () => {
@@ -189,9 +199,9 @@ export function QuizOnline() {
     }
   }, [initSb]);
 
-  // ---------- Auto-advance: таймер истёк (только хост двигает сервер) ----------
+  // ---------- Auto-advance: таймер истёк (двигает любой клиент — идемпотентно) ----------
   useEffect(() => {
-    if (role !== "host" || !room || room.status !== "playing") return;
+    if (!room || room.status !== "playing") return;
     const isReveal = room.q_state === "reveal";
     const seconds = isReveal ? REVEAL_SECONDS : ANSWER_SECONDS;
 
@@ -210,14 +220,14 @@ export function QuizOnline() {
       }
     }, seconds * 1000);
     return () => clearTimeout(t);
-  }, [phase, room?.current_q, room?.q_state, role, room?.status, advance]);
+  }, [phase, room?.current_q, room?.q_state, room?.status, advance]);
 
-  // ---------- Все ответили → хост сразу переходит в reveal ----------
+  // ---------- Все ответили → сразу reveal (любой клиент) ----------
   useEffect(() => {
-    if (role !== "host" || !room || room.status !== "playing" || room.q_state !== "answering") return;
+    if (!room || room.status !== "playing" || room.q_state !== "answering") return;
     const qIdx = room.current_q;
     const answersForQ = room.answers?.[qIdx] ?? {};
-    const allAnswered = room.players.every((p) => answersForQ[p.id] !== undefined);
+    const allAnswered = room.players.length > 0 && room.players.every((p) => answersForQ[p.id] !== undefined);
     if (allAnswered) {
       const t = setTimeout(async () => {
         const cur = roomRef.current;
@@ -226,7 +236,7 @@ export function QuizOnline() {
       }, 400);
       return () => clearTimeout(t);
     }
-  }, [room, role, advance]);
+  }, [room, advance]);
 
   // ---------- Таймеры отображения ----------
   useEffect(() => {
@@ -261,21 +271,29 @@ export function QuizOnline() {
         (payload) => {
           const r = payload.new as QuizRoom;
           setRoom((prev) => (prev ? { ...prev, ...r } : r));
+          // Фаза всегда синхронизируется из базы
           if (r.status === "finished") {
             setPhase("end");
           } else if (r.status === "playing") {
-            if (r.q_state === "reveal") setPhase("reveal");
-            else {
-              setPhase("playing");
-              // новый вопрос — сбрасываем только если ещё не отвечали
-              setSelected((prevSel) => prevSel);
-            }
+            setPhase(r.q_state === "reveal" ? "reveal" : "playing");
+          }
+          // Лобби: если игра уже идёт (например, гость зашёл на середине)
+          else if (r.status === "lobby") {
+            setPhase((prevPhase) => (prevPhase === "lobby" ? prevPhase : "lobby"));
           }
         }
       )
       .subscribe();
     return () => { sb.removeChannel(ch); };
   }, [room?.id]);
+
+  // Синхронизация фазы из комнаты (на случай, если событие потеряно)
+  useEffect(() => {
+    if (!room) return;
+    if (room.status === "finished") setPhase("end");
+    else if (room.status === "playing") setPhase(room.q_state === "reveal" ? "reveal" : "playing");
+    else setPhase("lobby");
+  }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
   // Сброс выбора при смене вопроса
   const lastQRef = useRef<number>(-1);
