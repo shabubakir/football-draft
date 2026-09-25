@@ -200,15 +200,26 @@ export function QuizOnline() {
   }, [initSb]);
 
   // ---------- Auto-advance: таймер истёк (двигает любой клиент — идемпотентно) ----------
+  const answeredAllRef = useRef(false);
   useEffect(() => {
-    if (!room || room.status !== "playing") return;
+    if (!room || room.status !== "playing") { answeredAllRef.current = false; return; }
     const isReveal = room.q_state === "reveal";
+    // Если все уже ответили — не запускаем таймер на полный интервал
+    const allAnswered = !isReveal && room.players.length > 0 &&
+      room.players.every((p) => (room.answers?.[room.current_q] ?? {})[p.id] !== undefined);
+    if (!isReveal && allAnswered) { answeredAllRef.current = true; return; }
+    answeredAllRef.current = false;
+
     const seconds = isReveal ? REVEAL_SECONDS : ANSWER_SECONDS;
+    const atStart = room.current_q;
+    const stateAtStart = room.q_state;
 
     const t = setTimeout(async () => {
       const cur = roomRef.current;
       if (!cur || cur.status !== "playing") return;
-      if (cur.q_state === "reveal") {
+      // Защита: если вопрос/фаза уже сменились — не трогаем
+      if (cur.current_q !== atStart || cur.q_state !== stateAtStart) return;
+      if (stateAtStart === "reveal") {
         const nextQ = cur.current_q + 1;
         if (nextQ >= TOTAL_QUESTIONS) {
           await advance(cur, "finished");
@@ -220,7 +231,24 @@ export function QuizOnline() {
       }
     }, seconds * 1000);
     return () => clearTimeout(t);
-  }, [phase, room?.current_q, room?.q_state, room?.status, advance]);
+  }, [phase, room?.current_q, room?.q_state, room?.status, room?.answers, advance]);
+
+  // ---------- Все ответили → сразу reveal (любой клиент) ----------
+  useEffect(() => {
+    if (!room || room.status !== "playing" || room.q_state !== "answering") return;
+    const qIdx = room.current_q;
+    const answersForQ = room.answers?.[qIdx] ?? {};
+    const allAnswered = room.players.length > 0 && room.players.every((p) => answersForQ[p.id] !== undefined);
+    if (allAnswered && !answeredAllRef.current) {
+      answeredAllRef.current = true;
+      const t = setTimeout(async () => {
+        const cur = roomRef.current;
+        if (!cur || cur.status !== "playing" || cur.q_state !== "answering" || cur.current_q !== qIdx) return;
+        await advance(cur, "reveal");
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [room, advance]);
 
   // ---------- Все ответили → сразу reveal (любой клиент) ----------
   useEffect(() => {
