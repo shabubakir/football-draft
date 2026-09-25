@@ -39,7 +39,7 @@ export function Nav() {
         <Link href="/guess" className={linkCls(isActive("/guess"))}>
           УГАДАЙ ИГРОКА
         </Link>
-        <Link href="/quiz" className={linkCls(isActive("/quiz"))}>
+        <Link href="/quiz/online" className={linkCls(isActive("/quiz"))}>
           ВИКТОРИНА
         </Link>
       </nav>
