@@ -338,7 +338,11 @@ export function shuffleQuestions(count = 10, seed?: number, topic: QuizTopic = "
   const visualCount = Math.min(minVisual + Math.floor(rand() * 2), visual.length, count);
   const regularCount = count - visualCount;
   // Берём нужное количество из каждого
-  const result = [...visual.slice(0, visualCount), ...regular.slice(0, regularCount)];
+  // Делаем ГЛУБОКИЕ копии, чтобы не менять оригинальные данные в банках
+  const result = [
+    ...visual.slice(0, visualCount).map(q => ({ ...q, options: [...q.options] as [string, string, string, string] })),
+    ...regular.slice(0, regularCount).map(q => ({ ...q, options: [...q.options] as [string, string, string, string] })),
+  ];
   // Финальное перемешивание вопросов
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -348,6 +352,8 @@ export function shuffleQuestions(count = 10, seed?: number, topic: QuizTopic = "
   // (чтобы правильный ответ не всегда был А)
   for (const q of result) {
     if (q.options.length === 4) {
+      // Сохраняем ИСХОДНЫЙ правильный индекс
+      const originalCorrect = q.correct;
       // Создаём пары [опция, индексы]
       const pairs = q.options.map((opt, idx) => ({ opt, idx }));
       // Перемешиваем
@@ -357,8 +363,8 @@ export function shuffleQuestions(count = 10, seed?: number, topic: QuizTopic = "
       }
       // Обновляем q
       q.options = [pairs[0].opt, pairs[1].opt, pairs[2].opt, pairs[3].opt] as [string, string, string, string];
-      // Находим новый индекс правильного ответа
-      const newCorrect = pairs.findIndex(p => p.idx === q.correct);
+      // Находим новый индекс правильного ответа (исходя из ИСХОДНОГО correct)
+      const newCorrect = pairs.findIndex(p => p.idx === originalCorrect);
       q.correct = newCorrect;
     }
   }
