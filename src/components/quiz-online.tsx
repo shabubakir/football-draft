@@ -344,6 +344,28 @@ export function QuizOnline() {
     else setPhase("lobby");
   }, [room?.status, room?.q_state, room?.current_q, room?.id]);
 
+  // ---------- Polling: backup для realtime ----------
+  // Опрашиваем базу каждые 2 сек, если игра идёт. Если realtime терял событие
+  // (например, гость ответил, но хост не получил push) — polling подхватит.
+  const lastSyncRef = useRef(0);
+  useEffect(() => {
+    const sb = sbClient.current;
+    if (!sb || !room || room.status !== "playing") return;
+    const roomId = room.id;
+    const poll = setInterval(async () => {
+      const now = Date.now();
+      if (now - lastSyncRef.current < 1500) return; // не чаще 1.5 сек
+      try {
+        const { data } = await sb.from("quiz_rooms").select().eq("id", roomId).maybeSingle();
+        if (data) {
+          lastSyncRef.current = now;
+          setRoom((prev) => (prev ? { ...prev, ...(data as QuizRoom) } : (data as QuizRoom)));
+        }
+      } catch { /* ignore */ }
+    }, 2000);
+    return () => clearInterval(poll);
+  }, [room?.id, room?.status]);
+
   // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
   // Ждём ввод имени (или 10 сек по умолчанию) — чтобы гость успел ввести имя,
   // но при этом не завис на бесконечном ожидании.
