@@ -219,14 +219,21 @@ export function QuizOnline() {
     setMsg("🔄 Хост предложил реванш. Ждём остальных…");
   }, [role, initSb]);
 
-  // Гость: проголосовать за/против реванша
+  // Гость: проголосовать за/против реванша (read-then-write)
   const voteRematch = useCallback(async (yes: boolean) => {
     const r = roomRef.current;
-    if (!r || role !== "guest" || !r.rematch_votes) return;
+    if (!r || role !== "guest") return;
     const sb = initSb();
     if (!sb) return;
-    const votes = { ...r.rematch_votes, [myId]: yes };
-    await sb.from("quiz_rooms").update({ rematch_votes: votes }).eq("id", r.id);
+    try {
+      const { data: fresh } = await sb
+        .from("quiz_rooms").select("rematch_votes").eq("id", r.id).maybeSingle();
+      if (!fresh) return;
+      const votes = { ...((fresh.rematch_votes as Record<string, boolean>) ?? {}), [myId]: yes };
+      await sb.from("quiz_rooms").update({ rematch_votes: votes }).eq("id", r.id);
+    } catch (err) {
+      console.error("quiz: voteRematch error", err);
+    }
   }, [role, myId, initSb]);
 
   // Авто-старт реванша: когда ВСЕ проголосовали «да»
@@ -240,20 +247,32 @@ export function QuizOnline() {
     }
   }, [room?.rematch_votes, room?.status, runRematch]);
 
-  // ---------- Прогрессия: reveal + очки + следующий вопрос (только хост, автоматически) ----------
+  // ---------- Прогрессия: reveal + очки + следующий вопрос ----------
+  // Read-then-write: всегда берём СВЕЖЕЕ состояние из базы перед PATCH,
+  // чтобы не затереть чужие ответы/очки гонкой.
   const advance = useCallback(async (r: QuizRoom, next: "reveal" | "answering" | "finished") => {
     const sb = initSb();
     if (!sb) return;
     const qs = questionsRef.current;
 
+    // Читаем свежее состояние из базы
+    const { data: fresh } = await sb
+      .from("quiz_rooms").select().eq("id", r.id).maybeSingle();
+    if (!fresh) return;
+    const f = fresh as QuizRoom;
+    // Защита: если фаза уже сменилась — не трогаем
+    if (f.status !== "playing") return;
+    if (next === "reveal" && f.q_state !== "answering") return;
+    if (next !== "reveal" && f.q_state !== "reveal") return;
+
     if (next === "reveal") {
-      // Начисляем очки за текущий вопрос
-      const qIdx = r.current_q;
+      // Начисляем очки по СВЕЖИМ answers из базы
+      const qIdx = f.current_q;
       const q = qs[qIdx];
-      const answersForQ = r.answers?.[qIdx] ?? {};
-      const newScores = { ...r.scores };
+      const answersForQ = f.answers?.[qIdx] ?? {};
+      const newScores = { ...f.scores };
       if (q) {
-        for (const p of r.players) {
+        for (const p of f.players) {
           if (answersForQ[p.id] === q.correct) {
             newScores[p.id] = (newScores[p.id] ?? 0) + 10;
           }
@@ -261,7 +280,7 @@ export function QuizOnline() {
       }
       await sb.from("quiz_rooms").update({ q_state: "reveal", scores: newScores }).eq("id", r.id);
     } else if (next === "answering") {
-      const nextQ = r.current_q + 1;
+      const nextQ = f.current_q + 1;
       if (nextQ >= TOTAL_QUESTIONS) {
         await sb.from("quiz_rooms").update({ status: "finished" }).eq("id", r.id);
       } else {
@@ -423,6 +442,8 @@ export function QuizOnline() {
   }, [room?.current_q, room?.q_state, room?.status]);
 
   // ---------- Ответ (можно менять, пока идёт answering) ----------
+  // ВАЖНО: читаем свежий answers из БАЗЫ перед PATCH (read-then-write),
+  // иначе два одновременных PATCH затрут друг друга (гонка).
   const lockAnswer = useCallback(
     async (optIdx: number) => {
       const r = roomRef.current;
@@ -433,16 +454,27 @@ export function QuizOnline() {
         setError("⚠️ Supabase недоступен — ответ не сохранён. Перезагрузи страницу.");
         return;
       }
-      const qIdx = r.current_q;
-      const newAnswers = { ...(r.answers ?? {}) };
-      newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
-      const { error: upE } = await sb
-        .from("quiz_rooms")
-        .update({ answers: newAnswers })
-        .eq("id", r.id);
-      if (upE) {
-        console.error("quiz: failed to save answer", upE);
-        setError(`⚠️ Ответ не сохранился: ${upE.message}`);
+      try {
+        // 1. Читаем актуальное состояние из базы
+        const { data: fresh } = await sb
+          .from("quiz_rooms").select("answers,q_state,current_q").eq("id", r.id).maybeSingle();
+        if (!fresh) return;
+        // 2. Фаза могла смениться — не пишем
+        if (fresh.q_state !== "answering" || fresh.current_q !== r.current_q) return;
+        // 3. Собираем новый answers на основе СВЕЖИХ данных
+        const qIdx = r.current_q;
+        const newAnswers = { ...((fresh.answers as Record<number, Record<string, number>>) ?? {}) };
+        newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
+        // 4. PATCH
+        const { error: upE } = await sb
+          .from("quiz_rooms").update({ answers: newAnswers }).eq("id", r.id);
+        if (upE) {
+          console.error("quiz: failed to save answer", upE);
+          setError(`⚠️ Ответ не сохранился: ${upE.message}`);
+        }
+      } catch (err) {
+        console.error("quiz: lockAnswer error", err);
+        setError("⚠️ Не удалось сохранить ответ. Попробуй ещё раз.");
       }
     },
     [myId]
