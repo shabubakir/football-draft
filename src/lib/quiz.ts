@@ -339,10 +339,28 @@ export function shuffleQuestions(count = 10, seed?: number, topic: QuizTopic = "
   const regularCount = count - visualCount;
   // Берём нужное количество из каждого
   const result = [...visual.slice(0, visualCount), ...regular.slice(0, regularCount)];
-  // Финальное перемешивание
+  // Финальное перемешивание вопросов
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
+  }
+  // Перемешиваем варианты ответов каждого вопроса
+  // (чтобы правильный ответ не всегда был А)
+  for (const q of result) {
+    if (q.options.length === 4) {
+      // Создаём пары [опция, индексы]
+      const pairs = q.options.map((opt, idx) => ({ opt, idx }));
+      // Перемешиваем
+      for (let i = pairs.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+      }
+      // Обновляем q
+      q.options = [pairs[0].opt, pairs[1].opt, pairs[2].opt, pairs[3].opt] as [string, string, string, string];
+      // Находим новый индекс правильного ответа
+      const newCorrect = pairs.findIndex(p => p.idx === q.correct);
+      q.correct = newCorrect;
+    }
   }
   return result;
 }
