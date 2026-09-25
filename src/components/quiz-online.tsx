@@ -52,6 +52,7 @@ export function QuizOnline() {
   const [phase, setPhase] = useState<QuizPhase>("lobby");
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
 
   // Для хоста — порядок вопросов (общий для всех)
   const [questions, setQuestions] = useState<ReturnType<typeof shuffleQuestions>>([]);
@@ -82,9 +83,12 @@ export function QuizOnline() {
       answers: {},
     }).select().single();
     if (e || !data) { setError("Ошибка: " + (e?.message ?? "?")); return; }
-    setRoom(data as QuizRoom);
+    const r = data as QuizRoom;
+    const link = `${window.location.origin}/quiz/join/${code}`;
+    setRoom(r);
+    setInviteLink(link);
     setPhase("lobby");
-    setMsg(`Комната создана! Код: ${code}. Пришлите друзьям.`);
+    setMsg(`Комната создана! Ссылка для друзей:\n${link}`);
   }, [initSb, myName, myId]);
 
   // ---------- Гость: подключиться ----------
@@ -271,23 +275,6 @@ export function QuizOnline() {
             </span>
           </div>
         )}
-      {room && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-stone-500">Ссылка для друзей:</span>
-          <input
-            readOnly
-            value={`${window.location.origin}/quiz/join/${room.code}`}
-            onClick={(e) => e.currentTarget.select()}
-            className="flex-1 max-w-xs rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-mono outline-none"
-          />
-          <button
-            onClick={() => navigator.clipboard?.writeText(`${window.location.origin}/quiz/join/${room.code}`)}
-            className="rounded-lg bg-stone-900 text-white text-xs font-semibold px-3 py-1.5 hover:bg-stone-700"
-          >
-            Скопировать
-          </button>
-        </div>
-      )}
       </div>
 
       {error && <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>}
@@ -342,6 +329,36 @@ export function QuizOnline() {
           {room && (
             <div className="md:col-span-2 rounded-2xl border border-stone-200 bg-white/70 p-5">
               <h3 className="font-bold">Игроки в комнате ({room.players.length}/5)</h3>
+              
+              {/* Ссылка для приглашения */}
+              {inviteLink && (
+                <div className="mt-4 rounded-xl bg-sky-50 border border-sky-200 p-4">
+                  <div className="text-xs font-semibold text-sky-700 tracking-wide">
+                    🔗 ССЫЛКА ДЛЯ ПРИГЛАШЕНИЯ
+                  </div>
+                  <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                    <input
+                      readOnly
+                      value={inviteLink}
+                      onClick={(e) => e.currentTarget.select()}
+                      className="flex-1 rounded-lg border border-sky-300 bg-white px-3 py-2 text-sm font-mono outline-none text-sky-900"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText(inviteLink);
+                        setMsg("Ссылка скопирована! Отправь друзьям.");
+                      }}
+                      className="rounded-lg bg-sky-600 text-white text-sm font-semibold px-4 py-2 hover:bg-sky-500 transition"
+                    >
+                      📋 Скопировать
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-sky-600">
+                    Отправь эту ссылку друзьям — они смогут подключиться в один клик
+                  </p>
+                </div>
+              )}
+              
               <ul className="mt-3 grid sm:grid-cols-2 gap-2">
                 {room.players.map((p) => (
                   <li key={p.id} className="flex items-center gap-2 rounded-xl bg-stone-50 px-4 py-2.5 text-sm">
