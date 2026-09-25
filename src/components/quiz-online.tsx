@@ -298,53 +298,49 @@ export function QuizOnline() {
           }
         }
       }
-      await sb.from("quiz_rooms").update({ q_state: "reveal", scores: newScores }).eq("id", r.id);
+      // next_at для reveal: REVEAL_SECONDS
+      const nextAt = new Date(Date.now() + REVEAL_SECONDS * 1000).toISOString();
+      await sb.from("quiz_rooms").update({ q_state: "reveal", scores: newScores, next_at: nextAt }).eq("id", r.id);
     } else if (next === "answering") {
       const nextQ = f.current_q + 1;
       if (nextQ >= TOTAL_QUESTIONS) {
-        await sb.from("quiz_rooms").update({ status: "finished" }).eq("id", r.id);
+        await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
       } else {
-        await sb.from("quiz_rooms").update({ q_state: "answering", current_q: nextQ }).eq("id", r.id);
+        // next_at для answering: ANSWER_SECONDS (или 0.5 если все уже ответили — но это маловероятно)
+        const nextAt = new Date(Date.now() + ANSWER_SECONDS * 1000).toISOString();
+        await sb.from("quiz_rooms").update({ q_state: "answering", current_q: nextQ, next_at: nextAt }).eq("id", r.id);
       }
     } else {
-      await sb.from("quiz_rooms").update({ status: "finished" }).eq("id", r.id);
+      await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
     }
   }, [initSb]);
 
-  // ---------- СЕРВЕРНЫЙ таймер: next_at ----------
-  // Вместо клиентского setTimeout — пишем в базу время, КОГДА нужно продвинуть.
-  // Любой клиент (хост или гость) через polling видит: «next_at прошёл?» → advance().
-  // Никаких lost timers, никаких гонок.
-  const scheduleAdvance = useCallback(async (r: QuizRoom) => {
-    const sb = initSb();
-    if (!sb || !r || r.status !== "playing") return;
-    try {
-      const now = new Date();
-      let delayMs: number;
-      if (r.q_state === "reveal") {
-        delayMs = REVEAL_SECONDS * 1000;
-      } else {
-        const allAnswered = r.players.length > 0 &&
-          r.players.every((p) => (r.answers?.[r.current_q] ?? {})[p.id] !== undefined);
-        delayMs = allAnswered ? 500 : ANSWER_SECONDS * 1000;
-      }
-      const nextAt = new Date(now.getTime() + delayMs).toISOString();
-      console.log("QUIZ DEBUG: scheduleAdvance, next_at =", nextAt, "for room", r.code);
-      const { error } = await sb.from("quiz_rooms").update({ next_at: nextAt }).eq("id", r.id);
-      if (error) {
-        console.error("QUIZ ERROR: scheduleAdvance failed:", error.message);
-        throw error;
-      }
-    } catch (err) {
-      console.error("QUIZ ERROR: scheduleAdvance exception:", err);
-    }
-  }, [initSb]);
-
-  // При каждом изменении фазы/вопроса/ответов — назначаем next_at
+  // ---------- next_at: только advance() и startGame/runRematch ----------
+  // next_at НЕ перезаписывается при каждом ответе — только при смене фазы.
+  // Это предотвращает сброс таймера, пока игроки отвечают.
+  // Exception: если ВСЕ ответили раньше срока — продвигаем раньше.
   useEffect(() => {
-    if (!room || room.status !== "playing") return;
-    scheduleAdvance(room);
-  }, [room?.current_q, room?.q_state, room?.status, room?.answers, scheduleAdvance]);
+    const r = room;
+    if (!r || r.status !== "playing") return;
+    
+    // Все ответили? Продвигаем раньше (0.5 сек вместо 7)
+    const allAnswered = r.players.length > 0 &&
+      r.players.every((p) => (r.answers?.[r.current_q] ?? {})[p.id] !== undefined);
+    
+    if (allAnswered && r.q_state === "answering") {
+      // Проверяем, не был ли next_at уже уменьшен
+      if (r.next_at) {
+        const nextAtMs = new Date(r.next_at).getTime();
+        const now = Date.now();
+        // Если next_at ещё далеко (> 2 сек), уменьшаем до 0.5 сек
+        if (nextAtMs - now > 2000) {
+          const newNextAt = new Date(now + 500).toISOString();
+          console.log("QUIZ DEBUG: All answered, advancing next_at from", r.next_at, "to", newNextAt);
+          initSb()?.from("quiz_rooms").update({ next_at: newNextAt }).eq("id", r.id);
+        }
+      }
+    }
+  }, [room?.answers, room?.q_state, room?.status, initSb]);
 
   // ---------- Таймеры отображения (из next_at, точные) ----------
   const [, forceTick] = useState(0);
@@ -451,16 +447,15 @@ export function QuizOnline() {
               reason = "next_at expired";
             }
           } else {
-            // FALLBACK: если next_at null, но фаза не меняется 10 сек — продвигаем
+            // FALLBACK: если next_at null — продвигаем только если все ответили (answering)
+            // Reveal не продвигаем мгновенно — нужно дождаться 4 сек
             const allAnswered = fresh.players.length > 0 &&
               fresh.players.every((p) => (fresh.answers?.[fresh.current_q] ?? {})[p.id] !== undefined);
             const shouldBeReveal = fresh.q_state === "answering" && allAnswered;
-            const shouldBeNext = fresh.q_state === "reveal";
             
-            if (shouldBeReveal || shouldBeNext) {
-              // Проверяем, сколько времени в текущей фазе (по created_at как approximation)
+            if (shouldBeReveal) {
               shouldAdvance = true;
-              reason = "fallback: next_at null but phase should advance";
+              reason = "fallback: next_at null, all answered";
             }
           }
           
