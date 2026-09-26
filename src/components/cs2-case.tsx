@@ -12,6 +12,8 @@ import {
   rollCase,
   buildTrack,
   makeRng,
+  WEAR_RANGES,
+  WearType,
 } from "@/lib/cs2";
 import casePrices from "@/lib/data/cs2-prices.json";
 import {
@@ -94,6 +96,18 @@ function SkinCard({
             ${price >= 100 ? price.toFixed(0) : price.toFixed(2)}
           </div>
         )}
+        {/* Float ranges — all 5 wears */}
+        <div className="flex gap-0.5 mt-1 flex-wrap">
+          {(Object.keys(WEAR_RANGES) as WearType[]).map((w) => (
+            <span
+              key={w}
+              className="text-[7px] px-1 py-0.5 rounded bg-white/5 text-stone-500 font-mono"
+              title={`${WEAR_RANGES[w].ru} (${WEAR_RANGES[w].en})`}
+            >
+              {w} {WEAR_RANGES[w].min.toFixed(2)}–{WEAR_RANGES[w].max.toFixed(2)}
+            </span>
+          ))}
+        </div>
       </div>
       {/* Rarity stripe */}
       <div className="h-1 w-full" style={{ background: color, opacity: 0.6 }} />
@@ -513,6 +527,15 @@ export function CS2CaseSimulator() {
                   >
                     {RARITY_NAMES[result.tier]}
                     {result.isSt && " · STATTRAK™"}
+                  </div>
+                  {/* Float + Wear */}
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className="text-xs font-mono text-stone-400">
+                      Float: {result.float.toFixed(4)}
+                    </span>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-white/10 text-stone-300">
+                      {WEAR_RANGES[result.wear].ru} ({result.wear})
+                    </span>
                   </div>
                   {getSkinPrice(result.item) != null && getSkinPrice(result.item)! > 0 && (
                     <div className="text-sm font-black text-[#4ade80] mt-1.5">

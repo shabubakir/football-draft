@@ -44,6 +44,36 @@ export const RARITY_NAMES = [
   "Исключительный",
 ] as const;
 
+// ---------- Износ (Wear) — float-диапазоны и русские названия ----------
+export type WearType = "FN" | "MW" | "FT" | "WW" | "BS";
+
+export const WEAR_RANGES: Record<WearType, { min: number; max: number; ru: string; en: string }> = {
+  FN: { min: 0.0, max: 0.07, ru: "Прямо с завода", en: "Factory New" },
+  MW: { min: 0.07, max: 0.15, ru: "Немного поношенное", en: "Minimal Wear" },
+  FT: { min: 0.15, max: 0.38, ru: "После полевых испытаний", en: "Field-Tested" },
+  WW: { min: 0.38, max: 0.45, ru: "Поношенное", en: "Well-Worn" },
+  BS: { min: 0.45, max: 1.0, ru: "Закалённое в боях", en: "Battle-Scarred" },
+};
+
+/**
+ * Determine wear type from a float value.
+ */
+export function getWearFromFloat(float: number): WearType {
+  if (float < 0.07) return "FN";
+  if (float < 0.15) return "MW";
+  if (float < 0.38) return "FT";
+  if (float < 0.45) return "WW";
+  return "BS";
+}
+
+/**
+ * Format wear range for display: "FN 0.00–0.07"
+ */
+export function formatWearRange(wear: WearType): string {
+  const r = WEAR_RANGES[wear];
+  return `${wear} ${r.min.toFixed(2)}–${r.max.toFixed(2)}`;
+}
+
 export const RARITY_COLORS = [
   "#4b69ff", // blue
   "#8847ff", // purple
@@ -66,6 +96,8 @@ export type OpenResult = {
   item: string; // name of the skin or knife
   img: string; // image URL
   isSt: boolean; // StatTrak
+  float: number; // 0.00 – 1.00
+  wear: WearType; // FN / MW / FT / WW / BS
 };
 
 // ---------- RNG ----------
@@ -124,7 +156,11 @@ export function rollCase(caseDef: CS2Case, rng: () => number = Math.random): Ope
   // 3. StatTrak ~10% для eligible items (не для ножей/перчаток)
   const isSt = tier < 4 && rng() < 0.1;
 
-  return { tier, item: isSt ? "★ " + item : item, img, isSt };
+  // 4. Float: равномерное распределение 0.00 – 1.00
+  const float = rng();
+  const wear = getWearFromFloat(float);
+
+  return { tier, item: isSt ? "★ " + item : item, img, isSt, float, wear };
 }
 
 // ---------- Генерация трека для анимации ----------
