@@ -64,4 +64,13 @@ export const GAMES: GameCard[] = [
     cta: "ИГРАТЬ",
     accent: "from-violet-500/20 to-violet-500/5",
   },
+  {
+    href: "/cs2",
+    tag: "СИМУЛЯТОР",
+    title: "CS2 КЕЙСЫ",
+    desc: "Открывай кейсы CS2 с реальными шансами Valve. 42 кейса, 657 скинов, 1851 нож и перчатки.",
+    footer: "РЕАЛЬНЫЕ ШАНСЫ · АНИМАЦИЯ ПРОКРУТА",
+    cta: "ПРОКРУТИТЬ",
+    accent: "from-yellow-500/20 to-yellow-500/5",
+  },
 ];

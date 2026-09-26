@@ -51,6 +51,9 @@ export function Nav() {
         <Link href="/quiz/online" className={linkCls(isActive("/quiz"))}>
           ВИКТОРИНА
         </Link>
+        <Link href="/cs2" className={linkCls(isActive("/cs2"))}>
+          CS2 КЕЙСЫ
+        </Link>
       </nav>
       <button
         type="button"
@@ -86,6 +89,9 @@ export function Nav() {
           </Link>
           <Link href="/quiz/online" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/quiz") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             ВИКТОРИНА (5 игроков)
+          </Link>
+          <Link href="/cs2" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/cs2") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
+            CS2 КЕЙСЫ
           </Link>
         </div>
       )}
