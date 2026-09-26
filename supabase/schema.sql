@@ -43,6 +43,7 @@ create table if not exists public.grid_rooms (
   code text not null unique,
   host_user_id uuid references auth.users(id),
   status text not null default 'waiting',  -- waiting | playing | finished
+  players jsonb not null default '[]'::jsonb,  -- [{id, name, seat: 'host'|'guest'}]
   seed int not null,
   clue_type text not null,          -- «club» | «national» | «award»
   clues jsonb not null,             -- 9 подсказок
@@ -87,4 +88,14 @@ create policy "users read own grid results" on public.grid_results for select us
 create policy "users insert own grid results" on public.grid_results for insert with check (auth.uid() = user_id);
 
 -- ---------- Realtime ----------
-alter publication supabase_realtime add table public.grid_rooms;
+do $$
+begin
+  alter publication supabase_realtime add table public.grid_rooms;
+exception
+  when duplicate_object then null;
+end
+$$;
+
+-- ---------- Обновление существующих БД ----------
+-- (для тех, кто уже выполнял этот скрипт до появления колонки players)
+alter table public.grid_rooms add column if not exists players jsonb not null default '[]'::jsonb;
