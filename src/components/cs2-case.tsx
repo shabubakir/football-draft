@@ -13,6 +13,15 @@ import {
   buildTrack,
   makeRng,
 } from "@/lib/cs2";
+import casePrices from "@/lib/data/cs2-prices.json";
+
+// Look up case price by name
+function getCasePrice(name: string): number {
+  const p = (casePrices as Array<{ name: string; price: number }>).find(
+    (c) => c.name === name
+  );
+  return p?.price ?? 0;
+}
 
 const ITEM_W = 148; // card width (w-36 = 144px) + gap-1 (4px)
 
@@ -247,6 +256,9 @@ export function CS2CaseSimulator() {
           <p className="text-sm text-stone-400 mt-1">
             Реальные шансы Valve · 42 кейса · 657 скинов · 1851 нож/перчатки
           </p>
+          <p className="text-xs text-stone-500 mt-0.5">
+            Цены: Steam Market / CS.MONEY · Сентябрь 2026
+          </p>
         </div>
 
         {/* Case selector */}
@@ -300,7 +312,13 @@ export function CS2CaseSimulator() {
                         loading="lazy"
                       />
                     )}
-                    <span className="font-semibold truncate">{c.name}</span>
+                    <span className="font-semibold truncate flex-1">{c.name}</span>
+                    {(() => {
+                      const p = getCasePrice(c.name);
+                      return p > 0 ? (
+                        <span className="text-xs font-bold text-[#ffd700] shrink-0">${p.toFixed(2)}</span>
+                      ) : null;
+                    })()}
                   </button>
                 ))}
               </div>
@@ -342,7 +360,16 @@ export function CS2CaseSimulator() {
               style={{ filter: "drop-shadow(0 8px 32px rgba(255,215,0,0.2))" }}
             />
           )}
-          <p className="text-stone-500 mt-4 text-sm">
+          {(() => {
+            const price = getCasePrice(selectedCase.name);
+            return price > 0 ? (
+              <div className="mt-3 text-center">
+                <span className="text-2xl font-black text-[#ffd700]">${price.toFixed(2)}</span>
+                <span className="text-stone-500 text-xs ml-2">+ $2.49 key = ${(price + 2.49).toFixed(2)} за открытие</span>
+              </div>
+            ) : null;
+          })()}
+          <p className="text-stone-500 mt-3 text-sm">
             Нажми ПРОКРУТИТЬ <span className="text-stone-600">или ПРОБЕЛ</span>
           </p>
         </div>
