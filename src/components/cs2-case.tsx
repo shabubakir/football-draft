@@ -19,38 +19,45 @@ const ITEM_W = 148; // card width (144px) + gap (4px)
 // ---------- Item card component ----------
 function ItemCard({
   label,
+  img,
   color,
+  isWin,
 }: {
   label: string;
+  img: string;
   color: string;
+  isWin?: boolean;
 }) {
   return (
     <div
-      className="flex-shrink-0 flex flex-col items-center justify-center rounded-lg border overflow-hidden w-36 h-40"
+      className={`flex-shrink-0 flex flex-col rounded-lg border overflow-hidden w-36 h-44 transition-all duration-300 ${
+        isWin ? "scale-110 shadow-xl z-10" : ""
+      }`}
       style={{
-        borderColor: `${color}40`,
-        background: `linear-gradient(160deg, ${color}18 0%, ${color}05 100%)`,
+        borderColor: isWin ? color : `${color}30`,
+        boxShadow: isWin ? `0 0 25px ${color}60` : undefined,
+        background: `linear-gradient(180deg, ${color}12 0%, #0a0a0a 40%)`,
       }}
     >
-      {/* Weapon silhouette */}
-      <div className="flex-1 flex items-center justify-center px-2">
-        <svg viewBox="0 0 80 28" className="w-24 h-7" fill="none">
-          <rect x="2" y="10" width="52" height="8" rx="2" fill={color} opacity="0.55" />
-          <rect x="52" y="12" width="24" height="5" rx="1.5" fill={color} opacity="0.35" />
-          <rect x="10" y="17" width="10" height="10" rx="2" fill={color} opacity="0.25" />
-          <rect x="2" y="8" width="6" height="4" rx="1" fill={color} opacity="0.4" />
-        </svg>
+      {/* Skin image */}
+      <div className="flex-1 flex items-center justify-center px-2 pt-2 overflow-hidden">
+        <img
+          src={img}
+          alt={label}
+          className="max-w-full max-h-full object-contain drop-shadow-lg"
+          loading="lazy"
+          style={{ filter: `drop-shadow(0 2px 8px ${color}40)` }}
+        />
       </div>
+      {/* Name */}
       <div
-        className="w-full text-center px-1.5 py-1.5 text-[9px] leading-tight font-semibold line-clamp-2"
+        className="px-1.5 py-1 text-[9px] leading-tight font-semibold text-center line-clamp-2"
         style={{ color }}
       >
         {label}
       </div>
-      <div
-        className="h-1 w-full rounded-b-lg"
-        style={{ background: color, opacity: 0.6 }}
-      />
+      {/* Rarity bar */}
+      <div className="h-1.5 w-full" style={{ background: color, opacity: 0.7 }} />
     </div>
   );
 }
@@ -70,7 +77,7 @@ export function CS2CaseSimulator() {
   const animRef = useRef<number | null>(null);
 
   const filteredCases = CASES.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+    (c.name ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   const stopAnimation = useCallback(() => {
@@ -249,12 +256,13 @@ export function CS2CaseSimulator() {
               {track.map((cell, i) => {
                 const isWin = !spinning && result !== null && i === resultIdx;
                 return (
-                  <div
+                  <ItemCard
                     key={i}
-                    className={`transition-transform duration-300 ${isWin ? "scale-110 z-10" : ""}`}
-                  >
-                    <ItemCard label={cell.label} color={cell.color} />
-                  </div>
+                    label={cell.label}
+                    img={cell.img}
+                    color={cell.color}
+                    isWin={isWin}
+                  />
                 );
               })}
             </div>
@@ -271,27 +279,35 @@ export function CS2CaseSimulator() {
         {result && !spinning && (
           <div className="absolute inset-0 flex items-end justify-center pb-4 z-20 pointer-events-none">
             <div
-              className="text-center bg-stone-950/90 backdrop-blur rounded-xl px-6 py-3 border"
+              className="flex items-center gap-4 bg-stone-950/95 backdrop-blur rounded-xl px-5 py-3 border"
               style={{
                 borderColor: `${RARITY_COLORS[result.tier]}60`,
-                boxShadow: `0 0 30px ${RARITY_COLORS[result.tier]}30`,
+                boxShadow: `0 0 40px ${RARITY_COLORS[result.tier]}40`,
               }}
             >
-              <div
-                className="text-xl sm:text-2xl font-black"
-                style={{ color: RARITY_COLORS[result.tier] }}
-              >
-                {result.item}
-              </div>
-              <div
-                className="text-xs font-bold mt-1 px-2.5 py-0.5 rounded-full inline-block"
-                style={{
-                  color: RARITY_COLORS[result.tier],
-                  background: `${RARITY_COLORS[result.tier]}20`,
-                }}
-              >
-                {RARITY_NAMES[result.tier]}
-                {result.isSt && " · STATTRAK™"}
+              <img
+                src={result.img}
+                alt={result.item}
+                className="w-24 h-24 object-contain drop-shadow-xl"
+                style={{ filter: `drop-shadow(0 0 12px ${RARITY_COLORS[result.tier]}60)` }}
+              />
+              <div>
+                <div
+                  className="text-lg sm:text-xl font-black"
+                  style={{ color: RARITY_COLORS[result.tier] }}
+                >
+                  {result.item}
+                </div>
+                <div
+                  className="text-xs font-bold mt-1 px-2.5 py-0.5 rounded-full inline-block"
+                  style={{
+                    color: RARITY_COLORS[result.tier],
+                    background: `${RARITY_COLORS[result.tier]}20`,
+                  }}
+                >
+                  {RARITY_NAMES[result.tier]}
+                  {result.isSt && " · STATTRAK™"}
+                </div>
               </div>
             </div>
           </div>

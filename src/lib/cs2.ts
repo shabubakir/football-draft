@@ -8,14 +8,21 @@ export type Tier = 0 | 1 | 2 | 3; // 0=Mil-Spec, 1=Restricted, 2=Classified, 3=C
 export type CaseItem = {
   n: string; // "AK-47 | Fire Serpent"
   t: Tier;
+  img: string; // Steam image URL
+};
+
+export type CaseRare = {
+  n: string; // "Karambit | Doppler"
+  img: string;
 };
 
 export type CS2Case = {
   name: string;
   short: string;
   year: string;
+  img: string; // case image URL
   items: CaseItem[];
-  rares: string[]; // knife/glove names
+  rares: CaseRare[];
 };
 
 export const CASES: CS2Case[] = casesData as CS2Case[];
@@ -57,6 +64,7 @@ export const RARITY_BG = [
 export type OpenResult = {
   tier: Tier | 4; // 4 = rare special
   item: string; // name of the skin or knife
+  img: string; // image URL
   isSt: boolean; // StatTrak
 };
 
@@ -100,24 +108,30 @@ export function rollCase(caseDef: CS2Case, rng: () => number = Math.random): Ope
 
   // 2. Выбор предмета внутри тира
   let item: string;
+  let img: string;
   if (tier === 4) {
     // Rare special: knife or glove
-    item = caseDef.rares[Math.floor(rng() * caseDef.rares.length)] ?? "★ Knife";
+    const rare = caseDef.rares[Math.floor(rng() * caseDef.rares.length)];
+    item = rare?.n ?? "★ Knife";
+    img = rare?.img ?? "";
   } else {
     const pool = caseDef.items.filter((i) => i.t === tier);
-    item = pool.length > 0 ? pool[Math.floor(rng() * pool.length)].n : caseDef.items[0].n;
+    const picked = pool.length > 0 ? pool[Math.floor(rng() * pool.length)] : caseDef.items[0];
+    item = picked.n;
+    img = picked.img;
   }
 
   // 3. StatTrak ~10% для eligible items (не для ножей/перчаток)
   const isSt = tier < 4 && rng() < 0.1;
 
-  return { tier, item: isSt ? "★ " + item : item, isSt };
+  return { tier, item: isSt ? "★ " + item : item, img, isSt };
 }
 
 // ---------- Генерация трека для анимации ----------
 // Трек: 120 ячеек, результат ставится на заданную позицию
 export type TrackCell = {
   label: string;
+  img: string;
   tier: Tier | 4;
   color: string;
 };
@@ -142,6 +156,7 @@ export function buildTrack(
       // Результат
       cells.push({
         label: result.item,
+        img: result.img,
         tier: result.tier,
         color: RARITY_COLORS[result.tier],
       });
@@ -158,14 +173,19 @@ export function buildTrack(
     else t = 0;
 
     let label: string;
+    let img: string;
     if (t === 4) {
-      label = caseDef.rares[Math.floor(rng() * caseDef.rares.length)] ?? "★ Knife";
+      const rare = caseDef.rares[Math.floor(rng() * caseDef.rares.length)];
+      label = rare?.n ?? "★ Knife";
+      img = rare?.img ?? "";
     } else {
       const pool = caseDef.items.filter((i) => i.t === t);
-      label = pool.length > 0 ? pool[Math.floor(rng() * pool.length)].n : caseDef.items[0].n;
+      const picked = pool.length > 0 ? pool[Math.floor(rng() * pool.length)] : caseDef.items[0];
+      label = picked.n;
+      img = picked.img;
     }
 
-    cells.push({ label, tier: t, color: RARITY_COLORS[t] });
+    cells.push({ label, img, tier: t, color: RARITY_COLORS[t] });
   }
 
   return { cells, targetIndex };
