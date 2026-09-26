@@ -138,6 +138,7 @@ export function CS2CaseSimulator() {
   const [tierFilter, setTierFilter] = useState<-1 | 0 | 1 | 2 | 3 | 4>(-1);
 
   const [offset, setOffset] = useState(0);
+  const [hasOpened, setHasOpened] = useState(false);
   const animRef = useRef<number | null>(null);
 
   const filteredCases = CASES.filter((c) =>
@@ -170,6 +171,7 @@ export function CS2CaseSimulator() {
     setResult(null);
     setResultIdx(-1);
     setSpinning(true);
+    setHasOpened(true);
 
     const DURATION = 5200;
 
@@ -322,101 +324,116 @@ export function CS2CaseSimulator() {
         )}
       </div>
 
-      {/* Spin area */}
-      <div className="relative">
-        {/* Center marker */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-[#ffd700] z-10 shadow-[0_0_10px_#ffd700]" />
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[10px] border-l-transparent border-r-transparent border-t-[#ffd700] z-10" />
-
-        {/* Track viewport */}
-        <div
-          data-cs2-viewport
-          className="overflow-hidden rounded-xl border border-white/10 bg-stone-950/80 h-48 sm:h-52 relative"
-          style={{
-            maskImage:
-              "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
-            WebkitMaskImage:
-              "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
-          }}
-        >
-          {track.length > 0 ? (
-            <div
-              data-cs2-track
-              className="flex gap-1 items-center h-full px-1"
-              style={{ transform: `translateX(${offset}px)`, willChange: "transform" }}
-            >
-              {track.map((cell, i) => {
-                const isWin = !spinning && result !== null && i === resultIdx;
-                return (
-                  <div key={i} data-cs2-card>
-                    <ItemCard
-                      label={cell.label}
-                      img={cell.img}
-                      color={cell.color}
-                      isWin={isWin}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-stone-500">
-              <div className="text-6xl mb-4">🎰</div>
-              <p className="text-lg font-bold">Нажми ПРОКРУТИТЬ</p>
-              <p className="text-sm mt-1">или нажми ПРОБЕЛ</p>
-            </div>
+      {/* Before first spin: big case image */}
+      {!hasOpened && (
+        <div className="relative flex flex-col items-center justify-center rounded-xl border border-white/10 bg-stone-950/80 py-10 sm:py-14">
+          {selectedCase.img && (
+            <img
+              src={selectedCase.img}
+              alt={selectedCase.name}
+              className="w-56 h-56 sm:w-64 sm:h-64 object-contain drop-shadow-2xl"
+              style={{ filter: "drop-shadow(0 8px 32px rgba(255,215,0,0.2))" }}
+            />
           )}
+          <p className="text-stone-500 mt-4 text-sm">
+            Нажми ПРОКРУТИТЬ <span className="text-stone-600">или ПРОБЕЛ</span>
+          </p>
         </div>
+      )}
 
-        {/* Result overlay */}
-        {result && !spinning && (
-          <div className="absolute inset-0 flex items-end justify-center pb-4 z-20 pointer-events-none">
-            <div
-              className="flex items-center gap-4 bg-stone-950/95 backdrop-blur rounded-xl px-5 py-3 border"
-              style={{
-                borderColor: `${RARITY_COLORS[result.tier]}60`,
-                boxShadow: `0 0 40px ${RARITY_COLORS[result.tier]}40`,
-              }}
-            >
-              <img
-                src={result.img}
-                alt={result.item}
-                className="w-24 h-24 object-contain drop-shadow-xl"
-                style={{ filter: `drop-shadow(0 0 12px ${RARITY_COLORS[result.tier]}60)` }}
-              />
-              <div>
-                <div
-                  className="text-lg sm:text-xl font-black"
-                  style={{ color: RARITY_COLORS[result.tier] }}
-                >
-                  {result.item}
-                </div>
-                <div
-                  className="text-xs font-bold mt-1 px-2.5 py-0.5 rounded-full inline-block"
-                  style={{
-                    color: RARITY_COLORS[result.tier],
-                    background: `${RARITY_COLORS[result.tier]}20`,
-                  }}
-                >
-                  {RARITY_NAMES[result.tier]}
-                  {result.isSt && " · STATTRAK™"}
+      {/* Spin area: shown after first spin */}
+      {hasOpened && (
+        <div className="relative">
+          {/* Center marker */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-[#ffd700] z-10 shadow-[0_0_10px_#ffd700]" />
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[10px] border-l-transparent border-r-transparent border-t-[#ffd700] z-10" />
+
+          {/* Track viewport */}
+          <div
+            data-cs2-viewport
+            className="overflow-hidden rounded-xl border border-white/10 bg-stone-950/80 h-48 sm:h-52 relative"
+            style={{
+              maskImage:
+                "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
+            }}
+          >
+            {track.length > 0 ? (
+              <div
+                data-cs2-track
+                className="flex gap-1 items-center h-full px-1"
+                style={{ transform: `translateX(${offset}px)`, willChange: "transform" }}
+              >
+                {track.map((cell, i) => {
+                  const isWin = !spinning && result !== null && i === resultIdx;
+                  return (
+                    <div key={i} data-cs2-card>
+                      <ItemCard
+                        label={cell.label}
+                        img={cell.img}
+                        color={cell.color}
+                        isWin={isWin}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                {selectedCase.img && (
+                  <img
+                    src={selectedCase.img}
+                    alt={selectedCase.name}
+                    className="w-40 h-40 object-contain"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Result overlay */}
+          {result && !spinning && (
+            <div className="absolute inset-0 flex items-end justify-center pb-4 z-20 pointer-events-none">
+              <div
+                className="flex items-center gap-4 bg-stone-950/95 backdrop-blur rounded-xl px-5 py-3 border"
+                style={{
+                  borderColor: `${RARITY_COLORS[result.tier]}60`,
+                  boxShadow: `0 0 40px ${RARITY_COLORS[result.tier]}40`,
+                }}
+              >
+                <img
+                  src={result.img}
+                  alt={result.item}
+                  className="w-24 h-24 object-contain drop-shadow-xl"
+                  style={{ filter: `drop-shadow(0 0 12px ${RARITY_COLORS[result.tier]}60)` }}
+                />
+                <div>
+                  <div
+                    className="text-lg sm:text-xl font-black"
+                    style={{ color: RARITY_COLORS[result.tier] }}
+                  >
+                    {result.item}
+                  </div>
+                  <div
+                    className="text-xs font-bold mt-1 px-2.5 py-0.5 rounded-full inline-block"
+                    style={{
+                      color: RARITY_COLORS[result.tier],
+                      background: `${RARITY_COLORS[result.tier]}20`,
+                    }}
+                  >
+                    {RARITY_NAMES[result.tier]}
+                    {result.isSt && " · STATTRAK™"}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
-      {/* Case image + spin button */}
-      <div className="flex flex-col items-center gap-4">
-        {selectedCase.img && (
-          <img
-            src={selectedCase.img}
-            alt={selectedCase.name}
-            className="w-48 h-48 sm:w-56 sm:h-56 object-contain drop-shadow-2xl"
-            style={{ filter: "drop-shadow(0 8px 32px rgba(255,215,0,0.15))" }}
-          />
-        )}
+      {/* Spin button */}
+      <div className="flex justify-center">
         <button
           onClick={openCase}
           disabled={spinning}
@@ -426,7 +443,7 @@ export function CS2CaseSimulator() {
               : "bg-gradient-to-r from-[#ffd700] to-[#ff8c00] text-stone-950 hover:scale-105 shadow-lg shadow-[#ffd700]/20"
           }`}
         >
-          {spinning ? "КРУТИМСЯ..." : "🎰 ПРОКРУТИТЬ"}
+          {spinning ? "КРУТИМСЯ..." : "ПРОКРУТИТЬ"}
         </button>
       </div>
 
