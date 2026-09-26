@@ -14,6 +14,12 @@ import {
   makeRng,
 } from "@/lib/cs2";
 import casePrices from "@/lib/data/cs2-prices.json";
+import {
+  playSpinClick,
+  playTick,
+  playReveal,
+  playWhoosh,
+} from "@/lib/audio";
 
 // Look up case price by name
 function getCasePrice(name: string): number {
@@ -39,11 +45,13 @@ function SkinCard({
   img,
   tier,
   count,
+  price,
 }: {
   name: string;
   img: string;
   tier: 0 | 1 | 2 | 3 | 4;
   count: number;
+  price?: number;
 }) {
   const odds = RARITY_ODDS[tier] / count;
   const color = RARITY_COLORS[tier];
@@ -75,11 +83,16 @@ function SkinCard({
           loading="lazy"
         />
       </div>
-      {/* Name */}
+      {/* Name + Price */}
       <div className="px-1.5 py-1 border-t" style={{ borderColor: `${color}20` }}>
         <div className="text-[10px] font-bold text-stone-200 truncate">{weapon}</div>
         {finish && (
           <div className="text-[9px] font-semibold text-stone-400 truncate">{finish}</div>
+        )}
+        {price != null && price > 0 && (
+          <div className="text-[10px] font-bold text-[#4ade80] mt-0.5">
+            ${price >= 100 ? price.toFixed(0) : price.toFixed(2)}
+          </div>
         )}
       </div>
       {/* Rarity stripe */}
@@ -145,10 +158,30 @@ export function CS2CaseSimulator() {
   const [showCasePicker, setShowCasePicker] = useState(false);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<-1 | 0 | 1 | 2 | 3 | 4>(-1);
+  const [skinPrices, setSkinPrices] = useState<Record<string, number>>({});
 
   const [offset, setOffset] = useState(0);
   const [hasOpened, setHasOpened] = useState(false);
   const animRef = useRef<number | null>(null);
+
+  // Fetch live skin prices for the selected case (cached 7 days server-side)
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/cs2-prices?case=${encodeURIComponent(selectedCase.name)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.prices) setSkinPrices(d.prices);
+      })
+      .catch(() => {
+        // Fallback: no prices shown
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCase.name]);
+
+  const getSkinPrice = (name: string): number | undefined =>
+    skinPrices[name.toLowerCase()];
 
   const filteredCases = CASES.filter((c) =>
     (c.name ?? "").toLowerCase().includes(search.toLowerCase())
@@ -182,6 +215,10 @@ export function CS2CaseSimulator() {
     setSpinning(true);
     setHasOpened(true);
 
+    // Play spin start sounds
+    playSpinClick();
+    playWhoosh();
+
     const DURATION = 5200;
 
     // Start: first card at left edge
@@ -211,12 +248,22 @@ export function CS2CaseSimulator() {
 
         const startTime = performance.now();
         const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+        let lastCardIdx = -1;
 
         const animate = (now: number) => {
           const elapsed = now - startTime;
           const progress = Math.min(elapsed / DURATION, 1);
           const eased = easeOutQuint(progress);
-          setOffset(-finalOffset * eased);
+          const currentOffset = -finalOffset * eased;
+          setOffset(currentOffset);
+
+          // Play tick when a new card passes under the center marker
+          const cardW = ITEM_W; // 148px
+          const cardIdx = Math.round((targetCenter - currentOffset) / cardW);
+          if (cardIdx !== lastCardIdx && cardIdx >= 0 && cardIdx < cards.length) {
+            lastCardIdx = cardIdx;
+            playTick();
+          }
 
           if (progress < 1) {
             animRef.current = requestAnimationFrame(animate);
@@ -225,6 +272,8 @@ export function CS2CaseSimulator() {
             setResult(res);
             setResultIdx(targetIndex);
             setHistory((h) => [res, ...h].slice(0, 20));
+            // Play reveal sound based on rarity tier
+            playReveal(res.tier);
           }
         };
 
@@ -465,6 +514,11 @@ export function CS2CaseSimulator() {
                     {RARITY_NAMES[result.tier]}
                     {result.isSt && " · STATTRAK™"}
                   </div>
+                  {getSkinPrice(result.item) != null && getSkinPrice(result.item)! > 0 && (
+                    <div className="text-sm font-black text-[#4ade80] mt-1.5">
+                      ${getSkinPrice(result.item)! >= 100 ? getSkinPrice(result.item)!.toFixed(0) : getSkinPrice(result.item)!.toFixed(2)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -549,27 +603,27 @@ export function CS2CaseSimulator() {
           {/* Covert */}
           {(tierFilter === -1 || tierFilter === 3) &&
             selectedCase.items.filter((i) => i.t === 3).map((i) => (
-              <SkinCard key={i.n} name={i.n} img={i.img} tier={3} count={selectedCase.items.filter((x) => x.t === 3).length} />
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={3} count={selectedCase.items.filter((x) => x.t === 3).length} price={getSkinPrice(i.n)} />
             ))}
           {/* Classified */}
           {(tierFilter === -1 || tierFilter === 2) &&
             selectedCase.items.filter((i) => i.t === 2).map((i) => (
-              <SkinCard key={i.n} name={i.n} img={i.img} tier={2} count={selectedCase.items.filter((x) => x.t === 2).length} />
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={2} count={selectedCase.items.filter((x) => x.t === 2).length} price={getSkinPrice(i.n)} />
             ))}
           {/* Restricted */}
           {(tierFilter === -1 || tierFilter === 1) &&
             selectedCase.items.filter((i) => i.t === 1).map((i) => (
-              <SkinCard key={i.n} name={i.n} img={i.img} tier={1} count={selectedCase.items.filter((x) => x.t === 1).length} />
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={1} count={selectedCase.items.filter((x) => x.t === 1).length} price={getSkinPrice(i.n)} />
             ))}
           {/* Mil-Spec */}
           {(tierFilter === -1 || tierFilter === 0) &&
             selectedCase.items.filter((i) => i.t === 0).map((i) => (
-              <SkinCard key={i.n} name={i.n} img={i.img} tier={0} count={selectedCase.items.filter((x) => x.t === 0).length} />
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={0} count={selectedCase.items.filter((x) => x.t === 0).length} price={getSkinPrice(i.n)} />
             ))}
           {/* Knives / gloves */}
           {(tierFilter === -1 || tierFilter === 4) &&
             selectedCase.rares.map((r) => (
-              <SkinCard key={r.n} name={r.n} img={r.img} tier={4} count={selectedCase.rares.length} />
+              <SkinCard key={r.n} name={r.n} img={r.img} tier={4} count={selectedCase.rares.length} price={getSkinPrice(r.n)} />
             ))}
         </div>
       </div>
