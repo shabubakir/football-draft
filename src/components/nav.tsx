@@ -39,6 +39,9 @@ export function Nav() {
         <Link href="/grid/online" className={linkCls(isActive("/grid"))}>
           ОНЛАЙН
         </Link>
+        <Link href="/draft" className={linkCls(isActive("/draft"))}>
+          ДРАФТ
+        </Link>
         <Link href="/guess" className={linkCls(isActive("/guess"))}>
           УГАДАЙ ИГРОКА
         </Link>
@@ -71,6 +74,9 @@ export function Nav() {
           </Link>
           <Link href="/grid/online" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/grid") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             СЕТКА 9 ОНЛАЙН
+          </Link>
+          <Link href="/draft" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/draft") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
+            ДРАФТ
           </Link>
           <Link href="/guess" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/guess") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             УГАДАЙ ИГРОКА

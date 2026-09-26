@@ -11,6 +11,8 @@ export const XP_KEYS = {
   grid_online_win: 30, // выигрыш в сетке онлайн
   quiz_win: 20,        // 1-е место в викторине
   career_win: 100,     // победа в "Пути футболиста" (максимум, меньше за поздние угадывания)
+  draft_champion: 150, // выиграл турнир в ДРАФТЕ
+  draft_qualify: 50,   // дошёл до финала в ДРАФТЕ
 } as const;
 
 export type Profile = {
