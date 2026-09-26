@@ -54,7 +54,7 @@ function SkinCard({
   img: string;
   tier: 0 | 1 | 2 | 3 | 4;
   count: number;
-  price?: number;
+  price?: { min: number; max: number };
 }) {
   const odds = RARITY_ODDS[tier] / count;
   const color = RARITY_COLORS[tier];
@@ -92,9 +92,11 @@ function SkinCard({
         {finish && (
           <div className="text-[9px] font-semibold text-stone-400 truncate">{finish}</div>
         )}
-        {price != null && price > 0 && (
+        {price != null && price.min > 0 && (
           <div className="text-[10px] font-bold text-[#4ade80] mt-0.5">
-            ${price >= 100 ? price.toFixed(0) : price.toFixed(2)}
+            {price.min === price.max
+              ? `$${price.max >= 100 ? price.max.toFixed(0) : price.max.toFixed(2)}`
+              : `$${price.min >= 100 ? price.min.toFixed(0) : price.min.toFixed(2)} – $${price.max >= 100 ? price.max.toFixed(0) : price.max.toFixed(2)}`}
           </div>
         )}
       </div>
@@ -161,7 +163,7 @@ export function CS2CaseSimulator() {
   const [showCasePicker, setShowCasePicker] = useState(false);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<-1 | 0 | 1 | 2 | 3 | 4>(-1);
-  const [skinPrices, setSkinPrices] = useState<Record<string, number>>({});
+  const [skinPrices, setSkinPrices] = useState<Record<string, { min: number; max: number }>>({});
   const [soundOn, setSoundOn] = useState(true);
 
   const [offset, setOffset] = useState(0);
@@ -184,7 +186,7 @@ export function CS2CaseSimulator() {
     };
   }, [selectedCase.name]);
 
-  const getSkinPrice = (name: string): number | undefined =>
+  const getSkinPrice = (name: string): { min: number; max: number } | undefined =>
     skinPrices[name.toLowerCase()];
 
   const filteredCases = CASES.filter((c) =>
@@ -222,7 +224,6 @@ export function CS2CaseSimulator() {
     // Play spin start sounds (real CS2 audio)
     playClick();
     playUnlock();
-    const stopScroll = playScroll();
 
     const DURATION = 5200;
 
@@ -234,17 +235,11 @@ export function CS2CaseSimulator() {
       requestAnimationFrame(() => {
         const trackEl = document.querySelector("[data-cs2-track]");
         const viewportEl = document.querySelector("[data-cs2-viewport]");
-        if (!trackEl || !viewportEl) {
-          stopScroll();
-          return;
-        }
+        if (!trackEl || !viewportEl) return;
 
         const cards = trackEl.querySelectorAll("[data-cs2-card]");
         const targetCard = cards[targetIndex];
-        if (!targetCard) {
-          stopScroll();
-          return;
-        }
+        if (!targetCard) return;
 
         const cardRect = targetCard.getBoundingClientRect();
         const viewportRect = viewportEl.getBoundingClientRect();
@@ -258,6 +253,8 @@ export function CS2CaseSimulator() {
 
         const startTime = performance.now();
         const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+        let lastTickIdx = -1;
+        let lastTickTime = 0;
 
         const animate = (now: number) => {
           const elapsed = now - startTime;
@@ -266,10 +263,24 @@ export function CS2CaseSimulator() {
           const currentOffset = -finalOffset * eased;
           setOffset(currentOffset);
 
+          // Play a tick sound each time a new card passes under the center marker.
+          // Rate-limited to max ~30 ticks/sec to avoid audio overload.
+          const cardW = ITEM_W;
+          const cardIdx = Math.round((targetCenter - currentOffset) / cardW);
+          if (
+            cardIdx !== lastTickIdx &&
+            cardIdx >= 0 &&
+            cardIdx < cards.length &&
+            now - lastTickTime >= 30
+          ) {
+            lastTickIdx = cardIdx;
+            lastTickTime = now;
+            playScroll();
+          }
+
           if (progress < 1) {
             animRef.current = requestAnimationFrame(animate);
           } else {
-            stopScroll();
             setSpinning(false);
             setResult(res);
             setResultIdx(targetIndex);
@@ -543,11 +554,16 @@ export function CS2CaseSimulator() {
                       {WEAR_RANGES[result.wear].ru} ({result.wear})
                     </span>
                   </div>
-                  {getSkinPrice(result.item) != null && getSkinPrice(result.item)! > 0 && (
-                    <div className="text-sm font-black text-[#4ade80] mt-1.5">
-                      ${getSkinPrice(result.item)! >= 100 ? getSkinPrice(result.item)!.toFixed(0) : getSkinPrice(result.item)!.toFixed(2)}
-                    </div>
-                  )}
+                  {(() => {
+                    const p = getSkinPrice(result.item);
+                    if (!p || p.min <= 0) return null;
+                    const fmt = (v: number) => (v >= 100 ? v.toFixed(0) : v.toFixed(2));
+                    return (
+                      <div className="text-sm font-black text-[#4ade80] mt-1.5">
+                        {p.min === p.max ? `$${fmt(p.max)}` : `$${fmt(p.min)} – $${fmt(p.max)}`}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

@@ -56,22 +56,11 @@ export function playUnlock() {
 }
 
 /**
- * Case scroll/scroll sound — loop while spinning.
- * Returns a stop function.
+ * Single scroll tick — play once per card passing under the marker.
+ * Short, percussive click. Synced with animation in the component.
  */
-export function playScroll(): () => void {
-  const el = getAudio("/sounds/case_scroll.wav");
-  if (!el) return () => {};
-  el.loop = true;
-  el.currentTime = 0;
-  el.volume = 0.35;
-  el.playbackRate = 1;
-  el.play().catch(() => {});
-  return () => {
-    el.loop = false;
-    el.pause();
-    el.currentTime = 0;
-  };
+export function playScroll() {
+  play("/sounds/case_scroll.wav", 0.4);
 }
 
 /**
