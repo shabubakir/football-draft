@@ -286,14 +286,21 @@ export function CS2CaseSimulator() {
                       setResultIdx(-1);
                       setOffset(0);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition flex items-center gap-2.5 ${
                       c.name === selectedCase.name
                         ? "bg-[#ffd700]/20 text-[#ffd700]"
                         : "text-stone-300 hover:bg-white/5"
                     }`}
                   >
-                    <span className="font-semibold">{c.name}</span>
-                    <span className="text-stone-500 ml-2 text-xs">{c.year}</span>
+                    {c.img && (
+                      <img
+                        src={c.img}
+                        alt=""
+                        className="w-9 h-9 object-contain rounded shrink-0"
+                        loading="lazy"
+                      />
+                    )}
+                    <span className="font-semibold truncate">{c.name}</span>
                   </button>
                 ))}
               </div>
