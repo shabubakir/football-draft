@@ -13,7 +13,6 @@ import {
   buildTrack,
   makeRng,
   WEAR_RANGES,
-  WearType,
 } from "@/lib/cs2";
 import casePrices from "@/lib/data/cs2-prices.json";
 import {
@@ -98,18 +97,6 @@ function SkinCard({
             ${price >= 100 ? price.toFixed(0) : price.toFixed(2)}
           </div>
         )}
-        {/* Float ranges — all 5 wears */}
-        <div className="flex gap-0.5 mt-1 flex-wrap">
-          {(Object.keys(WEAR_RANGES) as WearType[]).map((w) => (
-            <span
-              key={w}
-              className="text-[7px] px-1 py-0.5 rounded bg-white/5 text-stone-500 font-mono"
-              title={`${WEAR_RANGES[w].ru} (${WEAR_RANGES[w].en})`}
-            >
-              {w} {WEAR_RANGES[w].min.toFixed(2)}–{WEAR_RANGES[w].max.toFixed(2)}
-            </span>
-          ))}
-        </div>
       </div>
       {/* Rarity stripe */}
       <div className="h-1 w-full" style={{ background: color, opacity: 0.6 }} />
