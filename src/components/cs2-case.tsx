@@ -14,7 +14,15 @@ import {
   makeRng,
 } from "@/lib/cs2";
 
-const ITEM_W = 148; // card width (144px) + gap (4px)
+const ITEM_W = 148; // card width (w-36 = 144px) + gap-1 (4px)
+
+// Measure the actual viewport center to align the marker with the winning card
+function getViewportCenter(): number {
+  if (typeof document === "undefined") return 500;
+  const el = document.querySelector("[data-cs2-viewport]");
+  if (el) return el.clientWidth / 2;
+  return 500;
+}
 
 // ---------- Item card component ----------
 function ItemCard({
@@ -107,34 +115,55 @@ export function CS2CaseSimulator() {
     setResultIdx(-1);
     setSpinning(true);
 
-    // End offset: target card centered in the viewport (center card index = 5)
-    const jitter = (rng() - 0.5) * ITEM_W * 0.5;
-    const finalOffset = (targetIndex - 5) * ITEM_W + jitter;
-
     const DURATION = 5200;
-    const startTime = performance.now();
+
+    // Start: first card at left edge
     setOffset(0);
 
-    // Ease-out: fast start, slow landing (like CS2)
-    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+    // After the track renders, measure the exact pixel position of the target card
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const trackEl = document.querySelector("[data-cs2-track]");
+        const viewportEl = document.querySelector("[data-cs2-viewport]");
+        if (!trackEl || !viewportEl) return;
 
-    const animate = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / DURATION, 1);
-      const eased = easeOutQuint(progress);
-      setOffset(-finalOffset * eased);
+        const cards = trackEl.querySelectorAll("[data-cs2-card]");
+        const targetCard = cards[targetIndex];
+        if (!targetCard) return;
 
-      if (progress < 1) {
+        const trackRect = trackEl.getBoundingClientRect();
+        const cardRect = targetCard.getBoundingClientRect();
+        const viewportRect = viewportEl.getBoundingClientRect();
+
+        // Where the card's center currently is (relative to viewport left)
+        const cardCenterNow = cardRect.left + cardRect.width / 2 - viewportRect.left;
+        // Where we want it: center of viewport
+        const targetCenter = viewportRect.width / 2;
+        // Offset to apply
+        const finalOffset = cardCenterNow - targetCenter;
+
+        const startTime = performance.now();
+        const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+
+        const animate = (now: number) => {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / DURATION, 1);
+          const eased = easeOutQuint(progress);
+          setOffset(-finalOffset * eased);
+
+          if (progress < 1) {
+            animRef.current = requestAnimationFrame(animate);
+          } else {
+            setSpinning(false);
+            setResult(res);
+            setResultIdx(targetIndex);
+            setHistory((h) => [res, ...h].slice(0, 20));
+          }
+        };
+
         animRef.current = requestAnimationFrame(animate);
-      } else {
-        setSpinning(false);
-        setResult(res);
-        setResultIdx(targetIndex);
-        setHistory((h) => [res, ...h].slice(0, 20));
-      }
-    };
-
-    animRef.current = requestAnimationFrame(animate);
+      });
+    });
   }, [spinning, selectedCase]);
 
   // Keyboard shortcut: Space to open
@@ -193,6 +222,11 @@ export function CS2CaseSimulator() {
                       setSelectedCase(c);
                       setShowCasePicker(false);
                       setSearch("");
+                      // Reset track & result when switching cases
+                      setTrack([]);
+                      setResult(null);
+                      setResultIdx(-1);
+                      setOffset(0);
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
                       c.name === selectedCase.name
@@ -240,6 +274,7 @@ export function CS2CaseSimulator() {
 
         {/* Track viewport */}
         <div
+          data-cs2-viewport
           className="overflow-hidden rounded-xl border border-white/10 bg-stone-950/80 h-48 sm:h-52 relative"
           style={{
             maskImage:
@@ -250,19 +285,21 @@ export function CS2CaseSimulator() {
         >
           {track.length > 0 ? (
             <div
+              data-cs2-track
               className="flex gap-1 items-center h-full px-1"
               style={{ transform: `translateX(${offset}px)`, willChange: "transform" }}
             >
               {track.map((cell, i) => {
                 const isWin = !spinning && result !== null && i === resultIdx;
                 return (
-                  <ItemCard
-                    key={i}
-                    label={cell.label}
-                    img={cell.img}
-                    color={cell.color}
-                    isWin={isWin}
-                  />
+                  <div key={i} data-cs2-card>
+                    <ItemCard
+                      label={cell.label}
+                      img={cell.img}
+                      color={cell.color}
+                      isWin={isWin}
+                    />
+                  </div>
                 );
               })}
             </div>
