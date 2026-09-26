@@ -56,12 +56,12 @@ export const GAMES: GameCard[] = [
     disabled: true,
   },
   {
-    tag: "СКОРО",
+    href: "/career",
+    tag: "ЕЖЕДНЕВНАЯ ИГРА · РЕЙТИНГ",
     title: "ПУТЬ ФУТБОЛИСТА",
     desc: "Угадайте футболиста по клубам его карьеры — чем раньше, тем больше очков.",
     footer: "ЕЖЕДНЕВНЫЙ МАРШРУТ",
-    cta: "СКОРО",
+    cta: "ИГРАТЬ",
     accent: "from-violet-500/20 to-violet-500/5",
-    disabled: true,
   },
 ];

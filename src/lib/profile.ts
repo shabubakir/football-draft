@@ -10,6 +10,7 @@ export const XP_KEYS = {
   grid_friend_win: 20, // выигрыш в сетке с другом
   grid_online_win: 30, // выигрыш в сетке онлайн
   quiz_win: 20,        // 1-е место в викторине
+  career_win: 100,     // победа в "Пути футболиста" (максимум, меньше за поздние угадывания)
 } as const;
 
 export type Profile = {

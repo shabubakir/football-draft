@@ -42,6 +42,9 @@ export function Nav() {
         <Link href="/guess" className={linkCls(isActive("/guess"))}>
           УГАДАЙ ИГРОКА
         </Link>
+        <Link href="/career" className={linkCls(isActive("/career"))}>
+          ПУТЬ ФУТБОЛИСТА
+        </Link>
         <Link href="/quiz/online" className={linkCls(isActive("/quiz"))}>
           ВИКТОРИНА
         </Link>
@@ -71,6 +74,9 @@ export function Nav() {
           </Link>
           <Link href="/guess" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/guess") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             УГАДАЙ ИГРОКА
+          </Link>
+          <Link href="/career" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/career") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
+            ПУТЬ ФУТБОЛИСТА
           </Link>
           <Link href="/quiz/online" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/quiz") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             ВИКТОРИНА (5 игроков)
