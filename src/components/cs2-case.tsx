@@ -24,6 +24,61 @@ function getViewportCenter(): number {
   return 500;
 }
 
+// ---------- Skin card for "items in case" grid ----------
+function SkinCard({
+  name,
+  img,
+  tier,
+  count,
+}: {
+  name: string;
+  img: string;
+  tier: 0 | 1 | 2 | 3 | 4;
+  count: number;
+}) {
+  const odds = RARITY_ODDS[tier] / count;
+  const color = RARITY_COLORS[tier];
+  const pipeIdx = name.indexOf(" | ");
+  const weapon = pipeIdx > 0 ? name.slice(0, pipeIdx) : name;
+  const finish = pipeIdx > 0 ? name.slice(pipeIdx + 3) : "";
+
+  return (
+    <div
+      className="rounded-lg overflow-hidden border bg-stone-950/60 relative group"
+      style={{ borderColor: `${color}35` }}
+    >
+      {/* Odds badge */}
+      <div
+        className="absolute top-1 right-1 z-10 px-1.5 py-0.5 rounded text-[10px] font-bold"
+        style={{ background: "rgba(0,0,0,0.75)", color }}
+      >
+        {(odds * 100).toFixed(odds * 100 < 0.1 ? 3 : 2)}%
+      </div>
+      {/* Image */}
+      <div
+        className="w-full aspect-square flex items-center justify-center p-2"
+        style={{ background: `linear-gradient(180deg, ${color}0d 0%, #0a0a0a 100%)` }}
+      >
+        <img
+          src={img}
+          alt={name}
+          className="max-w-full max-h-full object-contain"
+          loading="lazy"
+        />
+      </div>
+      {/* Name */}
+      <div className="px-1.5 py-1 border-t" style={{ borderColor: `${color}20` }}>
+        <div className="text-[10px] font-bold text-stone-200 truncate">{weapon}</div>
+        {finish && (
+          <div className="text-[9px] text-stone-500 truncate">{finish}</div>
+        )}
+      </div>
+      {/* Rarity stripe */}
+      <div className="h-1 w-full" style={{ background: color, opacity: 0.6 }} />
+    </div>
+  );
+}
+
 // ---------- Item card component ----------
 function ItemCard({
   label,
@@ -80,6 +135,7 @@ export function CS2CaseSimulator() {
   const [history, setHistory] = useState<OpenResult[]>([]);
   const [showCasePicker, setShowCasePicker] = useState(false);
   const [search, setSearch] = useState("");
+  const [tierFilter, setTierFilter] = useState<-1 | 0 | 1 | 2 | 3 | 4>(-1);
 
   const [offset, setOffset] = useState(0);
   const animRef = useRef<number | null>(null);
@@ -351,8 +407,16 @@ export function CS2CaseSimulator() {
         )}
       </div>
 
-      {/* Open button */}
-      <div className="flex justify-center">
+      {/* Case image + spin button */}
+      <div className="flex flex-col items-center gap-4">
+        {selectedCase.img && (
+          <img
+            src={selectedCase.img}
+            alt={selectedCase.name}
+            className="w-48 h-48 sm:w-56 sm:h-56 object-contain drop-shadow-2xl"
+            style={{ filter: "drop-shadow(0 8px 32px rgba(255,215,0,0.15))" }}
+          />
+        )}
         <button
           onClick={openCase}
           disabled={spinning}
@@ -366,64 +430,90 @@ export function CS2CaseSimulator() {
         </button>
       </div>
 
-      {/* Case contents preview */}
+      {/* Items in case — full grid with per-skin odds */}
       <div className="bg-white/[0.03] rounded-xl border border-white/5 p-4">
-        <h3 className="text-sm font-bold text-stone-400 mb-3 uppercase tracking-wider">
-          Содержимое: {selectedCase.name} ({selectedCase.items.length} + {selectedCase.rares.length})
+        <h3 className="text-sm font-bold text-stone-300 mb-3 uppercase tracking-wider">
+          Предметы в кейсе · {selectedCase.name}
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2">
-          {/* Covert */}
-          {selectedCase.items.filter((i) => i.t === 3).map((i) => (
-            <div
-              key={i.n}
-              className="px-2 py-1.5 rounded text-xs font-semibold truncate"
-              style={{ color: RARITY_COLORS[3], background: `${RARITY_COLORS[3]}10` }}
-            >
-              {i.n}
-            </div>
-          ))}
-          {/* Classified */}
-          {selectedCase.items.filter((i) => i.t === 2).map((i) => (
-            <div
-              key={i.n}
-              className="px-2 py-1.5 rounded text-xs font-semibold truncate"
-              style={{ color: RARITY_COLORS[2], background: `${RARITY_COLORS[2]}10` }}
-            >
-              {i.n}
-            </div>
-          ))}
-          {/* Restricted */}
-          {selectedCase.items.filter((i) => i.t === 1).map((i) => (
-            <div
-              key={i.n}
-              className="px-2 py-1.5 rounded text-xs truncate"
-              style={{ color: RARITY_COLORS[1], background: `${RARITY_COLORS[1]}10` }}
-            >
-              {i.n}
-            </div>
-          ))}
-          {/* Mil-Spec (first 8) */}
-          {selectedCase.items.filter((i) => i.t === 0).slice(0, 8).map((i) => (
-            <div
-              key={i.n}
-              className="px-2 py-1.5 rounded text-xs truncate text-stone-500"
-              style={{ background: `${RARITY_COLORS[0]}08` }}
-            >
-              {i.n}
-            </div>
-          ))}
-          {selectedCase.items.filter((i) => i.t === 0).length > 8 && (
-            <div className="px-2 py-1.5 rounded text-xs text-stone-600">
-              +{selectedCase.items.filter((i) => i.t === 0).length - 8} ещё
-            </div>
-          )}
-          {/* Knives count */}
-          <div
-            className="px-2 py-1.5 rounded text-xs font-bold"
-            style={{ color: RARITY_COLORS[4], background: `${RARITY_COLORS[4]}10` }}
+
+        {/* Tier filter tabs */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          <button
+            onClick={() => setTierFilter(-1)}
+            className={`px-3 py-1 rounded-full text-xs font-bold border transition ${
+              tierFilter === -1
+                ? "bg-white/15 border-white/30 text-white"
+                : "border-white/10 text-stone-400 hover:bg-white/5"
+            }`}
           >
-            🗡 {selectedCase.rares.length} ножей/перчаток
-          </div>
+            Все {selectedCase.items.length + selectedCase.rares.length}
+          </button>
+          {([3, 2, 1, 0] as const).map((t) => {
+            const count = selectedCase.items.filter((i) => i.t === t).length;
+            if (count === 0) return null;
+            return (
+              <button
+                key={t}
+                onClick={() => setTierFilter(t)}
+                className={`px-3 py-1 rounded-full text-xs font-bold border transition ${
+                  tierFilter === t
+                    ? "text-stone-950"
+                    : "text-stone-300 hover:bg-white/5"
+                }`}
+                style={
+                  tierFilter === t
+                    ? { background: RARITY_COLORS[t], borderColor: RARITY_COLORS[t] }
+                    : { borderColor: `${RARITY_COLORS[t]}40`, color: RARITY_COLORS[t] }
+                }
+              >
+                {RARITY_NAMES[t]} {count}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setTierFilter(4)}
+            className={`px-3 py-1 rounded-full text-xs font-bold border transition ${
+              tierFilter === 4
+                ? "text-stone-950"
+                : "text-stone-300 hover:bg-white/5"
+            }`}
+            style={
+              tierFilter === 4
+                ? { background: RARITY_COLORS[4], borderColor: RARITY_COLORS[4] }
+                : { borderColor: `${RARITY_COLORS[4]}40`, color: RARITY_COLORS[4] }
+            }
+          >
+            Ножи {selectedCase.rares.length}
+          </button>
+        </div>
+
+        {/* Skin grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+          {/* Covert */}
+          {(tierFilter === -1 || tierFilter === 3) &&
+            selectedCase.items.filter((i) => i.t === 3).map((i) => (
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={3} count={selectedCase.items.filter((x) => x.t === 3).length} />
+            ))}
+          {/* Classified */}
+          {(tierFilter === -1 || tierFilter === 2) &&
+            selectedCase.items.filter((i) => i.t === 2).map((i) => (
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={2} count={selectedCase.items.filter((x) => x.t === 2).length} />
+            ))}
+          {/* Restricted */}
+          {(tierFilter === -1 || tierFilter === 1) &&
+            selectedCase.items.filter((i) => i.t === 1).map((i) => (
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={1} count={selectedCase.items.filter((x) => x.t === 1).length} />
+            ))}
+          {/* Mil-Spec */}
+          {(tierFilter === -1 || tierFilter === 0) &&
+            selectedCase.items.filter((i) => i.t === 0).map((i) => (
+              <SkinCard key={i.n} name={i.n} img={i.img} tier={0} count={selectedCase.items.filter((x) => x.t === 0).length} />
+            ))}
+          {/* Knives / gloves */}
+          {(tierFilter === -1 || tierFilter === 4) &&
+            selectedCase.rares.map((r) => (
+              <SkinCard key={r.n} name={r.n} img={r.img} tier={4} count={selectedCase.rares.length} />
+            ))}
         </div>
       </div>
 
