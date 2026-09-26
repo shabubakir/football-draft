@@ -13,6 +13,21 @@ export type Player = {
   max_market_value: number; // млн €
 };
 
+// Имя для подсказки «ТЕКУЩИЙ КЛУБ» — без мусора из базы.
+// Ретайрмент/Ньон и т.п. → «Завершил карьеру», deceased → «Легенда (покинул мир футбола)».
+export function clubLabel(p: Player): string {
+  const c = p.current_club.trim();
+  if (
+    /ретайрмент/i.test(c) ||
+    /^Ньон$/i.test(c) ||
+    /завершил карьеру/i.test(c)
+  ) {
+    return "Завершил карьеру";
+  }
+  if (/умер|скончался/i.test(c)) return "Легенда (покинул мир футбола)";
+  return c;
+}
+
 export const PLAYERS: Player[] = [
   { id: 1, name_ru: "Лео Месси", name_en: "Lionel Messi", country: "Аргентина", position: "Полузащитник", birth_year: 1987, current_club: "Интер Майами", debut_club: "Барселона", max_market_value: 135 },
   { id: 2, name_ru: "Криштиану Роналду", name_en: "Cristiano Ronaldo", country: "Португалия", position: "Нападающий", birth_year: 1985, current_club: "Ал-Наср", debut_club: "Спортинг", max_market_value: 100 },

@@ -33,6 +33,9 @@ export function Nav() {
         <Link href="/" className={linkCls(isActive("/"))}>
           ИГРЫ
         </Link>
+        <Link href="/leaderboard" className={linkCls(isActive("/leaderboard"))}>
+          РЕЙТИНГ
+        </Link>
         <Link href="/grid/online" className={linkCls(isActive("/grid"))}>
           ОНЛАЙН
         </Link>
@@ -59,6 +62,9 @@ export function Nav() {
         <div className="sm:hidden absolute left-4 right-4 top-16 z-50 rounded-2xl border border-stone-200 bg-white p-2 shadow-lg">
           <Link href="/" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             ИГРЫ
+          </Link>
+          <Link href="/leaderboard" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/leaderboard") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
+            РЕЙТИНГ
           </Link>
           <Link href="/grid/online" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/grid") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             СЕТКА 9 ОНЛАЙН

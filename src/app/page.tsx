@@ -2,6 +2,8 @@ import Link from "next/link";
 import { GAMES } from "@/lib/games";
 import { GameCard } from "@/components/game-card";
 import { Nav } from "@/components/nav";
+import { ReportBugButton } from "@/components/report-bug";
+import { ProfileBadge } from "@/components/profile-badge";
 
 export default function Home() {
   return (
@@ -46,11 +48,19 @@ export default function Home() {
         </aside>
       </section>
 
-      <div className="mt-14 flex items-baseline justify-between">
+      <div className="mt-14 flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs tracking-[0.2em] text-stone-500">
           ВЫБЕРИ ИГРУ
         </span>
-        <b className="text-sm text-stone-400">{GAMES.length} РЕЖИМА</b>
+        <div className="flex items-center gap-4">
+          <ProfileBadge />
+          <Link
+            href="/leaderboard"
+            className="text-sm font-semibold text-stone-700 hover:text-stone-900"
+          >
+            РЕЙТИНГ →
+          </Link>
+        </div>
       </div>
 
       <section className="mt-4 grid sm:grid-cols-2 gap-4">
@@ -62,9 +72,7 @@ export default function Home() {
       <footer className="mt-16 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-400">
         <p>
           Football Draft · сделано для игры с друзьями ·{" "}
-          <a href="mailto:you@example.com" className="underline hover:text-stone-600">
-            связь
-          </a>
+          <ReportBugButton />
         </p>
         <nav className="flex gap-4">
           <a href="/legal" className="hover:text-stone-600">
