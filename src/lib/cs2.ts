@@ -149,11 +149,26 @@ export function buildTrack(
 ): TrackData {
   const TOTAL = 120;
 
-  const cells: TrackCell[] = [];
+  // Pre-compute pools per tier
+  const pools: CaseItem[][] = [0, 1, 2, 3].map(
+    (t) => caseDef.items.filter((i) => i.t === t)
+  );
+  const rares = caseDef.rares;
 
+  function pickItem(t: Tier | 4): { label: string; img: string } {
+    if (t === 4) {
+      const rare = rares[Math.floor(rng() * rares.length)];
+      return { label: rare?.n ?? "★ Knife", img: rare?.img ?? "" };
+    }
+    const pool = pools[t];
+    const picked = pool.length > 0 ? pool[Math.floor(rng() * pool.length)] : caseDef.items[0];
+    return { label: picked.n, img: picked.img };
+  }
+
+  // Phase 1: fill 120 slots with real odds
+  const cells: TrackCell[] = [];
   for (let i = 0; i < TOTAL; i++) {
     if (i === targetIndex) {
-      // Результат
       cells.push({
         label: result.item,
         img: result.img,
@@ -162,8 +177,6 @@ export function buildTrack(
       });
       continue;
     }
-
-    // Остальные ячейки — случайные по реальным шансам
     const r = rng();
     let t: Tier | 4;
     if (r < RARITY_ODDS[4]) t = 4;
@@ -172,20 +185,51 @@ export function buildTrack(
     else if (r < RARITY_ODDS[4] + RARITY_ODDS[3] + RARITY_ODDS[2] + RARITY_ODDS[1]) t = 1;
     else t = 0;
 
-    let label: string;
-    let img: string;
-    if (t === 4) {
-      const rare = caseDef.rares[Math.floor(rng() * caseDef.rares.length)];
-      label = rare?.n ?? "★ Knife";
-      img = rare?.img ?? "";
-    } else {
-      const pool = caseDef.items.filter((i) => i.t === t);
-      const picked = pool.length > 0 ? pool[Math.floor(rng() * pool.length)] : caseDef.items[0];
-      label = picked.n;
-      img = picked.img;
+    const { label, img } = pickItem(t);
+    cells.push({ label, img, tier: t, color: RARITY_COLORS[t] });
+  }
+
+  // Phase 2: visual variety — guarantee each tier has at least 2 visible distinct skins
+  // Pick 3 random non-target indices per tier and force-distinct them
+  const MIN_VARIETY = 2; // extra distinct skins per tier (beyond the random ones)
+  for (const t of [0, 1, 2, 3, 4] as Array<Tier | 4>) {
+    // Find all indices of this tier (excluding target)
+    const idx: number[] = [];
+    for (let i = 0; i < TOTAL; i++) {
+      if (i === targetIndex) continue;
+      if (cells[i].tier === t) idx.push(i);
+    }
+    if (idx.length < 2) continue;
+
+    // Shuffle idx
+    for (let i = idx.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
     }
 
-    cells.push({ label, img, tier: t, color: RARITY_COLORS[t] });
+    // Force distinct skins in MIN_VARIETY slots
+    const seen = new Set<string>();
+    let filled = 0;
+    for (const i of idx) {
+      if (filled >= MIN_VARIETY) break;
+      const { label, img } = pickItem(t);
+      if (seen.has(label)) continue;
+      seen.add(label);
+      cells[i] = { label, img, tier: t, color: RARITY_COLORS[t] };
+      filled++;
+    }
+  }
+
+  // Phase 3: sprinkle a few "lucky" high-tier cards among Mil-Spec for visual pop
+  // (like real CS2 case-opening sites show rare items in the roulette)
+  const luckyCount = 3 + Math.floor(rng() * 3); // 3-5 lucky cards
+  for (let n = 0; n < luckyCount; n++) {
+    const i = Math.floor(rng() * TOTAL);
+    if (i === targetIndex) continue;
+    // Upgrade to a higher tier
+    const luckyTier = (2 + Math.floor(rng() * 2)) as Tier; // Classified or Covert
+    const { label, img } = pickItem(luckyTier);
+    cells[i] = { label, img, tier: luckyTier, color: RARITY_COLORS[luckyTier] };
   }
 
   return { cells, targetIndex };
