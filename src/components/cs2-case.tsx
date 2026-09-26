@@ -79,7 +79,7 @@ function SkinCard({
       <div className="px-1.5 py-1 border-t" style={{ borderColor: `${color}20` }}>
         <div className="text-[10px] font-bold text-stone-200 truncate">{weapon}</div>
         {finish && (
-          <div className="text-[9px] text-stone-500 truncate">{finish}</div>
+          <div className="text-[9px] font-semibold text-stone-400 truncate">{finish}</div>
         )}
       </div>
       {/* Rarity stripe */}
@@ -265,11 +265,17 @@ export function CS2CaseSimulator() {
         <div className="relative">
           <button
             onClick={() => setShowCasePicker(!showCasePicker)}
-            className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white hover:bg-white/10 transition flex items-center gap-2"
+            className="px-5 py-3 bg-[#ffd700]/15 border border-[#ffd700]/40 rounded-xl text-sm font-bold text-white hover:bg-[#ffd700]/25 hover:border-[#ffd700]/60 transition flex items-center gap-2 shadow-lg shadow-[#ffd700]/10"
           >
-            <span className="text-[#ffd700]">▣</span>
-            {selectedCase.name}
-            <span className="text-stone-500 ml-1">▼</span>
+            <span className="text-[#ffd700] text-base">▣</span>
+            <span className="max-w-40 truncate">{selectedCase.name}</span>
+            {(() => {
+              const p = getCasePrice(selectedCase.name);
+              return p > 0 ? (
+                <span className="text-[#ffd700] text-xs font-black ml-1">${p.toFixed(2)}</span>
+              ) : null;
+            })()}
+            <span className="text-stone-400 ml-1">▼</span>
           </button>
 
           {showCasePicker && (
