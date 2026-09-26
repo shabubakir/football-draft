@@ -17,10 +17,12 @@ import {
 } from "@/lib/cs2";
 import casePrices from "@/lib/data/cs2-prices.json";
 import {
-  playSpinClick,
-  playTick,
-  playReveal,
-  playWhoosh,
+  playClick,
+  playUnlock,
+  playScroll,
+  playFullReveal,
+  setMuted,
+  isMuted,
 } from "@/lib/audio";
 
 // Look up case price by name
@@ -173,6 +175,7 @@ export function CS2CaseSimulator() {
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<-1 | 0 | 1 | 2 | 3 | 4>(-1);
   const [skinPrices, setSkinPrices] = useState<Record<string, number>>({});
+  const [soundOn, setSoundOn] = useState(true);
 
   const [offset, setOffset] = useState(0);
   const [hasOpened, setHasOpened] = useState(false);
@@ -229,9 +232,10 @@ export function CS2CaseSimulator() {
     setSpinning(true);
     setHasOpened(true);
 
-    // Play spin start sounds
-    playSpinClick();
-    playWhoosh();
+    // Play spin start sounds (real CS2 audio)
+    playClick();
+    playUnlock();
+    const stopScroll = playScroll();
 
     const DURATION = 5200;
 
@@ -243,13 +247,18 @@ export function CS2CaseSimulator() {
       requestAnimationFrame(() => {
         const trackEl = document.querySelector("[data-cs2-track]");
         const viewportEl = document.querySelector("[data-cs2-viewport]");
-        if (!trackEl || !viewportEl) return;
+        if (!trackEl || !viewportEl) {
+          stopScroll();
+          return;
+        }
 
         const cards = trackEl.querySelectorAll("[data-cs2-card]");
         const targetCard = cards[targetIndex];
-        if (!targetCard) return;
+        if (!targetCard) {
+          stopScroll();
+          return;
+        }
 
-        const trackRect = trackEl.getBoundingClientRect();
         const cardRect = targetCard.getBoundingClientRect();
         const viewportRect = viewportEl.getBoundingClientRect();
 
@@ -262,7 +271,6 @@ export function CS2CaseSimulator() {
 
         const startTime = performance.now();
         const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
-        let lastCardIdx = -1;
 
         const animate = (now: number) => {
           const elapsed = now - startTime;
@@ -271,23 +279,16 @@ export function CS2CaseSimulator() {
           const currentOffset = -finalOffset * eased;
           setOffset(currentOffset);
 
-          // Play tick when a new card passes under the center marker
-          const cardW = ITEM_W; // 148px
-          const cardIdx = Math.round((targetCenter - currentOffset) / cardW);
-          if (cardIdx !== lastCardIdx && cardIdx >= 0 && cardIdx < cards.length) {
-            lastCardIdx = cardIdx;
-            playTick();
-          }
-
           if (progress < 1) {
             animRef.current = requestAnimationFrame(animate);
           } else {
+            stopScroll();
             setSpinning(false);
             setResult(res);
             setResultIdx(targetIndex);
             setHistory((h) => [res, ...h].slice(0, 20));
-            // Play reveal sound based on rarity tier
-            playReveal(res.tier);
+            // Play reveal sound (drop + fanfare) based on rarity tier
+            playFullReveal(res.tier);
           }
         };
 
@@ -324,7 +325,24 @@ export function CS2CaseSimulator() {
           </p>
         </div>
 
-        {/* Case selector */}
+        {/* Sound toggle + Case selector */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const next = !soundOn;
+              setSoundOn(next);
+              setMuted(!next);
+            }}
+            className="p-3 rounded-xl border text-lg transition"
+            style={{
+              background: soundOn ? "rgba(74,222,128,0.1)" : "rgba(239,68,68,0.1)",
+              borderColor: soundOn ? "rgba(74,222,128,0.3)" : "rgba(239,68,68,0.3)",
+            }}
+            title={soundOn ? "Выключить звук" : "Включить звук"}
+          >
+            {soundOn ? "🔊" : "🔇"}
+          </button>
+
         <div className="relative">
           <button
             onClick={() => setShowCasePicker(!showCasePicker)}
@@ -393,6 +411,7 @@ export function CS2CaseSimulator() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
 

@@ -1,167 +1,116 @@
 /**
- * CS2 case-opening sounds generated via Web Audio API.
- * No external audio files needed — synthesized in-browser.
+ * CS2 case-opening sounds — real Valve audio from game files.
+ * Sound files in /public/sounds/ (from caseopeningsimulator.com).
  */
 
-let ctx: AudioContext | null = null;
+// ---------- Mute state ----------
+let muted = false;
 
-function getCtx(): AudioContext {
-  if (!ctx) {
-    ctx = new AudioContext();
-  }
-  if (ctx.state === "suspended") {
-    ctx.resume();
-  }
-  return ctx;
+export function setMuted(v: boolean) {
+  muted = v;
 }
 
-/**
- * Play a short "click" sound when the spin starts.
- * Similar to the CS2 case-opening click.
- */
-export function playSpinClick() {
+export function isMuted() {
+  return muted;
+}
+
+// ---------- Audio element pool ----------
+const pool: Record<string, HTMLAudioElement | null> = {};
+
+function getAudio(src: string): HTMLAudioElement | null {
+  if (pool[src]) return pool[src];
   try {
-    const ac = getCtx();
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(800, ac.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(400, ac.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.3, ac.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1);
-    osc.connect(gain);
-    gain.connect(ac.destination);
-    osc.start(ac.currentTime);
-    osc.stop(ac.currentTime + 0.1);
+    const el = new Audio(src);
+    el.preload = "auto";
+    pool[src] = el;
+    return el;
   } catch {
-    // Audio not available
+    return null;
   }
 }
 
-/**
- * Play the "tick" sound as the wheel passes each card.
- * Short, subtle tick.
- */
-export function playTick() {
+function play(src: string, volume = 1, rate = 1) {
+  if (muted) return;
+  const el = getAudio(src);
+  if (!el) return;
   try {
-    const ac = getCtx();
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(2000, ac.currentTime);
-    gain.gain.setValueAtTime(0.08, ac.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.03);
-    osc.connect(gain);
-    gain.connect(ac.destination);
-    osc.start(ac.currentTime);
-    osc.stop(ac.currentTime + 0.03);
+    el.currentTime = 0;
+    el.volume = volume;
+    el.playbackRate = rate;
+    el.play().catch(() => {});
   } catch {
-    // Audio not available
+    // ignore
   }
 }
 
+// ---------- Sound mappings ----------
+
+/** Button click (short blip) */
+export function playClick() {
+  play("/sounds/buttonclick.wav", 0.8);
+}
+
+/** Case unlock sound (play when spin starts) */
+export function playUnlock() {
+  play("/sounds/case_unlock.wav", 0.7);
+}
+
 /**
- * Play the "reveal" sound when the result appears.
- * Different pitch based on rarity tier:
- *   0 = Mil-Spec (low, dull)
- *   1 = Restricted (medium)
- *   2 = Classified (higher)
- *   3 = Covert (high, bright)
- *   4 = Rare Special / Knife (triumphant chord)
+ * Case scroll/scroll sound — loop while spinning.
+ * Returns a stop function.
+ */
+export function playScroll(): () => void {
+  const el = getAudio("/sounds/case_scroll.wav");
+  if (!el) return () => {};
+  el.loop = true;
+  el.currentTime = 0;
+  el.volume = 0.35;
+  el.playbackRate = 1;
+  el.play().catch(() => {});
+  return () => {
+    el.loop = false;
+    el.pause();
+    el.currentTime = 0;
+  };
+}
+
+/**
+ * Item reveal sound based on rarity tier.
+ * tier: 0=Mil-Spec, 1=Restricted, 2=Classified, 3=Covert, 4=Rare Special (knife/glove)
  */
 export function playReveal(tier: 0 | 1 | 2 | 3 | 4) {
-  try {
-    const ac = getCtx();
-    const t = ac.currentTime;
-
-    if (tier === 4) {
-      // Knife/glove: triumphant 3-note chord
-      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-      notes.forEach((freq, i) => {
-        const osc = ac.createOscillator();
-        const gain = ac.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(freq, t + i * 0.08);
-        gain.gain.setValueAtTime(0, t + i * 0.08);
-        gain.gain.linearRampToValueAtTime(0.25, t + i * 0.08 + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.8);
-        osc.connect(gain);
-        gain.connect(ac.destination);
-        osc.start(t + i * 0.08);
-        osc.stop(t + i * 0.08 + 0.8);
-      });
-      // Bass hit
-      const bass = ac.createOscillator();
-      const bg = ac.createGain();
-      bass.type = "sine";
-      bass.frequency.setValueAtTime(130.81, t); // C3
-      bg.gain.setValueAtTime(0.3, t);
-      bg.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-      bass.connect(bg);
-      bg.connect(ac.destination);
-      bass.start(t);
-      bass.stop(t + 0.6);
-    } else {
-      // Regular: single tone that rises with rarity
-      const baseFreq = 440 + tier * 110; // A4, C5, D5, E5
-      const osc = ac.createOscillator();
-      const gain = ac.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(baseFreq, t);
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, t + 0.15);
-      gain.gain.setValueAtTime(0.25, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-      osc.connect(gain);
-      gain.connect(ac.destination);
-      osc.start(t);
-      osc.stop(t + 0.5);
-
-      // Second harmonic for richness
-      const osc2 = ac.createOscillator();
-      const gain2 = ac.createGain();
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(baseFreq * 2, t);
-      gain2.gain.setValueAtTime(0.1, t);
-      gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-      osc2.connect(gain2);
-      gain2.connect(ac.destination);
-      osc2.start(t);
-      osc2.stop(t + 0.4);
-    }
-  } catch {
-    // Audio not available
-  }
+  const sounds: Record<number, string> = {
+    0: "/sounds/item_drop1_common.wav",
+    1: "/sounds/item_drop2_uncommon.wav",
+    2: "/sounds/item_drop3_rare.wav",
+    3: "/sounds/item_drop4_mythical.wav",
+    4: "/sounds/item_drop5_legendary.wav",
+  };
+  play(sounds[tier] ?? sounds[0], 0.9);
 }
 
 /**
- * Play a "whoosh" sound for the spinning motion.
- * White noise burst with bandpass filter.
+ * Case awarded sound (bigger reveal fanfare) — for knife/glove drops.
  */
-export function playWhoosh() {
-  try {
-    const ac = getCtx();
-    const t = ac.currentTime;
-    const duration = 0.4;
-    const buffer = ac.createBuffer(1, ac.sampleRate * duration, ac.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) {
-      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-    }
-    const source = ac.createBufferSource();
-    source.buffer = buffer;
-    const filter = ac.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(1000, t);
-    filter.frequency.exponentialRampToValueAtTime(3000, t + duration);
-    filter.Q.value = 2;
-    const gain = ac.createGain();
-    gain.gain.setValueAtTime(0.15, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(ac.destination);
-    source.start(t);
-  } catch {
-    // Audio not available
+export function playAwarded(tier: 0 | 1 | 2 | 3 | 4) {
+  const sounds: Record<number, string> = {
+    0: "/sounds/case_awarded_common.wav",
+    1: "/sounds/case_awarded_uncommon.wav",
+    2: "/sounds/case_awarded_rare.wav",
+    3: "/sounds/case_awarded_mythical.wav",
+    4: "/sounds/case_awarded_ancient.wav",
+  };
+  play(sounds[tier] ?? sounds[0], 0.8);
+}
+
+/**
+ * Full reveal sequence: drop sound + awarded fanfare.
+ * For tier 4 (knife/glove) plays the legendary/ancient fanfare.
+ */
+export function playFullReveal(tier: 0 | 1 | 2 | 3 | 4) {
+  playReveal(tier);
+  // Slight delay for the fanfare to feel like a "boom"
+  if (!muted) {
+    setTimeout(() => playAwarded(tier), 600);
   }
 }
