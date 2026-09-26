@@ -22,6 +22,7 @@ import {
   playFullReveal,
   setMuted,
   isMuted,
+  preloadSounds,
 } from "@/lib/audio";
 
 // Look up case price by name
@@ -163,12 +164,19 @@ export function CS2CaseSimulator() {
   const [showCasePicker, setShowCasePicker] = useState(false);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<-1 | 0 | 1 | 2 | 3 | 4>(-1);
-  const [skinPrices, setSkinPrices] = useState<Record<string, { min: number; max: number }>>({});
+  const [skinPrices, setSkinPrices] = useState<
+    Record<string, { min: number; max: number; wears?: Record<string, number> }>
+  >({});
   const [soundOn, setSoundOn] = useState(true);
 
   const [offset, setOffset] = useState(0);
   const [hasOpened, setHasOpened] = useState(false);
-  const animRef = useRef<number | null>(null);
+  const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Preload all sound buffers on mount
+  useEffect(() => {
+    preloadSounds();
+  }, []);
 
   // Fetch live skin prices for the selected case (cached 7 days server-side)
   useEffect(() => {
@@ -186,7 +194,9 @@ export function CS2CaseSimulator() {
     };
   }, [selectedCase.name]);
 
-  const getSkinPrice = (name: string): { min: number; max: number } | undefined =>
+  const getSkinPrice = (
+    name: string
+  ): { min: number; max: number; wears?: Record<string, number> } | undefined =>
     skinPrices[name.toLowerCase()];
 
   const filteredCases = CASES.filter((c) =>
@@ -195,7 +205,7 @@ export function CS2CaseSimulator() {
 
   const stopAnimation = useCallback(() => {
     if (animRef.current) {
-      cancelAnimationFrame(animRef.current);
+      clearInterval(animRef.current);
       animRef.current = null;
     }
   }, []);
@@ -231,68 +241,76 @@ export function CS2CaseSimulator() {
     setOffset(0);
 
     // After the track renders, measure the exact pixel position of the target card
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const trackEl = document.querySelector("[data-cs2-track]");
-        const viewportEl = document.querySelector("[data-cs2-viewport]");
-        if (!trackEl || !viewportEl) return;
+    setTimeout(() => {
+      const trackEl = document.querySelector("[data-cs2-track]");
+      const viewportEl = document.querySelector("[data-cs2-viewport]");
+      if (!trackEl || !viewportEl) return;
 
-        const cards = trackEl.querySelectorAll("[data-cs2-card]");
-        const targetCard = cards[targetIndex];
-        if (!targetCard) return;
+      const cards = trackEl.querySelectorAll("[data-cs2-card]");
+      const targetCard = cards[targetIndex];
+      if (!targetCard) return;
 
-        const cardRect = targetCard.getBoundingClientRect();
-        const viewportRect = viewportEl.getBoundingClientRect();
+      const cardRect = targetCard.getBoundingClientRect();
+      const viewportRect = viewportEl.getBoundingClientRect();
 
-        // Where the card's center currently is (relative to viewport left)
-        const cardCenterNow = cardRect.left + cardRect.width / 2 - viewportRect.left;
-        // Where we want it: center of viewport
-        const targetCenter = viewportRect.width / 2;
-        // Offset to apply
-        const finalOffset = cardCenterNow - targetCenter;
+      // Where the card's center currently is (relative to viewport left)
+      const cardCenterNow = cardRect.left + cardRect.width / 2 - viewportRect.left;
+      // Where we want it: center of viewport
+      const targetCenter = viewportRect.width / 2;
+      // Offset to apply
+      const finalOffset = cardCenterNow - targetCenter;
 
-        const startTime = performance.now();
-        const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
-        let lastTickIdx = -1;
-        let lastTickTime = 0;
+      const startTime = performance.now();
+      const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+      let lastTickIdx = -1;
 
-        const animate = (now: number) => {
-          const elapsed = now - startTime;
+      const finish = () => {
+        setSpinning(false);
+        setResult(res);
+        setResultIdx(targetIndex);
+        setHistory((h) => [res, ...h].slice(0, 20));
+        playFullReveal(res.tier);
+      };
+
+      // Use setInterval (16ms) instead of rAF — rAF pauses when tab is backgrounded
+      animRef.current = setInterval(() => {
+        try {
+          const elapsed = performance.now() - startTime;
           const progress = Math.min(elapsed / DURATION, 1);
           const eased = easeOutQuint(progress);
           const currentOffset = -finalOffset * eased;
           setOffset(currentOffset);
 
           // Play a tick sound each time a new card passes under the center marker.
-          // Rate-limited to max ~30 ticks/sec to avoid audio overload.
+          // Exactly synced with the visual — each tick = one card boundary.
           const cardW = ITEM_W;
-          const cardIdx = Math.round((targetCenter - currentOffset) / cardW);
+          const cardIdx = Math.floor((targetCenter - currentOffset) / cardW);
           if (
             cardIdx !== lastTickIdx &&
             cardIdx >= 0 &&
-            cardIdx < cards.length &&
-            now - lastTickTime >= 30
+            cardIdx < cards.length
           ) {
             lastTickIdx = cardIdx;
-            lastTickTime = now;
             playScroll();
           }
 
-          if (progress < 1) {
-            animRef.current = requestAnimationFrame(animate);
-          } else {
-            setSpinning(false);
-            setResult(res);
-            setResultIdx(targetIndex);
-            setHistory((h) => [res, ...h].slice(0, 20));
-            // Play reveal sound (drop + fanfare) based on rarity tier
-            playFullReveal(res.tier);
+          if (progress >= 1) {
+            if (animRef.current) {
+              clearInterval(animRef.current);
+              animRef.current = null;
+            }
+            finish();
           }
-        };
-
-        animRef.current = requestAnimationFrame(animate);
-      });
-    });
+        } catch (e) {
+          console.error("CS2 animate error:", e);
+          if (animRef.current) {
+            clearInterval(animRef.current);
+            animRef.current = null;
+          }
+          finish();
+        }
+      }, 16);
+    }, 80);
   }, [spinning, selectedCase]);
 
   // Keyboard shortcut: Space to open
@@ -558,9 +576,20 @@ export function CS2CaseSimulator() {
                     const p = getSkinPrice(result.item);
                     if (!p || p.min <= 0) return null;
                     const fmt = (v: number) => (v >= 100 ? v.toFixed(0) : v.toFixed(2));
+                    // Show exact price for the dropped wear (not a range)
+                    const wearEn =
+                      WEAR_RANGES[result.wear]?.en;
+                    const exactPrice =
+                      wearEn && p.wears ? p.wears[wearEn] : undefined;
+                    const display =
+                      exactPrice != null
+                        ? `$${fmt(exactPrice)}`
+                        : p.min === p.max
+                          ? `$${fmt(p.max)}`
+                          : `$${fmt(p.min)} – $${fmt(p.max)}`;
                     return (
                       <div className="text-sm font-black text-[#4ade80] mt-1.5">
-                        {p.min === p.max ? `$${fmt(p.max)}` : `$${fmt(p.min)} – $${fmt(p.max)}`}
+                        {display}
                       </div>
                     );
                   })()}
