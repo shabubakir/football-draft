@@ -58,7 +58,7 @@ export function GuessGame() {
   const todayIdx = 6;
 
   const [dayIdx, setDayIdx] = useState(todayIdx);
-  const [target, setTarget] = useState<Player | null>(null);
+  const [target, setTarget] = useState<Player | null>(() => targetForDate(days[todayIdx]));
   const [input, setInput] = useState("");
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [finished, setFinished] = useState(false);

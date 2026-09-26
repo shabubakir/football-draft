@@ -45,9 +45,10 @@ function makeCode() {
 
 function uid() {
   // Стабильный ID игрока (переживает перезагрузку страницы)
+  // ВАЖНО: ID генерируем каждый раз — чтобы в разных вкладках были разные игроки
+  // (для тестирования онлайн-игры в 2+ окнах)
   if (typeof window !== "undefined") {
-    const existing = localStorage.getItem("quiz_player_id");
-    if (existing) return existing;
+    // Генерируем новый ID при каждой загрузке страницы
     const id = "p" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
     localStorage.setItem("quiz_player_id", id);
     return id;
