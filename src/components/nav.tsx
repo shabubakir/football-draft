@@ -38,8 +38,6 @@ type NavCategory = {
   title: string;
   icon: string;
   hrefs: string[];
-  /** Специальная карточка внизу панели категории (например, Akinator). */
-  featured?: { label: string; desc: string; href: string };
 };
 
 const NAV_CATEGORIES: NavCategory[] = [
@@ -51,12 +49,17 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "КИБЕРСПОРТ",
     icon: "gamepad",
-    hrefs: ["/cs2", "/cs2/aim", "/cs2/higher-lower", "/geoguessr"],
-    featured: {
-      label: "ФУТБОЛЬНЫЙ ДЖИНН",
-      desc: "Akinator",
-      href: "/akinator",
-    },
+    hrefs: ["/cs2", "/cs2/aim", "/cs2/higher-lower"],
+  },
+  {
+    title: "ГЕОГРАФИЯ",
+    icon: "pin",
+    hrefs: ["/geoguessr"],
+  },
+  {
+    title: "АКИНАТОР",
+    icon: "ghost",
+    hrefs: ["/akinator"],
   },
 ];
 
@@ -436,7 +439,7 @@ export function Nav({ dark = false }: { dark?: boolean }) {
             >
               {/* Левая панель: категории */}
               <div
-                className={`w-56 rounded-2xl p-2 shadow-xl ${
+                className={`w-44 rounded-2xl p-2 shadow-xl ${
                   dark ? "bg-stone-900 border border-white/10" : "bg-white border border-stone-200"
                 }`}
               >
@@ -544,44 +547,6 @@ export function Nav({ dark = false }: { dark?: boolean }) {
                       })}
                     </div>
 
-                    {/* Featured-карточка (Akinator) */}
-                    {cat.featured && (
-                      <Link
-                        href={cat.featured.href}
-                        role="menuitem"
-                        onClick={() => {
-                          setGamesOpen(false);
-                          setActiveCategory(null);
-                        }}
-                        className={`mt-2 flex items-center gap-3 px-3 py-3 rounded-xl border transition ${
-                          dark
-                            ? "border-emerald-400/30 bg-emerald-500/10 hover:bg-emerald-500/20"
-                            : "border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
-                        }`}
-                      >
-                        <span
-                          className={`shrink-0 ${dark ? "text-emerald-300" : "text-emerald-600"}`}
-                        >
-                          <GameIcon name="ghost" />
-                        </span>
-                        <span className="min-w-0">
-                          <span
-                            className={`block text-sm font-bold truncate ${
-                              dark ? "text-emerald-200" : "text-emerald-800"
-                            }`}
-                          >
-                            {cat.featured.label}
-                          </span>
-                          <span
-                            className={`block text-[11px] truncate ${
-                              dark ? "text-white/50" : "text-stone-500"
-                            }`}
-                          >
-                            {cat.featured.desc}
-                          </span>
-                        </span>
-                      </Link>
-                    )}
                   </div>
                 );
               })()}
@@ -660,18 +625,6 @@ export function Nav({ dark = false }: { dark?: boolean }) {
                     </Link>
                   );
                 })}
-                {cat.featured && (
-                  <Link
-                    href={cat.featured.href}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg"
-                  >
-                    <GameIcon name="ghost" className={`w-4 h-4 shrink-0 ${dark ? "text-emerald-300" : "text-emerald-600"}`} />
-                    <span className={dark ? "text-emerald-200" : "text-emerald-700"}>
-                      {cat.featured.label}
-                    </span>
-                  </Link>
-                )}
               </div>
             );
           })}
