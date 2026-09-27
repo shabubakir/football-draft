@@ -342,11 +342,16 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({ code: room.code, rounds_data: newRounds }),
         }
       );
+      const restText = await restRes.text();
       if (!restRes.ok) {
-        const restText = await restRes.text();
-        return err("Не удалось сохранить ответ: " + restRes.status + " " + restText.slice(0, 200), 500);
+        return err("Не удалось сохранить ответ: " + restRes.status + " " + restText.slice(0, 300), 500);
       }
-      const restBody = await restRes.json();
+      let restBody: unknown;
+      try {
+        restBody = JSON.parse(restText);
+      } catch {
+        return err("PostgREST не вернул JSON: " + restText.slice(0, 200), 500);
+      }
       const afterRounds: GeoRoomRound[] | null = Array.isArray(restBody) && restBody.length > 0
         ? (restBody[0].rounds_data as GeoRoomRound[])
         : null;
