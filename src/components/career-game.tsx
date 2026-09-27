@@ -163,15 +163,17 @@ export function CareerGame() {
         addXp(deviceId, pts, cleanName)
       );
       saveGame(next, true, true, pts);
-    } else if (revealedClues >= maxClues) {
-      // Все подсказки раскрыты, не угадал
-      setFinished(true);
-      setDidWin(false);
-      setPoints(0);
-      saveGame(next, true, false, 0);
     } else {
-      // Открыть следующую подсказку
-      setRevealedClues((prev) => prev + 1);
+      const newRevealed = revealedClues + 1;
+      setRevealedClues(newRevealed);
+      
+      // Если все подсказки раскрыты — игра окончена
+      if (newRevealed >= maxClues) {
+        setFinished(true);
+        setDidWin(false);
+        setPoints(0);
+        saveGame(next, true, false, 0);
+      }
     }
   }, [input, finished, revealedClues, maxClues, evaluate, guesses, name, deviceId, saveGame]);
 
