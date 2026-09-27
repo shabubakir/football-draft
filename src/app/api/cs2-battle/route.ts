@@ -142,8 +142,13 @@ export async function POST(req: NextRequest) {
       const existing = (room.players ?? []).find((p) => p.id === deviceId);
       if (existing) return ok({ room: stripSeed(room) });
 
+      // Seat: если host-место свободно (первый игрок ушёл) — занимаем его,
+      // иначе — guest. Валидация seat в open/start/reveal идёт по id.
+      const seatTaken = (room.players ?? []).map((p) => p.seat);
+      const seat: "host" | "guest" = !seatTaken.includes("host") ? "host" : "guest";
+
       const name = String(body.name ?? "").trim().slice(0, 24) || "Игрок";
-      const players: BattlePlayer[] = [...room.players, { id: deviceId, name, seat: "guest" }];
+      const players: BattlePlayer[] = [...room.players, { id: deviceId, name, seat }];
       const { error: upE } = await sb
         .from("cs2_battle_rooms")
         .update({ players })
@@ -315,6 +320,9 @@ export async function POST(req: NextRequest) {
     }
 
     // ================= leave =================
+    // Игрок уходит из комнаты. Слот освобождается (можно вернуться по коду).
+    // Во время матча второй игрок видит через realtime, что соперник вышел
+    // (в players его больше нет) — компонент покажет «Соперник покинул матч».
     case "leave": {
       if (!code) return err("code required");
       const { data: row, error } = await sb
@@ -328,10 +336,7 @@ export async function POST(req: NextRequest) {
       const me = (room.players ?? []).find((p) => p.id === deviceId);
       if (!me) return err("Вы не игрок в этой комнате");
 
-      // Метка "вышел" — второй игрок увидит через realtime
-      const players = room.players.map((p) =>
-        p.id === deviceId ? { ...p, name: p.name + " (вышел)" } : p
-      );
+      const players = (room.players ?? []).filter((p) => p.id !== deviceId);
       const { error: upE } = await sb
         .from("cs2_battle_rooms")
         .update({ players })

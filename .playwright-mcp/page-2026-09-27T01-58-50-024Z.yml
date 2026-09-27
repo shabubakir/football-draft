@@ -1,0 +1,45 @@
+- generic [active] [ref=f14e1]:
+  - main [ref=f14e2]:
+    - generic [ref=f14e3]:
+      - link "FOOTBALL DRAFT" [ref=f14e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f14e5]
+    - generic [ref=f14e10]:
+      - generic [ref=f14e46]:
+        - generic [ref=f14e47]: ⚔ CASE BATTLE
+        - heading "Лобби" [level=2] [ref=f14e48]
+      - generic [ref=f14e12]:
+        - generic [ref=f14e13]: Код комнаты
+        - generic [ref=f14e49]: 3BYPZF
+        - generic [ref=f14e50]:
+          - button "📋 СКОПИРОВАТЬ КОД" [ref=f14e51]
+          - button "🔗 ПОДЕЛИТЬСЯ" [ref=f14e52]
+        - paragraph [ref=f14e53]: Друг вводит код на странице «CS2 КЕЙСЫ → ИГРАТЬ С ДРУГОМ» или открывается по ссылке.
+      - generic [ref=f14e16]:
+        - generic [ref=f14e54]:
+          - generic [ref=f14e55]: ИГРОК 1
+          - generic [ref=f14e56]: Тестер
+          - generic [ref=f14e57]: в сети
+        - generic [ref=f14e20]: VS
+        - generic [ref=f14e60]:
+          - generic [ref=f14e61]: ИГРОК 2 · ВЫ
+          - generic [ref=f14e62]: Гость2
+          - generic [ref=f14e63]: в сети
+      - generic [ref=f14e66]:
+        - generic [ref=f14e67]:
+          - generic [ref=f14e68]: Стартовый банк
+          - generic [ref=f14e69]: $10 000
+        - generic [ref=f14e70]:
+          - generic [ref=f14e71]: Открытий
+          - generic [ref=f14e72]: "10"
+        - generic [ref=f14e73]:
+          - generic [ref=f14e74]: Кейс
+          - generic [ref=f14e75]: Weapon
+          - generic [ref=f14e76]: $185.87 / шт
+      - generic [ref=f14e21]: Ждём, пока хост начнёт битву...
+      - button "← Выйти из матча" [ref=f14e79]
+    - link "← к CS2 кейсам" [ref=f14e35] [cursor=pointer]:
+      - /url: /cs2
+  - button "Open Next.js Dev Tools" [ref=f14e41] [cursor=pointer]
+  - alert [ref=f14e45]

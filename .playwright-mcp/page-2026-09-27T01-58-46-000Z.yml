@@ -1,0 +1,35 @@
+- generic [active] [ref=f14e1]:
+  - main [ref=f14e2]:
+    - generic [ref=f14e3]:
+      - link "FOOTBALL DRAFT" [ref=f14e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f14e5]
+    - generic [ref=f14e10]:
+      - button "← Одиночная игра" [ref=f14e11]
+      - generic [ref=f14e12]:
+        - generic [ref=f14e13]: ⚔ CASE BATTLE
+        - heading "Войти по коду" [level=2] [ref=f14e14]
+        - paragraph [ref=f14e15]: Открытие кейсов 1 на 1. У каждого стартовый банк $10 000 и 10 открытий. Кто наберёт больше — тот победил.
+      - generic [ref=f14e16]:
+        - generic [ref=f14e17]:
+          - generic [ref=f14e18]: Ваше имя
+          - textbox "Игрок" [ref=f14e19]: Тестер
+        - generic [ref=f14e20]: "Кейс: Weapon · Банк: $10 000 · Открытий: 10"
+      - generic [ref=f14e21]:
+        - textbox "XXXXXX" [ref=f14e22]: 3BYPZF
+        - button "ПОДКЛЮЧИТЬСЯ" [ref=f14e23]
+      - generic [ref=f14e24]:
+        - button "У меня есть код →" [ref=f14e25]
+        - button "← Создать комнату" [ref=f14e26]
+      - generic [ref=f14e27]:
+        - generic [ref=f14e28]: Скоро
+        - generic [ref=f14e29]:
+          - generic "Кто первым откроет 10 кейсов" [ref=f14e30]: SPEED BATTLE
+          - generic "Кто выбьет самый дорогой предмет" [ref=f14e31]: HIGH ROLLER
+          - generic "Первый предмет дороже $500" [ref=f14e32]: JACKPOT RACE
+          - generic "Максимум открытий за 60 секунд" [ref=f14e33]: 60 SECOND BATTLE
+    - link "← к CS2 кейсам" [ref=f14e35] [cursor=pointer]:
+      - /url: /cs2
+  - button "Open Next.js Dev Tools" [ref=f14e41] [cursor=pointer]
+  - alert [ref=f14e45]

@@ -1,0 +1,24 @@
+- generic [active] [ref=f20e1]:
+  - main [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - link "FOOTBALL DRAFT" [ref=f20e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f20e5]
+    - generic [ref=f20e486]:
+      - heading "Мне не удалось..." [level=2] [ref=f20e543]
+      - paragraph [ref=f20e530]:
+        - text: "Последний мой догад:"
+        - strong [ref=f20e531]: Виргил ван Дейк
+      - generic [ref=f20e544]:
+        - paragraph [ref=f20e545]: "Правильный ответ:"
+        - generic [ref=f20e546]:
+          - generic [ref=f20e547]: ⚽
+          - generic [ref=f20e548]:
+            - generic [ref=f20e549]: Футболист
+            - heading "Лионель Месси" [level=3] [ref=f20e550]
+            - paragraph [ref=f20e551]: Lionel Messi
+            - paragraph [ref=f20e552]: Аргентинец. 8× «Золотой мяч», икона Barcelona и сборной Аргентины.
+      - button "ИГРАТЬ СНОВА →" [ref=f20e533] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f20e75] [cursor=pointer]
+  - alert [ref=f20e79]

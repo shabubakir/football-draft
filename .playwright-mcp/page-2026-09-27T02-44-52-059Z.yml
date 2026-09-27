@@ -1,0 +1,29 @@
+- generic [active] [ref=f18e1]:
+  - main [ref=f18e2]:
+    - generic [ref=f18e3]:
+      - link "FOOTBALL DRAFT" [ref=f18e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f18e5]
+    - generic [ref=f18e11]:
+      - heading "FOOTBALL AKINATOR" [level=2] [ref=f18e53]
+      - paragraph [ref=f18e54]:
+        - text: Загадай любого футболиста, клуб, стадион или объект из мира футбола.
+        - strong [ref=f18e55]: Джинн из футбольного мяча
+        - text: попробует угадать его за несколько вопросов.
+      - generic [ref=f18e56]:
+        - generic [ref=f18e57]:
+          - generic [ref=f18e58]: "0"
+          - generic [ref=f18e59]: Игр
+        - generic [ref=f18e60]:
+          - generic [ref=f18e61]: "0"
+          - generic [ref=f18e62]: Побед
+        - generic [ref=f18e63]:
+          - generic [ref=f18e64]: 0%
+          - generic [ref=f18e65]: Успех
+        - generic [ref=f18e66]:
+          - generic [ref=f18e67]: —
+          - generic [ref=f18e68]: Рекорд
+      - button "ЗАГАДАТЬ ИГРАТЬ →" [ref=f18e69] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f18e75] [cursor=pointer]
+  - alert [ref=f18e79]

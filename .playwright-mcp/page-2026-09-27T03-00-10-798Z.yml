@@ -1,0 +1,21 @@
+- generic [active] [ref=f18e1]:
+  - main [ref=f18e2]:
+    - generic [ref=f18e3]:
+      - link "FOOTBALL DRAFT" [ref=f18e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f18e5]
+    - generic [ref=f18e306]:
+      - paragraph [ref=f18e355]: Я думаю, ты загадал...
+      - generic [ref=f18e357]:
+        - generic [ref=f18e358]: 📋
+        - generic [ref=f18e359]:
+          - generic [ref=f18e360]: Тренер
+          - heading "Юрген Клопп" [level=3] [ref=f18e361]
+          - paragraph [ref=f18e362]: Jürgen Klopp
+          - paragraph [ref=f18e363]: Немец. «Гуляй-гость» (Die Gulaschkanone), Liverpool, 2019 ЛЧ.
+      - generic [ref=f18e364]:
+        - button "✅ Да, угадал!" [ref=f18e365] [cursor=pointer]
+        - button "❌ Нет, ошибся" [ref=f18e366] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f18e75] [cursor=pointer]
+  - alert [ref=f18e79]

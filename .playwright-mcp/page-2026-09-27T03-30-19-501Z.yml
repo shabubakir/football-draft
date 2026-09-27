@@ -1,0 +1,21 @@
+- generic [active] [ref=f20e1]:
+  - main [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - link "FOOTBALL DRAFT" [ref=f20e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f20e5]
+    - generic [ref=f20e306]:
+      - paragraph [ref=f20e355]: Я думаю, ты загадал...
+      - generic [ref=f20e357]:
+        - generic [ref=f20e358]: 📋
+        - generic [ref=f20e359]:
+          - generic [ref=f20e360]: Тренер
+          - heading "Пеп Гвардиола" [level=3] [ref=f20e361]
+          - paragraph [ref=f20e362]: Pep Guardiola
+          - paragraph [ref=f20e363]: Испанец. Man City, Barcelona, Bayern. Революционер в тактике.
+      - generic [ref=f20e364]:
+        - button "✅ Да, угадал!" [ref=f20e365] [cursor=pointer]
+        - button "❌ Нет, ошибся" [ref=f20e366] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f20e75] [cursor=pointer]
+  - alert [ref=f20e79]

@@ -1,0 +1,61 @@
+- generic [active] [ref=f1e1]:
+  - main [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "FOOTBALL DRAFT" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - navigation [ref=f1e5]:
+        - link "ИГРЫ" [ref=f1e6] [cursor=pointer]:
+          - /url: /
+        - link "РЕЙТИНГ" [ref=f1e7] [cursor=pointer]:
+          - /url: /leaderboard
+        - link "ОНЛАЙН" [ref=f1e8] [cursor=pointer]:
+          - /url: /grid/online
+        - link "ДРАФТ" [ref=f1e9] [cursor=pointer]:
+          - /url: /draft
+        - link "УГАДАЙ ИГРОКА" [ref=f1e10] [cursor=pointer]:
+          - /url: /guess
+        - link "ПУТЬ ФУТБОЛИСТА" [ref=f1e11] [cursor=pointer]:
+          - /url: /career
+        - link "ВИКТОРИНА" [ref=f1e12] [cursor=pointer]:
+          - /url: /quiz/online
+        - link "CS2 КЕЙСЫ" [ref=f1e13] [cursor=pointer]:
+          - /url: /cs2
+    - generic [ref=f1e15]:
+      - generic [ref=f1e51]:
+        - generic [ref=f1e52]: ⚔ CASE BATTLE
+        - heading "Лобби" [level=2] [ref=f1e53]
+      - generic [ref=f1e17]:
+        - generic [ref=f1e18]: Код комнаты
+        - generic [ref=f1e54]: 9NA4GC
+        - generic [ref=f1e55]:
+          - button "📋 СКОПИРОВАТЬ КОД" [ref=f1e56]
+          - button "🔗 ПОДЕЛИТЬСЯ" [ref=f1e57]
+        - paragraph [ref=f1e58]: Друг вводит код на странице «CS2 КЕЙСЫ → ИГРАТЬ С ДРУГОМ» или открывается по ссылке.
+      - generic [ref=f1e21]:
+        - generic [ref=f1e59]:
+          - generic [ref=f1e60]: ИГРОК 1
+          - generic [ref=f1e61]: Гость2
+          - generic [ref=f1e62]: в сети
+        - generic [ref=f1e25]: VS
+        - generic [ref=f1e65]:
+          - generic [ref=f1e66]: ИГРОК 2 · ВЫ
+          - generic [ref=f1e67]: Игрок
+          - generic [ref=f1e68]: не в сети
+      - generic [ref=f1e71]:
+        - generic [ref=f1e72]:
+          - generic [ref=f1e73]: Стартовый банк
+          - generic [ref=f1e74]: $10 000
+        - generic [ref=f1e75]:
+          - generic [ref=f1e76]: Открытий
+          - generic [ref=f1e77]: "10"
+        - generic [ref=f1e78]:
+          - generic [ref=f1e79]: Кейс
+          - generic [ref=f1e80]: Weapon
+          - generic [ref=f1e81]: $185.87 / шт
+      - generic [ref=f1e26]: Ждём, пока хост начнёт битву...
+      - button "← Выйти из матча" [ref=f1e84]
+    - link "← к CS2 кейсам" [ref=f1e40] [cursor=pointer]:
+      - /url: /cs2
+  - button "Open Next.js Dev Tools" [ref=f1e46] [cursor=pointer]
+  - alert [ref=f1e50]

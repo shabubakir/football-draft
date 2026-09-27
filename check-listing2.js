@@ -1,0 +1,10 @@
+const fs = require("fs");
+const t = fs.readFileSync("C:/Users/sh.abubakir/AppData/Local/Temp/listing.html", "utf8");
+console.log("Title:", (t.match(/<title>([^<]*)<\/title>/) || [])[1]);
+console.log("Has captcha:", /captcha|robot/i.test(t));
+const h1 = t.match(/<h1[^>]*>([^<]*)<\/h1>/);
+console.log("H1:", h1 && h1[1].trim());
+const price = t.match(/class="[^"]*price[^"]*"[^>]*>([^<]{1,40})/gi);
+console.log("price-like:", price ? price.slice(0, 5) : "none");
+const fee = t.match(/fee[^,}]{0,60}/gi);
+console.log("fee-like:", fee ? fee.slice(0, 5) : "none");

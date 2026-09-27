@@ -1,0 +1,2611 @@
+- generic [active] [ref=f7e1]:
+  - banner [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - link "UPG.GG" [ref=f7e4] [cursor=pointer]:
+        - /url: https://upg.gg/analyst
+      - button "CS.Money options" [ref=f7e7] [cursor=pointer]:
+        - img "CS.Money" [ref=f7e8]
+      - button "DMarket options" [ref=f7e10] [cursor=pointer]:
+        - img "DMarket" [ref=f7e11]
+      - button "Skinport options" [ref=f7e13] [cursor=pointer]:
+        - img "Skinport" [ref=f7e14]
+      - button "Waxpeer options" [ref=f7e16] [cursor=pointer]:
+        - img "Waxpeer" [ref=f7e17]
+      - button "Lis-Skins options" [ref=f7e19] [cursor=pointer]:
+        - img "Lis-Skins" [ref=f7e20]
+      - button "TradeIt options" [ref=f7e22] [cursor=pointer]:
+        - img "TradeIt" [ref=f7e23]
+      - link "SkinsMonkey" [ref=f7e25] [cursor=pointer]:
+        - /url: https://skinsmonkey.com/r/STEAMANALYST
+        - img "SkinsMonkey" [ref=f7e26]
+      - link "PirateSwap" [ref=f7e27] [cursor=pointer]:
+        - /url: https://pirateswap.com/?ref=steamanalyst
+      - link "SkinClub" [ref=f7e29] [cursor=pointer]:
+        - /url: https://skin.club/?ref=steamanalyst
+      - link "SkinRave" [ref=f7e31] [cursor=pointer]:
+        - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending
+        - img "SkinRave" [ref=f7e32]
+      - link "Chicken.gg" [ref=f7e33] [cursor=pointer]:
+        - /url: https://chicken.gg/r/steamanalyst?p=csgosteamanalyst176&utm_source=csgosteamanalyst&utm_medium=affiliate&utm_campaign=global&utm_term=homepage&utm_content=top-button-v1
+      - link "Hunt.gg" [ref=f7e35] [cursor=pointer]:
+        - /url: https://link.hunt.gg/cf/r/6a846771e004c10012399505?ref_code=ANALYST
+  - navigation "Main navigation" [ref=f7e37]:
+    - link [ref=f7e39] [cursor=pointer]:
+      - /url: /
+      - img "SteamAnalyst.com" [ref=f7e40]
+    - generic [ref=f7e41]:
+      - link "Weapons" [ref=f7e43] [cursor=pointer]:
+        - /url: /browse
+      - link "Collections" [ref=f7e46] [cursor=pointer]:
+        - /url: /collections
+      - link "Containers" [ref=f7e48] [cursor=pointer]:
+        - /url: /cases
+      - link "Stickers" [ref=f7e50] [cursor=pointer]:
+        - /url: /browse/sticker
+      - link "Other Items" [ref=f7e52] [cursor=pointer]:
+        - /url: /browse/type
+      - link "Colors" [ref=f7e54] [cursor=pointer]:
+        - /url: /browse/color
+      - link "3D Inspect" [ref=f7e56] [cursor=pointer]:
+        - /url: /inspect
+        - generic [aria-hidden] [ref=f7e57]: 
+        - text: 3D Inspect
+      - link "Loadout Builder" [ref=f7e58] [cursor=pointer]:
+        - /url: /loadout-builder
+        - generic [aria-hidden] [ref=f7e59]: 
+        - text: Loadout Builder
+      - generic "Live deals across every marketplace we link to" [ref=f7e60]:
+        - link "Deals" [ref=f7e62] [cursor=pointer]:
+          - /url: /best-deals
+      - link "Explore" [ref=f7e68] [cursor=pointer]:
+        - /url: /tools
+      - text: "                       $      #              "
+    - generic [ref=f7e69]:
+      - text: 
+      - button "Search skins, cases, stickers… (Ctrl K, or /)" [ref=f7e70] [cursor=pointer]:
+        - generic [ref=f7e71]: 
+      - text: 
+      - link "Wishlist" [ref=f7e72] [cursor=pointer]:
+        - /url: /wishlist
+        - generic [ref=f7e73]: 
+      - button "Settings" [ref=f7e75] [cursor=pointer]:
+        - generic [ref=f7e76]: 
+      - button "Sign In" [ref=f7e78] [cursor=pointer]:
+        - generic [aria-hidden] [ref=f7e79]: 
+        - text: Sign In
+  - navigation [ref=f7e80]:
+    - generic [ref=f7e81]:
+      - link " Dashboard" [ref=f7e82] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=f7e83]: 
+        - generic: Dashboard
+      - link " Wishlist" [ref=f7e85] [cursor=pointer]:
+        - /url: /wishlist
+        - generic [ref=f7e86]: 
+        - generic: Wishlist
+      - link " My Inventory" [ref=f7e88] [cursor=pointer]:
+        - /url: /tools/cs2-inventory-value
+        - generic [ref=f7e89]: 
+        - generic: My Inventory
+      - link "$ Profit Generator" [ref=f7e91] [cursor=pointer]:
+        - /url: /profit-generator
+        - generic [ref=f7e92]: $
+        - generic: Profit Generator
+      - link " Compare Markets" [ref=f7e94] [cursor=pointer]:
+        - /url: /markets
+        - generic [ref=f7e95]: 
+        - generic: Compare Markets
+      - link " Deals" [ref=f7e97] [cursor=pointer]:
+        - /url: /deals
+        - generic [ref=f7e98]: 
+        - generic: Deals
+      - link " Top 500 Inventories" [ref=f7e100] [cursor=pointer]:
+        - /url: /inventory-top500
+        - generic [ref=f7e101]: 
+        - generic: Top 500 Inventories
+      - link " Best Skins to Buy" [ref=f7e103] [cursor=pointer]:
+        - /url: /best-skins-to-buy
+        - generic [ref=f7e104]: 
+        - generic: Best Skins to Buy
+      - link " Price Trends" [ref=f7e106] [cursor=pointer]:
+        - /url: /trends
+        - generic [ref=f7e107]: 
+        - generic: Price Trends
+      - link " Liquidity Rankings" [ref=f7e109] [cursor=pointer]:
+        - /url: /liquidity
+        - generic [ref=f7e110]: 
+        - generic: Liquidity Rankings
+      - link " Most Expensive" [ref=f7e112] [cursor=pointer]:
+        - /url: /most-expensive
+        - generic [ref=f7e113]: 
+        - generic: Most Expensive
+      - link " Trade-Up Calculator" [ref=f7e115] [cursor=pointer]:
+        - /url: /tradeup-calculator
+        - generic [ref=f7e116]: 
+        - generic: Trade-Up Calculator
+      - link "Steam Inventory Helper Steam Inventory Helper " [ref=f7e119] [cursor=pointer]:
+        - /url: https://steaminventoryhelper.com/
+        - img "Steam Inventory Helper" [ref=f7e121]
+        - generic:
+          - text: Steam Inventory Helper
+          - generic [ref=f7e122]: 
+      - link "Skin.Club Skin.Club " [ref=f7e123] [cursor=pointer]:
+        - /url: https://skin.club/en
+        - img "Skin.Club" [ref=f7e125]
+        - generic:
+          - text: Skin.Club
+          - generic [ref=f7e126]: 
+  - main [ref=f7e127]:
+    - iframe [ref=f7e1931]:
+      - iframe [ref=f10e2]:
+        - generic [ref=f12e4]:
+          - generic [ref=f12e6]:
+            - button "Open Case" [ref=f12e8] [cursor=pointer]
+            - generic [ref=f12e322]: Free Case
+          - generic [ref=f12e399] [cursor=pointer]
+    - generic [ref=f7e131]:
+      - generic [ref=f7e132]:
+        - heading "CS2 Skin Price Comparison - Steam Market & 40+ Marketplaces" [level=1] [ref=f7e133]
+        - paragraph [ref=f7e134]: "Every marketplace we track, side by side: each column is that market’s current lowest listing for the skin, and the cheapest one is marked so you can buy from it in one click."
+        - list "About this page" [ref=f7e135]:
+          - listitem [ref=f7e136]: Prices updated every 15 minutes
+          - listitem [ref=f7e138]: 42,245 skins
+          - listitem [ref=f7e139]: Steam, Buff163 and 40+ markets
+        - generic [ref=f7e140]:
+          - button "" [ref=f7e141] [cursor=pointer]
+          - paragraph [ref=f7e143]: Compare CS2 skin prices across every major marketplace in one view. This table tracks the CS2 skin market across Steam Market, CS.MONEY, DMarket, SkinPort, CSFloat, Buff163 and more, all refreshed every fifteen minutes.
+          - generic [aria-hidden] [ref=f7e144] [cursor=pointer]: Read more
+          - text: 
+      - generic [ref=f7e145]:
+        - generic [ref=f7e146]:
+          - textbox "Search skins" [ref=f7e147]:
+            - /placeholder: Search skins...
+          - generic [ref=f7e148]:
+            - generic [ref=f7e149]: "Price:"
+            - spinbutton "Minimum price" [ref=f7e150]
+            - generic [ref=f7e151]: →
+            - spinbutton "Maximum price" [ref=f7e152]
+          - generic [ref=f7e153]:
+            - generic [ref=f7e154]: "Sort:"
+            - button "Popular" [ref=f7e155] [cursor=pointer]
+            - button "Newest" [ref=f7e156] [cursor=pointer]
+          - generic [ref=f7e157]:
+            - generic [ref=f7e158]: "Show:"
+            - combobox "Rows per page" [ref=f7e159] [cursor=pointer]:
+              - option "25 rows" [selected]
+              - option "50 rows"
+              - option "100 rows"
+          - generic [ref=f7e160]:
+            - generic [ref=f7e161]: "Cheapest:"
+            - combobox "Only skins that are cheapest on this market" [ref=f7e162] [cursor=pointer]:
+              - 'option "Cheapest on: any" [selected]'
+              - option "CS.MONEY"
+              - option "DMarket"
+              - option "SkinPort"
+              - option "Waxpeer"
+              - option "Lis-Skins"
+              - option "SkinLand"
+              - option "SkinsMonkey"
+              - option "SkinSwap"
+              - option "cs.trade"
+              - option "SkinRave"
+              - option "Moon Market"
+              - option "Avan Market"
+              - option "BUFF Market"
+              - option "CSFloat"
+              - option "MarketCSGO"
+              - option "Shadowpay"
+              - option "TradeIt"
+              - option "PirateSwap"
+              - option "White Market"
+              - option "SkinFlow"
+              - option "Skins.com"
+              - option "SkinVault"
+              - option "Skin.Place"
+          - button "" [ref=f7e163] [cursor=pointer]
+          - button "Signals" [ref=f7e165] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f7e166]: 
+            - text: Signals
+          - button "Liquid only" [ref=f7e167] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f7e168]: 
+            - text: Liquid only
+          - button "Entry signal" [ref=f7e170] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f7e171]: 
+            - text: Entry signal
+          - button "Columns, 26 of 26 shown" [ref=f7e173] [cursor=pointer]:
+            - generic [ref=f7e174]: 
+            - text: 26/26
+        - group "Filter by item type" [ref=f7e175]:
+          - button "All" [pressed] [ref=f7e176] [cursor=pointer]
+          - button "Weapons" [ref=f7e177] [cursor=pointer]
+          - button "Knives" [ref=f7e178] [cursor=pointer]
+          - button "Gloves" [ref=f7e179] [cursor=pointer]
+          - button "Cases" [ref=f7e180] [cursor=pointer]
+          - button "Keys" [ref=f7e181] [cursor=pointer]
+          - button "Stickers" [ref=f7e182] [cursor=pointer]
+          - button "Agents" [ref=f7e183] [cursor=pointer]
+          - button "Charms" [ref=f7e184] [cursor=pointer]
+          - button "Patches" [ref=f7e185] [cursor=pointer]
+          - button "Collectibles" [ref=f7e186] [cursor=pointer]
+          - button "Graffiti" [ref=f7e187] [cursor=pointer]
+          - button "Music kits" [ref=f7e188] [cursor=pointer]
+          - button "Passes" [ref=f7e189] [cursor=pointer]
+        - table [ref=f7e191]:
+          - rowgroup [ref=f7e192]:
+            - row [ref=f7e193]:
+              - columnheader "Item" [ref=f7e194] [cursor=pointer]
+              - columnheader [ref=f7e195] [cursor=pointer]:
+                - button "Best Price" [ref=f7e196]
+              - columnheader [ref=f7e197] [cursor=pointer]:
+                - button "SA price" [ref=f7e198]
+              - columnheader [ref=f7e201] [cursor=pointer]:
+                - button "Steam" [ref=f7e202]
+              - columnheader [ref=f7e203] [cursor=pointer]:
+                - button [ref=f7e204]:
+                  - img "CS.MONEY" [ref=f7e206]
+              - columnheader [ref=f7e207] [cursor=pointer]:
+                - button [ref=f7e208]:
+                  - img "DMarket" [ref=f7e210]
+              - columnheader [ref=f7e211] [cursor=pointer]:
+                - button [ref=f7e212]:
+                  - img "SkinPort" [ref=f7e214]
+              - columnheader [ref=f7e215] [cursor=pointer]:
+                - button [ref=f7e216]:
+                  - img "Waxpeer" [ref=f7e218]
+              - columnheader [ref=f7e219] [cursor=pointer]:
+                - button [ref=f7e220]:
+                  - img "Lis-Skins" [ref=f7e222]
+              - columnheader [ref=f7e223] [cursor=pointer]:
+                - button "SkinLand" [ref=f7e224]:
+                  - generic:
+                    - img "SkinLand"
+              - columnheader [ref=f7e225] [cursor=pointer]:
+                - button "SkinsMonkey" [ref=f7e226]:
+                  - generic:
+                    - img "SkinsMonkey"
+              - columnheader [ref=f7e227] [cursor=pointer]:
+                - button "SkinSwap" [ref=f7e228]:
+                  - generic:
+                    - img "SkinSwap"
+              - columnheader [ref=f7e229] [cursor=pointer]:
+                - button "cs.trade" [ref=f7e230]:
+                  - generic:
+                    - img "cs.trade"
+              - columnheader [ref=f7e231] [cursor=pointer]:
+                - button "SkinRave" [ref=f7e232]:
+                  - generic:
+                    - img "SkinRave"
+              - columnheader [ref=f7e233] [cursor=pointer]:
+                - button "Moon Market" [ref=f7e234]:
+                  - generic:
+                    - img "Moon Market"
+              - columnheader [ref=f7e235] [cursor=pointer]:
+                - button "Avan Market" [ref=f7e236]:
+                  - generic:
+                    - img "Avan Market"
+              - columnheader [ref=f7e237] [cursor=pointer]:
+                - button "BUFF Market" [ref=f7e238]:
+                  - generic:
+                    - img "BUFF Market"
+              - columnheader [ref=f7e239] [cursor=pointer]:
+                - button "CSFloat" [ref=f7e240]:
+                  - generic:
+                    - img "CSFloat"
+              - columnheader [ref=f7e241] [cursor=pointer]:
+                - button "BUFF163" [ref=f7e242]:
+                  - generic:
+                    - img "BUFF163"
+              - columnheader [ref=f7e243] [cursor=pointer]:
+                - button "MarketCSGO" [ref=f7e244]:
+                  - generic:
+                    - img "MarketCSGO"
+              - columnheader [ref=f7e245] [cursor=pointer]:
+                - button "Shadowpay" [ref=f7e246]:
+                  - generic:
+                    - img "Shadowpay"
+              - columnheader [ref=f7e247] [cursor=pointer]:
+                - button [ref=f7e248]:
+                  - img "TradeIt" [ref=f7e250]
+              - columnheader [ref=f7e251] [cursor=pointer]:
+                - button "PirateSwap" [ref=f7e252]:
+                  - generic:
+                    - img "PirateSwap"
+              - columnheader [ref=f7e253] [cursor=pointer]:
+                - button "White Market" [ref=f7e254]:
+                  - generic:
+                    - img "White Market"
+              - columnheader [ref=f7e255] [cursor=pointer]:
+                - button "SkinFlow" [ref=f7e256]:
+                  - generic:
+                    - img "SkinFlow"
+              - columnheader [ref=f7e257] [cursor=pointer]:
+                - button "Skins.com" [ref=f7e258]:
+                  - generic:
+                    - img "Skins.com"
+              - columnheader [ref=f7e259] [cursor=pointer]:
+                - button "SkinVault" [ref=f7e260]:
+                  - generic:
+                    - img "SkinVault"
+              - columnheader [ref=f7e261] [cursor=pointer]:
+                - button "Skin.Place" [ref=f7e262]:
+                  - generic:
+                    - img "Skin.Place"
+          - rowgroup [ref=f7e263]:
+            - row [ref=f7e264] [cursor=pointer]:
+              - cell [ref=f7e265]:
+                - generic [ref=f7e266]:
+                  - button "Show every market price for AWP | Dragon Lore (Factory New)" [ref=f7e267]:
+                    - generic [aria-hidden] [ref=f7e268]: 
+                  - link "AWP | Dragon Lore (FN)" [ref=f7e269]:
+                    - /url: /skin/awp-dragon-lore/factory-new
+              - cell [ref=f7e270]:
+                - link "$10899.00 @ CSFloat" [ref=f7e271]:
+                  - /url: https://csfloat.com/search?market_hash_name=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e272]: $10899.00
+                  - generic [ref=f7e273]: "@ CSFloat"
+              - cell [ref=f7e274]:
+                - link "$12130.35" [ref=f7e275]:
+                  - /url: /skin/awp-dragon-lore/factory-new
+              - cell "-" [ref=f7e276]
+              - cell [ref=f7e277]:
+                - link "$12256.74" [ref=f7e278]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e279]:
+                - link "$11695.00" [ref=f7e280]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/awp-dragon-lore?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e281]:
+                - link "$11390.69" [ref=f7e282]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e283]:
+                - link "$12158.42" [ref=f7e284]:
+                  - /url: https://waxpeer.com/awp-dragon-lore-factory-new/item/
+              - cell [ref=f7e285]:
+                - link "$11808.80" [ref=f7e286]:
+                  - /url: https://lis-skins.com/market/csgo/awp-dragon-lore-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e287]:
+                - link "$11820.60" [ref=f7e288]:
+                  - /url: https://skin.land/market/cs2/awp-dragon-lore-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e289]:
+                - link "$12770.13" [ref=f7e290]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e291]:
+                - link "$11284.51" [ref=f7e292]:
+                  - /url: https://skinswap.com/skins/awp-dragon-lore/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e293]
+              - cell [ref=f7e294]:
+                - link "$11808.80" [ref=f7e295]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e296]:
+                - link "$11676.43" [ref=f7e297]:
+                  - /url: https://moon.market/en/shop?search=AWP%20%7C%20Dragon%20Lore%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e298]:
+                - link "$11683.47" [ref=f7e299]:
+                  - /url: https://avan.market/market/cs/awp-dragon-lore-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e300]:
+                - link "$11200.00" [ref=f7e301]:
+                  - /url: https://buff.market/market/goods/cs2/AWP%20%7C%20Dragon%20Lore%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e302]:
+                - link "$10899.00" [ref=f7e303]:
+                  - /url: https://csfloat.com/search?market_hash_name=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e304]:
+                - link "$11291.10" [ref=f7e305]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e306]:
+                - link "$13299.78" [ref=f7e307]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e308]:
+                - link "$11818.90" [ref=f7e309]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e310]:
+                - link "$11236.84" [ref=f7e311]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=AWP%20%7C%20Dragon%20Lore%20(Factory%20New)
+              - cell [ref=f7e312]:
+                - link "$12904.41" [ref=f7e313]:
+                  - /url: https://pirateswap.com/store?mhn=AWP+%7C+Dragon+Lore+%28Factory+New%29&mhnc=749462843&ref=steamanalyst
+              - cell [ref=f7e314]:
+                - link "$11826.44" [ref=f7e315]:
+                  - /url: https://white.market/item?appId=730&nameHash=AWP%20%7C%20Dragon%20Lore%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e316]:
+                - link "$11832.27" [ref=f7e317]:
+                  - /url: https://skinflow.gg/market/awp-dragon-lore-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e318]
+              - cell [ref=f7e319]:
+                - link "$11579.45" [ref=f7e320]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/awp-dragon-lore-factory-new
+              - cell "-" [ref=f7e321]
+              - cell
+            - row [ref=f7e322] [cursor=pointer]:
+              - cell [ref=f7e323]:
+                - generic [ref=f7e324]:
+                  - button "Show every market price for CS:GO Weapon Case" [ref=f7e325]:
+                    - generic [aria-hidden] [ref=f7e326]: 
+                  - link "CS:GO Weapon Case" [ref=f7e327]:
+                    - /url: /skin/cs-go-weapon-case
+              - cell [ref=f7e328]:
+                - link "$99.09 @ SkinPort" [ref=f7e329]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=CS%3AGO%20Weapon%20Case&sort=price&order=asc
+                  - generic [ref=f7e330]: $99.09
+                  - generic [ref=f7e331]: "@ SkinPort"
+              - cell [ref=f7e332]:
+                - link "$111.31" [ref=f7e333]:
+                  - /url: /skin/cs-go-weapon-case
+              - cell [ref=f7e334]:
+                - link "$149.24" [ref=f7e335]:
+                  - /url: https://steamcommunity.com/market/listings/730/CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e336]:
+                - link "$107.84" [ref=f7e337]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e338]:
+                - link "$103.83" [ref=f7e339]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/csgo-weapon-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e340]:
+                - link "$99.09" [ref=f7e341]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=CS%3AGO%20Weapon%20Case&sort=price&order=asc
+              - cell [ref=f7e342]:
+                - link "$107.42" [ref=f7e343]:
+                  - /url: https://waxpeer.com/cs-go-weapon-case/item/
+              - cell [ref=f7e344]:
+                - link "$107.58" [ref=f7e345]:
+                  - /url: https://lis-skins.com/market/csgo/cs-go-weapon-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e346]:
+                - link "$107.68" [ref=f7e347]:
+                  - /url: https://skin.land/market/cs2/cs-go-weapon-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e348]:
+                - link "$117.75" [ref=f7e349]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e350]:
+                - link "$102.10" [ref=f7e351]:
+                  - /url: https://skinswap.com/skins/cs-go-weapon-case?r=steamanalyst
+              - cell "-" [ref=f7e352]
+              - cell "-" [ref=f7e353]
+              - cell [ref=f7e354]:
+                - link "$107.33" [ref=f7e355]:
+                  - /url: https://moon.market/en/shop?search=CS%3AGO%20Weapon%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e356]:
+                - link "$107.40" [ref=f7e357]:
+                  - /url: https://avan.market/market/cs/csgo-weapon-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e358]:
+                - link "$106.41" [ref=f7e359]:
+                  - /url: https://buff.market/market/goods/cs2/CS%3AGO%20Weapon%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e360]:
+                - link "$105.20" [ref=f7e361]:
+                  - /url: https://csfloat.com/search?market_hash_name=CS%3AGO%20Weapon%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e362]:
+                - link "$103.97" [ref=f7e363]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e364]:
+                - link "$116.77" [ref=f7e365]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e366]:
+                - link "$107.66" [ref=f7e367]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e368]:
+                - link "$107.36" [ref=f7e369]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=CS%3AGO%20Weapon%20Case
+              - cell [ref=f7e370]:
+                - link "$118.18" [ref=f7e371]:
+                  - /url: https://pirateswap.com/store?mhn=CS%3AGO+Weapon+Case&mhnc=1483196007&ref=steamanalyst
+              - cell "-" [ref=f7e372]
+              - cell [ref=f7e373]:
+                - link "$108.60" [ref=f7e374]:
+                  - /url: https://skinflow.gg/market/cs-go-weapon-case?referral=STEAMANALYST
+              - cell [ref=f7e375]:
+                - link "$107.02" [ref=f7e376]:
+                  - /url: https://skins.com/item/csgo-weapon-case
+              - cell [ref=f7e377]:
+                - link "$99.90" [ref=f7e378]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/cs-go-weapon-case
+              - cell "-" [ref=f7e379]
+              - cell
+            - row [ref=f7e380] [cursor=pointer]:
+              - cell [ref=f7e381]:
+                - generic [ref=f7e382]:
+                  - button "Show every market price for M4A4 | Howl (Factory New)" [ref=f7e383]:
+                    - generic [aria-hidden] [ref=f7e384]: 
+                  - link "M4A4 | Howl (FN)" [ref=f7e385]:
+                    - /url: /skin/m4a4-howl/factory-new
+              - cell [ref=f7e386]:
+                - link "$6577.09 @ SkinPort" [ref=f7e387]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=M4A4%20%7C%20Howl%20(Factory%20New)&sort=price&order=asc
+                  - generic [ref=f7e388]: $6577.09
+                  - generic [ref=f7e389]: "@ SkinPort"
+              - cell [ref=f7e390]:
+                - link "$7249.97" [ref=f7e391]:
+                  - /url: /skin/m4a4-howl/factory-new
+              - cell "-" [ref=f7e392]
+              - cell [ref=f7e393]:
+                - link "$7199.00" [ref=f7e394]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=M4A4%20%7C%20Howl%20(Factory%20New)
+              - cell [ref=f7e395]:
+                - link "$7950.00" [ref=f7e396]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/m4a4-howl?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e397]:
+                - link "$6577.09" [ref=f7e398]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=M4A4%20%7C%20Howl%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e399]:
+                - link "$7380.82" [ref=f7e400]:
+                  - /url: https://waxpeer.com/m4a4-howl-factory-new/item/
+              - cell [ref=f7e401]:
+                - link "$7193.80" [ref=f7e402]:
+                  - /url: https://lis-skins.com/market/csgo/m4a4-howl-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e403]:
+                - link "$7200.99" [ref=f7e404]:
+                  - /url: https://skin.land/market/cs2/m4a4-howl-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell "-" [ref=f7e405]
+              - cell [ref=f7e406]:
+                - link "$6872.26" [ref=f7e407]:
+                  - /url: https://skinswap.com/skins/m4a4-howl/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e408]
+              - cell [ref=f7e409]:
+                - link "$7168.28" [ref=f7e410]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=M4A4%20%7C%20Howl%20(Factory%20New)
+              - cell [ref=f7e411]:
+                - link "$7047.20" [ref=f7e412]:
+                  - /url: https://moon.market/en/shop?search=M4A4%20%7C%20Howl%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e413]:
+                - link "$7087.45" [ref=f7e414]:
+                  - /url: https://avan.market/market/cs/m4a4-howl-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e415]:
+                - link "$6737.87" [ref=f7e416]:
+                  - /url: https://buff.market/market/goods/cs2/M4A4%20%7C%20Howl%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e417]:
+                - link "$6666.66" [ref=f7e418]:
+                  - /url: https://csfloat.com/search?market_hash_name=M4A4%20%7C%20Howl%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e419]:
+                - link "$6583.99" [ref=f7e420]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=M4A4%20%7C%20Howl%20(Factory%20New)
+              - cell [ref=f7e421]:
+                - link "$7605.50" [ref=f7e422]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=M4A4%20%7C%20Howl%20(Factory%20New)
+              - cell [ref=f7e423]:
+                - link "$7233.08" [ref=f7e424]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=M4A4%20%7C%20Howl%20(Factory%20New)
+              - cell [ref=f7e425]:
+                - link "$6986.29" [ref=f7e426]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=M4A4%20%7C%20Howl%20(Factory%20New)
+              - cell "-" [ref=f7e427]
+              - cell [ref=f7e428]:
+                - link "$7174.19" [ref=f7e429]:
+                  - /url: https://white.market/item?appId=730&nameHash=M4A4%20%7C%20Howl%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e430]:
+                - link "$7242.83" [ref=f7e431]:
+                  - /url: https://skinflow.gg/market/m4a4-howl-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e432]
+              - cell [ref=f7e433]:
+                - link "$7029.35" [ref=f7e434]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/m4a4-howl-factory-new
+              - cell "-" [ref=f7e435]
+              - cell
+            - row [ref=f7e436] [cursor=pointer]:
+              - cell [ref=f7e437]:
+                - generic [ref=f7e438]:
+                  - button "Show every market price for Revolution Case" [ref=f7e439]:
+                    - generic [aria-hidden] [ref=f7e440]: 
+                  - link "Revolution Case" [ref=f7e441]:
+                    - /url: /skin/revolution-case
+              - cell [ref=f7e442]:
+                - link "$0.17 @ Lis-Skins" [ref=f7e443]:
+                  - /url: https://lis-skins.com/market/csgo/revolution-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+                  - generic [ref=f7e444]: $0.17
+                  - generic [ref=f7e445]: "@ Lis-Skins"
+              - cell [ref=f7e446]:
+                - link "$0.20" [ref=f7e447]:
+                  - /url: /skin/revolution-case
+              - cell [ref=f7e448]:
+                - link "$0.25" [ref=f7e449]:
+                  - /url: https://steamcommunity.com/market/listings/730/Revolution%20Case
+              - cell [ref=f7e450]:
+                - link "$0.18" [ref=f7e451]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Revolution%20Case
+              - cell [ref=f7e452]:
+                - link "$0.59" [ref=f7e453]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/revolution-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e454]:
+                - link "$0.30" [ref=f7e455]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Revolution%20Case&sort=price&order=asc
+              - cell [ref=f7e456]:
+                - link "$0.18" [ref=f7e457]:
+                  - /url: https://waxpeer.com/revolution-case/item/
+              - cell [ref=f7e458]:
+                - link "$0.17" [ref=f7e459]:
+                  - /url: https://lis-skins.com/market/csgo/revolution-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e460]:
+                - link "$0.18" [ref=f7e461]:
+                  - /url: https://skin.land/market/cs2/revolution-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e462]:
+                - link "$0.21" [ref=f7e463]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Revolution%20Case
+              - cell [ref=f7e464]:
+                - link "$0.19" [ref=f7e465]:
+                  - /url: https://skinswap.com/skins/revolution-case?r=steamanalyst
+              - cell [ref=f7e466]:
+                - link "$0.17" [ref=f7e467]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Revolution+Case&sort_by=price_asc
+              - cell "-" [ref=f7e468]
+              - cell [ref=f7e469]:
+                - link "$0.17" [ref=f7e470]:
+                  - /url: https://moon.market/en/shop?search=Revolution%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e471]:
+                - link "$0.18" [ref=f7e472]:
+                  - /url: https://avan.market/market/cs/revolution-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e473]:
+                - link "$0.18" [ref=f7e474]:
+                  - /url: https://buff.market/market/goods/cs2/Revolution%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e475]:
+                - link "$0.20" [ref=f7e476]:
+                  - /url: https://csfloat.com/search?market_hash_name=Revolution%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e477]:
+                - link "$0.18" [ref=f7e478]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Revolution%20Case
+              - cell [ref=f7e479]:
+                - link "$0.18" [ref=f7e480]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Revolution%20Case
+              - cell [ref=f7e481]:
+                - link "$0.19" [ref=f7e482]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Revolution%20Case
+              - cell [ref=f7e483]:
+                - link "$0.18" [ref=f7e484]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Revolution%20Case
+              - cell [ref=f7e485]:
+                - link "$0.18" [ref=f7e486]:
+                  - /url: https://pirateswap.com/store?mhn=Revolution+Case&mhnc=1299851513&ref=steamanalyst
+              - cell "-" [ref=f7e487]
+              - cell "-" [ref=f7e488]
+              - cell [ref=f7e489]:
+                - link "$0.18" [ref=f7e490]:
+                  - /url: https://skins.com/item/revolution-case
+              - cell [ref=f7e491]:
+                - link "$0.18" [ref=f7e492]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/revolution-case
+              - cell [ref=f7e493]:
+                - link "$0.18" [ref=f7e494]:
+                  - /url: https://skin.place/buy-cs2-skins/revolution-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e495] [cursor=pointer]:
+              - cell [ref=f7e496]:
+                - generic [ref=f7e497]:
+                  - button "Show every market price for Fracture Case" [ref=f7e498]:
+                    - generic [aria-hidden] [ref=f7e499]: 
+                  - link "Fracture Case" [ref=f7e500]:
+                    - /url: /skin/fracture-case
+              - cell [ref=f7e501]:
+                - link "$0.41 @ TradeIt" [ref=f7e502]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Fracture%20Case
+                  - generic [ref=f7e503]: $0.41
+                  - generic [ref=f7e504]: "@ TradeIt"
+              - cell [ref=f7e505]:
+                - link "$0.47" [ref=f7e506]:
+                  - /url: /skin/fracture-case
+              - cell [ref=f7e507]:
+                - link "$0.65" [ref=f7e508]:
+                  - /url: https://steamcommunity.com/market/listings/730/Fracture%20Case
+              - cell [ref=f7e509]:
+                - link "$0.42" [ref=f7e510]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Fracture%20Case
+              - cell [ref=f7e511]:
+                - link "$0.54" [ref=f7e512]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/fracture-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e513]:
+                - link "$0.48" [ref=f7e514]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Fracture%20Case&sort=price&order=asc
+              - cell [ref=f7e515]:
+                - link "$0.46" [ref=f7e516]:
+                  - /url: https://waxpeer.com/fracture-case/item/
+              - cell [ref=f7e517]:
+                - link "$0.44" [ref=f7e518]:
+                  - /url: https://lis-skins.com/market/csgo/fracture-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e519]:
+                - link "$0.45" [ref=f7e520]:
+                  - /url: https://skin.land/market/cs2/fracture-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e521]:
+                - link "$0.53" [ref=f7e522]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Fracture%20Case
+              - cell [ref=f7e523]:
+                - link "$0.44" [ref=f7e524]:
+                  - /url: https://skinswap.com/skins/fracture-case?r=steamanalyst
+              - cell [ref=f7e525]:
+                - link "$0.52" [ref=f7e526]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Fracture+Case&sort_by=price_asc
+              - cell "-" [ref=f7e527]
+              - cell [ref=f7e528]:
+                - link "$0.44" [ref=f7e529]:
+                  - /url: https://moon.market/en/shop?search=Fracture%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e530]:
+                - link "$0.49" [ref=f7e531]:
+                  - /url: https://avan.market/market/cs/fracture-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e532]:
+                - link "$0.43" [ref=f7e533]:
+                  - /url: https://buff.market/market/goods/cs2/Fracture%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e534]:
+                - link "$0.42" [ref=f7e535]:
+                  - /url: https://csfloat.com/search?market_hash_name=Fracture%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e536]:
+                - link "$0.43" [ref=f7e537]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Fracture%20Case
+              - cell [ref=f7e538]:
+                - link "$0.45" [ref=f7e539]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Fracture%20Case
+              - cell [ref=f7e540]:
+                - link "$0.45" [ref=f7e541]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Fracture%20Case
+              - cell [ref=f7e542]:
+                - link "$0.41" [ref=f7e543]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Fracture%20Case
+              - cell [ref=f7e544]:
+                - link "$0.41" [ref=f7e545]:
+                  - /url: https://pirateswap.com/store?mhn=Fracture+Case&mhnc=-87706406&ref=steamanalyst
+              - cell "-" [ref=f7e546]
+              - cell [ref=f7e547]:
+                - link "$0.44" [ref=f7e548]:
+                  - /url: https://skinflow.gg/market/fracture-case?referral=STEAMANALYST
+              - cell [ref=f7e549]:
+                - link "$0.44" [ref=f7e550]:
+                  - /url: https://skins.com/item/fracture-case
+              - cell [ref=f7e551]:
+                - link "$0.43" [ref=f7e552]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/fracture-case
+              - cell [ref=f7e553]:
+                - link "$0.45" [ref=f7e554]:
+                  - /url: https://skin.place/buy-cs2-skins/fracture-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e555] [cursor=pointer]:
+              - cell [ref=f7e556]:
+                - generic [ref=f7e557]:
+                  - button "Show every market price for Dreams & Nightmares Case" [ref=f7e558]:
+                    - generic [aria-hidden] [ref=f7e559]: 
+                  - link "Dreams & Nightmares Case" [ref=f7e560]:
+                    - /url: /skin/dreams-nightmares-case
+              - cell [ref=f7e561]:
+                - link "$0.95 @ Skins.com" [ref=f7e562]:
+                  - /url: https://skins.com/item/dreams-nightmares-case
+                  - generic [ref=f7e563]: $0.95
+                  - generic [ref=f7e564]: "@ Skins.com"
+              - cell [ref=f7e565]:
+                - link "$1.11" [ref=f7e566]:
+                  - /url: /skin/dreams-nightmares-case
+              - cell [ref=f7e567]:
+                - link "$1.47" [ref=f7e568]:
+                  - /url: https://steamcommunity.com/market/listings/730/Dreams%20%26%20Nightmares%20Case
+              - cell [ref=f7e569]:
+                - link "$1.05" [ref=f7e570]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Dreams%20%26%20Nightmares%20Case
+              - cell [ref=f7e571]:
+                - link "$1.95" [ref=f7e572]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/dreams-nightmares-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e573]:
+                - link "$1.17" [ref=f7e574]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Dreams%20%26%20Nightmares%20Case&sort=price&order=asc
+              - cell [ref=f7e575]:
+                - link "$1.08" [ref=f7e576]:
+                  - /url: https://waxpeer.com/dreams-nightmares-case/item/
+              - cell [ref=f7e577]:
+                - link "$1.03" [ref=f7e578]:
+                  - /url: https://lis-skins.com/market/csgo/dreams-&-nightmares-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e579]:
+                - link "$1.03" [ref=f7e580]:
+                  - /url: https://skin.land/market/cs2/dreams-&-nightmares-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e581]:
+                - link "$1.16" [ref=f7e582]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Dreams%20%26%20Nightmares%20Case
+              - cell [ref=f7e583]:
+                - link "$1.01" [ref=f7e584]:
+                  - /url: https://skinswap.com/skins/dreams-nightmares-case?r=steamanalyst
+              - cell [ref=f7e585]:
+                - link "$1.00" [ref=f7e586]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Dreams+%26+Nightmares+Case&sort_by=price_asc
+              - cell "-" [ref=f7e587]
+              - cell [ref=f7e588]:
+                - link "$1.04" [ref=f7e589]:
+                  - /url: https://moon.market/en/shop?search=Dreams%20%26%20Nightmares%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e590]:
+                - link "$1.06" [ref=f7e591]:
+                  - /url: https://avan.market/market/cs/dreams-&-nightmares-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e592]:
+                - link "$1.01" [ref=f7e593]:
+                  - /url: https://buff.market/market/goods/cs2/Dreams%20%26%20Nightmares%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e594]:
+                - link "$1.05" [ref=f7e595]:
+                  - /url: https://csfloat.com/search?market_hash_name=Dreams%20%26%20Nightmares%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e596]:
+                - link "$1.03" [ref=f7e597]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Dreams%20%26%20Nightmares%20Case
+              - cell [ref=f7e598]:
+                - link "$1.03" [ref=f7e599]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Dreams%20%26%20Nightmares%20Case
+              - cell [ref=f7e600]:
+                - link "$1.00" [ref=f7e601]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Dreams%20%26%20Nightmares%20Case
+              - cell [ref=f7e602]:
+                - link "$0.98" [ref=f7e603]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Dreams%20%26%20Nightmares%20Case
+              - cell "-" [ref=f7e604]
+              - cell "-" [ref=f7e605]
+              - cell [ref=f7e606]:
+                - link "$1.05" [ref=f7e607]:
+                  - /url: https://skinflow.gg/market/dreams-nightmares-case?referral=STEAMANALYST
+              - cell [ref=f7e608]:
+                - link "$0.95" [ref=f7e609]:
+                  - /url: https://skins.com/item/dreams-nightmares-case
+              - cell [ref=f7e610]:
+                - link "$1.02" [ref=f7e611]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/dreams-nightmares-case
+              - cell [ref=f7e612]:
+                - link "$1.06" [ref=f7e613]:
+                  - /url: https://skin.place/buy-cs2-skins/dreams-nightmares-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e614] [cursor=pointer]:
+              - cell [ref=f7e615]:
+                - generic [ref=f7e616]:
+                  - button "Show every market price for Recoil Case" [ref=f7e617]:
+                    - generic [aria-hidden] [ref=f7e618]: 
+                  - link "Recoil Case" [ref=f7e619]:
+                    - /url: /skin/recoil-case
+              - cell [ref=f7e620]:
+                - link "$0.22 @ CS.MONEY" [ref=f7e621]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Recoil%20Case
+                  - generic [ref=f7e622]: $0.22
+                  - generic [ref=f7e623]: "@ CS.MONEY"
+              - cell [ref=f7e624]:
+                - link "$0.28" [ref=f7e625]:
+                  - /url: /skin/recoil-case
+              - cell [ref=f7e626]:
+                - link "$0.38" [ref=f7e627]:
+                  - /url: https://steamcommunity.com/market/listings/730/Recoil%20Case
+              - cell [ref=f7e628]:
+                - link "$0.22" [ref=f7e629]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Recoil%20Case
+              - cell [ref=f7e630]:
+                - link "$0.49" [ref=f7e631]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/recoil-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e632]:
+                - link "$0.35" [ref=f7e633]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Recoil%20Case&sort=price&order=asc
+              - cell [ref=f7e634]:
+                - link "$0.26" [ref=f7e635]:
+                  - /url: https://waxpeer.com/recoil-case/item/
+              - cell [ref=f7e636]:
+                - link "$0.25" [ref=f7e637]:
+                  - /url: https://lis-skins.com/market/csgo/recoil-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e638]:
+                - link "$0.25" [ref=f7e639]:
+                  - /url: https://skin.land/market/cs2/recoil-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e640]:
+                - link "$0.27" [ref=f7e641]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Recoil%20Case
+              - cell [ref=f7e642]:
+                - link "$0.25" [ref=f7e643]:
+                  - /url: https://skinswap.com/skins/recoil-case?r=steamanalyst
+              - cell [ref=f7e644]:
+                - link "$0.26" [ref=f7e645]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Recoil+Case&sort_by=price_asc
+              - cell "-" [ref=f7e646]
+              - cell [ref=f7e647]:
+                - link "$0.25" [ref=f7e648]:
+                  - /url: https://moon.market/en/shop?search=Recoil%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e649]:
+                - link "$0.23" [ref=f7e650]:
+                  - /url: https://avan.market/market/cs/recoil-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e651]:
+                - link "$0.24" [ref=f7e652]:
+                  - /url: https://buff.market/market/goods/cs2/Recoil%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e653]:
+                - link "$0.26" [ref=f7e654]:
+                  - /url: https://csfloat.com/search?market_hash_name=Recoil%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e655]:
+                - link "$0.24" [ref=f7e656]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Recoil%20Case
+              - cell [ref=f7e657]:
+                - link "$0.25" [ref=f7e658]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Recoil%20Case
+              - cell [ref=f7e659]:
+                - link "$0.25" [ref=f7e660]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Recoil%20Case
+              - cell [ref=f7e661]:
+                - link "$0.24" [ref=f7e662]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Recoil%20Case
+              - cell [ref=f7e663]:
+                - link "$0.22" [ref=f7e664]:
+                  - /url: https://pirateswap.com/store?mhn=Recoil+Case&mhnc=29464456&ref=steamanalyst
+              - cell "-" [ref=f7e665]
+              - cell [ref=f7e666]:
+                - link "$0.27" [ref=f7e667]:
+                  - /url: https://skinflow.gg/market/recoil-case?referral=STEAMANALYST
+              - cell [ref=f7e668]:
+                - link "$0.26" [ref=f7e669]:
+                  - /url: https://skins.com/item/recoil-case
+              - cell [ref=f7e670]:
+                - link "$0.24" [ref=f7e671]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/recoil-case
+              - cell [ref=f7e672]:
+                - link "$0.25" [ref=f7e673]:
+                  - /url: https://skin.place/buy-cs2-skins/recoil-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e674] [cursor=pointer]:
+              - cell [ref=f7e675]:
+                - generic [ref=f7e676]:
+                  - button "Show every market price for Kilowatt Case" [ref=f7e677]:
+                    - generic [aria-hidden] [ref=f7e678]: 
+                  - link "Kilowatt Case" [ref=f7e679]:
+                    - /url: /skin/kilowatt-case
+              - cell [ref=f7e680]:
+                - link "$0.11 @ CS.MONEY" [ref=f7e681]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Kilowatt%20Case
+                  - generic [ref=f7e682]: $0.11
+                  - generic [ref=f7e683]: "@ CS.MONEY"
+              - cell [ref=f7e684]:
+                - link "$0.13" [ref=f7e685]:
+                  - /url: /skin/kilowatt-case
+              - cell [ref=f7e686]:
+                - link "$0.18" [ref=f7e687]:
+                  - /url: https://steamcommunity.com/market/listings/730/Kilowatt%20Case
+              - cell [ref=f7e688]:
+                - link "$0.11" [ref=f7e689]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Kilowatt%20Case
+              - cell [ref=f7e690]:
+                - link "$0.47" [ref=f7e691]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/kilowatt-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e692]:
+                - link "$0.19" [ref=f7e693]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Kilowatt%20Case&sort=price&order=asc
+              - cell [ref=f7e694]:
+                - link "$0.12" [ref=f7e695]:
+                  - /url: https://waxpeer.com/kilowatt-case/item/
+              - cell [ref=f7e696]:
+                - link "$0.12" [ref=f7e697]:
+                  - /url: https://lis-skins.com/market/csgo/kilowatt-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e698]:
+                - link "$0.12" [ref=f7e699]:
+                  - /url: https://skin.land/market/cs2/kilowatt-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e700]:
+                - link "$0.13" [ref=f7e701]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Kilowatt%20Case
+              - cell [ref=f7e702]:
+                - link "$0.11" [ref=f7e703]:
+                  - /url: https://skinswap.com/skins/kilowatt-case?r=steamanalyst
+              - cell [ref=f7e704]:
+                - link "$0.12" [ref=f7e705]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Kilowatt+Case&sort_by=price_asc
+              - cell "-" [ref=f7e706]
+              - cell [ref=f7e707]:
+                - link "$0.11" [ref=f7e708]:
+                  - /url: https://moon.market/en/shop?search=Kilowatt%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e709]:
+                - link "$0.11" [ref=f7e710]:
+                  - /url: https://avan.market/market/cs/kilowatt-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e711]:
+                - link "$0.16" [ref=f7e712]:
+                  - /url: https://buff.market/market/goods/cs2/Kilowatt%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e713]:
+                - link "$0.12" [ref=f7e714]:
+                  - /url: https://csfloat.com/search?market_hash_name=Kilowatt%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e715]:
+                - link "$0.11" [ref=f7e716]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Kilowatt%20Case
+              - cell [ref=f7e717]:
+                - link "$0.11" [ref=f7e718]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Kilowatt%20Case
+              - cell [ref=f7e719]:
+                - link "$0.11" [ref=f7e720]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Kilowatt%20Case
+              - cell [ref=f7e721]:
+                - link "$0.11" [ref=f7e722]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Kilowatt%20Case
+              - cell [ref=f7e723]:
+                - link "$0.11" [ref=f7e724]:
+                  - /url: https://pirateswap.com/store?mhn=Kilowatt+Case&mhnc=1757559884&ref=steamanalyst
+              - cell "-" [ref=f7e725]
+              - cell "-" [ref=f7e726]
+              - cell [ref=f7e727]:
+                - link "$0.12" [ref=f7e728]:
+                  - /url: https://skins.com/item/kilowatt-case
+              - cell [ref=f7e729]:
+                - link "$0.11" [ref=f7e730]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/kilowatt-case
+              - cell [ref=f7e731]:
+                - link "$0.11" [ref=f7e732]:
+                  - /url: https://skin.place/buy-cs2-skins/kilowatt-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e733] [cursor=pointer]:
+              - cell [ref=f7e734]:
+                - generic [ref=f7e735]:
+                  - button "Show every market price for ★ Karambit | Fade (Factory New)" [ref=f7e736]:
+                    - generic [aria-hidden] [ref=f7e737]: 
+                  - link "★ Karambit | Fade (FN)" [ref=f7e738]:
+                    - /url: /skin/karambit-fade/factory-new
+              - cell [ref=f7e739]:
+                - link "$1726.13 @ CSFloat" [ref=f7e740]:
+                  - /url: https://csfloat.com/search?market_hash_name=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e741]: $1726.13
+                  - generic [ref=f7e742]: "@ CSFloat"
+              - cell [ref=f7e743]:
+                - link "$1851.70" [ref=f7e744]:
+                  - /url: /skin/karambit-fade/factory-new
+              - cell "-" [ref=f7e745]
+              - cell [ref=f7e746]:
+                - link "$1842.81" [ref=f7e747]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e748]:
+                - link "$1818.99" [ref=f7e749]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/karambit-fade?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e750]:
+                - link "$1757.31" [ref=f7e751]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e752]:
+                - link "$1830.00" [ref=f7e753]:
+                  - /url: https://waxpeer.com/karambit-fade-factory-new/item/
+              - cell [ref=f7e754]:
+                - link "$1838.64" [ref=f7e755]:
+                  - /url: https://lis-skins.com/market/csgo/%E2%98%85-karambit-fade-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e756]:
+                - link "$1840.47" [ref=f7e757]:
+                  - /url: https://skin.land/market/cs2/%E2%98%85-karambit-fade-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e758]:
+                - link "$1943.42" [ref=f7e759]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e760]:
+                - link "$1779.42" [ref=f7e761]:
+                  - /url: https://skinswap.com/skins/karambit-fade/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e762]
+              - cell [ref=f7e763]:
+                - link "$1838.64" [ref=f7e764]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e765]:
+                - link "$1878.52" [ref=f7e766]:
+                  - /url: https://moon.market/en/shop?search=%E2%98%85%20Karambit%20%7C%20Fade%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e767]:
+                - link "$1856.42" [ref=f7e768]:
+                  - /url: https://avan.market/market/cs/★-karambit-fade-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e769]:
+                - link "$1768.15" [ref=f7e770]:
+                  - /url: https://buff.market/market/goods/cs2/%E2%98%85%20Karambit%20%7C%20Fade%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e771]:
+                - link "$1726.13" [ref=f7e772]:
+                  - /url: https://csfloat.com/search?market_hash_name=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e773]:
+                - link "$1727.78" [ref=f7e774]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e775]:
+                - link "$1900.00" [ref=f7e776]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e777]:
+                - link "$1840.22" [ref=f7e778]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e779]:
+                - link "$1771.93" [ref=f7e780]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=%E2%98%85%20Karambit%20%7C%20Fade%20(Factory%20New)
+              - cell "-" [ref=f7e781]
+              - cell [ref=f7e782]:
+                - link "$1849.14" [ref=f7e783]:
+                  - /url: https://white.market/item?appId=730&nameHash=%E2%98%85%20Karambit%20%7C%20Fade%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e784]:
+                - link "$1919.79" [ref=f7e785]:
+                  - /url: https://skinflow.gg/market/karambit-fade-factory-new?referral=STEAMANALYST
+              - cell [ref=f7e786]:
+                - link "$1792.00" [ref=f7e787]:
+                  - /url: https://skins.com/item/karambit-fade?exterior=fn
+              - cell [ref=f7e788]:
+                - link "$1835.43" [ref=f7e789]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/karambit-fade-factory-new
+              - cell [ref=f7e790]:
+                - link "$1907.02" [ref=f7e791]:
+                  - /url: https://skin.place/buy-cs2-skins/karambit-fade?exterior=Factory+New&utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e792] [cursor=pointer]:
+              - cell [ref=f7e793]:
+                - generic [ref=f7e794]:
+                  - button "Show every market price for Sealed Dead Hand Terminal" [ref=f7e795]:
+                    - generic [aria-hidden] [ref=f7e796]: 
+                  - link "Sealed Dead Hand Terminal" [ref=f7e797]:
+                    - /url: /skin/sealed-dead-hand-terminal
+              - cell [ref=f7e798]:
+                - link "$0.33 @ CSFloat" [ref=f7e799]:
+                  - /url: https://csfloat.com/search?market_hash_name=Sealed%20Dead%20Hand%20Terminal&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e800]: $0.33
+                  - generic [ref=f7e801]: "@ CSFloat"
+              - cell [ref=f7e802]:
+                - link "$0.41" [ref=f7e803]:
+                  - /url: /skin/sealed-dead-hand-terminal
+              - cell [ref=f7e804]:
+                - link "$0.57" [ref=f7e805]:
+                  - /url: https://steamcommunity.com/market/listings/730/Sealed%20Dead%20Hand%20Terminal
+              - cell [ref=f7e806]:
+                - link "$0.35" [ref=f7e807]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Sealed%20Dead%20Hand%20Terminal
+              - cell [ref=f7e808]:
+                - link "$0.40" [ref=f7e809]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/sealed-dead-hand-terminal?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e810]:
+                - link "$0.41" [ref=f7e811]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Sealed%20Dead%20Hand%20Terminal&sort=price&order=asc
+              - cell [ref=f7e812]:
+                - link "$0.40" [ref=f7e813]:
+                  - /url: https://waxpeer.com/sealed-dead-hand-terminal/item/
+              - cell [ref=f7e814]:
+                - link "$0.38" [ref=f7e815]:
+                  - /url: https://lis-skins.com/market/csgo/sealed-dead-hand-terminal/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e816]:
+                - link "$0.38" [ref=f7e817]:
+                  - /url: https://skin.land/market/cs2/sealed-dead-hand-terminal/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell "-" [ref=f7e818]
+              - cell [ref=f7e819]:
+                - link "$0.39" [ref=f7e820]:
+                  - /url: https://skinswap.com/skins/sealed-dead-hand-terminal?r=steamanalyst
+              - cell "-" [ref=f7e821]
+              - cell "-" [ref=f7e822]
+              - cell [ref=f7e823]:
+                - link "$0.36" [ref=f7e824]:
+                  - /url: https://moon.market/en/shop?search=Sealed%20Dead%20Hand%20Terminal&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e825]:
+                - link "$0.43" [ref=f7e826]:
+                  - /url: https://avan.market/market/cs/sealed-dead-hand-terminal?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e827]:
+                - link "$0.35" [ref=f7e828]:
+                  - /url: https://buff.market/market/goods/cs2/Sealed%20Dead%20Hand%20Terminal?from=google&promotion=steamanalyst
+              - cell [ref=f7e829]:
+                - link "$0.33" [ref=f7e830]:
+                  - /url: https://csfloat.com/search?market_hash_name=Sealed%20Dead%20Hand%20Terminal&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e831]:
+                - link "$0.35" [ref=f7e832]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Sealed%20Dead%20Hand%20Terminal
+              - cell [ref=f7e833]:
+                - link "$0.37" [ref=f7e834]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Sealed%20Dead%20Hand%20Terminal
+              - cell [ref=f7e835]:
+                - link "$0.38" [ref=f7e836]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Sealed%20Dead%20Hand%20Terminal
+              - cell [ref=f7e837]:
+                - link "$0.34" [ref=f7e838]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Sealed%20Dead%20Hand%20Terminal
+              - cell "-" [ref=f7e839]
+              - cell "-" [ref=f7e840]
+              - cell [ref=f7e841]:
+                - link "$0.39" [ref=f7e842]:
+                  - /url: https://skinflow.gg/market/sealed-dead-hand-terminal?referral=STEAMANALYST
+              - cell [ref=f7e843]:
+                - link "$0.35" [ref=f7e844]:
+                  - /url: https://skins.com/item/sealed-dead-hand-terminal
+              - cell [ref=f7e845]:
+                - link "$0.36" [ref=f7e846]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/sealed-dead-hand-terminal
+              - cell [ref=f7e847]:
+                - link "$0.39" [ref=f7e848]:
+                  - /url: https://skin.place/buy-cs2-skins/sealed-dead-hand-terminal?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e849] [cursor=pointer]:
+              - cell [ref=f7e850]:
+                - generic [ref=f7e851]:
+                  - button "Show every market price for Prisma 2 Case" [ref=f7e852]:
+                    - generic [aria-hidden] [ref=f7e853]: 
+                  - link "Prisma 2 Case" [ref=f7e854]:
+                    - /url: /skin/prisma-2-case
+              - cell [ref=f7e855]:
+                - link "$1.01 @ CSFloat" [ref=f7e856]:
+                  - /url: https://csfloat.com/search?market_hash_name=Prisma%202%20Case&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e857]: $1.01
+                  - generic [ref=f7e858]: "@ CSFloat"
+              - cell [ref=f7e859]:
+                - link "$1.15" [ref=f7e860]:
+                  - /url: /skin/prisma-2-case
+              - cell [ref=f7e861]:
+                - link "$1.67" [ref=f7e862]:
+                  - /url: https://steamcommunity.com/market/listings/730/Prisma%202%20Case
+              - cell [ref=f7e863]:
+                - link "$1.05" [ref=f7e864]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Prisma%202%20Case
+              - cell [ref=f7e865]:
+                - link "$1.74" [ref=f7e866]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/prisma-2-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e867]:
+                - link "$1.07" [ref=f7e868]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Prisma%202%20Case&sort=price&order=asc
+              - cell [ref=f7e869]:
+                - link "$1.11" [ref=f7e870]:
+                  - /url: https://waxpeer.com/prisma-2-case/item/
+              - cell [ref=f7e871]:
+                - link "$1.06" [ref=f7e872]:
+                  - /url: https://lis-skins.com/market/csgo/prisma-2-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e873]:
+                - link "$1.06" [ref=f7e874]:
+                  - /url: https://skin.land/market/cs2/prisma-2-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e875]:
+                - link "$1.20" [ref=f7e876]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Prisma%202%20Case
+              - cell [ref=f7e877]:
+                - link "$1.05" [ref=f7e878]:
+                  - /url: https://skinswap.com/skins/prisma-2-case?r=steamanalyst
+              - cell [ref=f7e879]:
+                - link "$1.14" [ref=f7e880]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Prisma+2+Case&sort_by=price_asc
+              - cell "-" [ref=f7e881]
+              - cell [ref=f7e882]:
+                - link "$1.05" [ref=f7e883]:
+                  - /url: https://moon.market/en/shop?search=Prisma%202%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e884]:
+                - link "$1.11" [ref=f7e885]:
+                  - /url: https://avan.market/market/cs/prisma-2-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e886]:
+                - link "$1.12" [ref=f7e887]:
+                  - /url: https://buff.market/market/goods/cs2/Prisma%202%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e888]:
+                - link "$1.01" [ref=f7e889]:
+                  - /url: https://csfloat.com/search?market_hash_name=Prisma%202%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e890]:
+                - link "$1.09" [ref=f7e891]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Prisma%202%20Case
+              - cell [ref=f7e892]:
+                - link "$1.10" [ref=f7e893]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Prisma%202%20Case
+              - cell [ref=f7e894]:
+                - link "$1.07" [ref=f7e895]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Prisma%202%20Case
+              - cell [ref=f7e896]:
+                - link "$1.02" [ref=f7e897]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Prisma%202%20Case
+              - cell [ref=f7e898]:
+                - link "$1.08" [ref=f7e899]:
+                  - /url: https://pirateswap.com/store?mhn=Prisma+2+Case&mhnc=-1179422509&ref=steamanalyst
+              - cell "-" [ref=f7e900]
+              - cell [ref=f7e901]:
+                - link "$1.06" [ref=f7e902]:
+                  - /url: https://skinflow.gg/market/prisma-2-case?referral=STEAMANALYST
+              - cell [ref=f7e903]:
+                - link "$1.10" [ref=f7e904]:
+                  - /url: https://skins.com/item/prisma-2-case
+              - cell [ref=f7e905]:
+                - link "$1.04" [ref=f7e906]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/prisma-2-case
+              - cell [ref=f7e907]:
+                - link "$1.05" [ref=f7e908]:
+                  - /url: https://skin.place/buy-cs2-skins/prisma-2-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e909] [cursor=pointer]:
+              - cell [ref=f7e910]:
+                - generic [ref=f7e911]:
+                  - button "Show every market price for AWP | Queen's Gambit (Factory New)" [ref=f7e912]:
+                    - generic [aria-hidden] [ref=f7e913]: 
+                  - link "AWP | Queen's Gambit (FN)" [ref=f7e914]:
+                    - /url: /skin/awp-queens-gambit/factory-new
+              - cell [ref=f7e915]:
+                - link "$198.88 @ DMarket" [ref=f7e916]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/awp-queens-gambit?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+                  - generic [ref=f7e917]: $198.88
+                  - generic [ref=f7e918]: "@ DMarket"
+              - cell [ref=f7e919]:
+                - link "$215.75" [ref=f7e920]:
+                  - /url: /skin/awp-queens-gambit/factory-new
+              - cell [ref=f7e921]:
+                - link "$271.99" [ref=f7e922]:
+                  - /url: https://steamcommunity.com/market/listings/730/AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e923]:
+                - link "$211.37" [ref=f7e924]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e925]:
+                - link "$198.88" [ref=f7e926]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/awp-queens-gambit?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e927]:
+                - link "$212.32" [ref=f7e928]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e929]:
+                - link "$209.86" [ref=f7e930]:
+                  - /url: https://waxpeer.com/awp-queen-s-gambit-factory-new/item/
+              - cell [ref=f7e931]:
+                - link "$207.12" [ref=f7e932]:
+                  - /url: https://lis-skins.com/market/csgo/awp-queen%27s-gambit-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e933]:
+                - link "$207.32" [ref=f7e934]:
+                  - /url: https://skin.land/market/cs2/awp-queen%27s-gambit-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e935]:
+                - link "$230.42" [ref=f7e936]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e937]:
+                - link "$199.05" [ref=f7e938]:
+                  - /url: https://skinswap.com/skins/awp-queen-s-gambit/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e939]
+              - cell [ref=f7e940]:
+                - link "$207.12" [ref=f7e941]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e942]:
+                - link "$211.85" [ref=f7e943]:
+                  - /url: https://moon.market/en/shop?search=AWP%20%7C%20Queen%27s%20Gambit%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e944]:
+                - link "$211.85" [ref=f7e945]:
+                  - /url: https://avan.market/market/cs/awp-queens-gambit-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e946]:
+                - link "$207.32" [ref=f7e947]:
+                  - /url: https://buff.market/market/goods/cs2/AWP%20%7C%20Queen%27s%20Gambit%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e948]:
+                - link "$210.98" [ref=f7e949]:
+                  - /url: https://csfloat.com/search?market_hash_name=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e950]:
+                - link "$202.58" [ref=f7e951]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e952]:
+                - link "$220.16" [ref=f7e953]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e954]:
+                - link "$209.54" [ref=f7e955]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell [ref=f7e956]:
+                - link "$206.48" [ref=f7e957]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=AWP%20%7C%20Queen's%20Gambit%20(Factory%20New)
+              - cell "-" [ref=f7e958]
+              - cell [ref=f7e959]:
+                - link "$211.53" [ref=f7e960]:
+                  - /url: https://white.market/item?appId=730&nameHash=AWP%20%7C%20Queen%27s%20Gambit%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e961]:
+                - link "$204.32" [ref=f7e962]:
+                  - /url: https://skinflow.gg/market/awp-queen-s-gambit-factory-new?referral=STEAMANALYST
+              - cell [ref=f7e963]:
+                - link "$208.75" [ref=f7e964]:
+                  - /url: https://skins.com/item/awp-queens-gambit?exterior=fn
+              - cell [ref=f7e965]:
+                - link "$207.74" [ref=f7e966]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/awp-queen-s-gambit-factory-new
+              - cell [ref=f7e967]:
+                - link "$213.33" [ref=f7e968]:
+                  - /url: https://skin.place/buy-cs2-skins/awp-queen-s-gambit?exterior=Factory+New&utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e969] [cursor=pointer]:
+              - cell [ref=f7e970]:
+                - generic [ref=f7e971]:
+                  - button "Show every market price for AK-47 | Crane Flight (Factory New)" [ref=f7e972]:
+                    - generic [aria-hidden] [ref=f7e973]: 
+                  - link "AK-47 | Crane Flight (FN)" [ref=f7e974]:
+                    - /url: /skin/ak-47-crane-flight/factory-new
+              - cell [ref=f7e975]:
+                - link "$46.13 @ SkinSwap" [ref=f7e976]:
+                  - /url: https://skinswap.com/skins/ak-47-crane-flight/factory-new?r=steamanalyst
+                  - generic [ref=f7e977]: $46.13
+                  - generic [ref=f7e978]: "@ SkinSwap"
+              - cell [ref=f7e979]:
+                - link "$50.56" [ref=f7e980]:
+                  - /url: /skin/ak-47-crane-flight/factory-new
+              - cell [ref=f7e981]:
+                - link "$59.26" [ref=f7e982]:
+                  - /url: https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e983]:
+                - link "$52.92" [ref=f7e984]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e985]:
+                - link "$51.44" [ref=f7e986]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/ak-47-crane-flight?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e987]:
+                - link "$54.45" [ref=f7e988]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e989]:
+                - link "$50.25" [ref=f7e990]:
+                  - /url: https://waxpeer.com/ak-47-crane-flight-factory-new/item/
+              - cell [ref=f7e991]:
+                - link "$49.29" [ref=f7e992]:
+                  - /url: https://lis-skins.com/market/csgo/ak-47-crane-flight-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e993]:
+                - link "$49.33" [ref=f7e994]:
+                  - /url: https://skin.land/market/cs2/ak-47-crane-flight-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e995]:
+                - link "$53.84" [ref=f7e996]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e997]:
+                - link "$46.13" [ref=f7e998]:
+                  - /url: https://skinswap.com/skins/ak-47-crane-flight/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e999]
+              - cell [ref=f7e1000]:
+                - link "$48.82" [ref=f7e1001]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e1002]:
+                - link "$47.64" [ref=f7e1003]:
+                  - /url: https://moon.market/en/shop?search=AK-47%20%7C%20Crane%20Flight%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1004]:
+                - link "$48.44" [ref=f7e1005]:
+                  - /url: https://avan.market/market/cs/ak-47-crane-flight-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1006]:
+                - link "$48.02" [ref=f7e1007]:
+                  - /url: https://buff.market/market/goods/cs2/AK-47%20%7C%20Crane%20Flight%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e1008]:
+                - link "$47.36" [ref=f7e1009]:
+                  - /url: https://csfloat.com/search?market_hash_name=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1010]:
+                - link "$46.92" [ref=f7e1011]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e1012]:
+                - link "$51.74" [ref=f7e1013]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e1014]:
+                - link "$49.25" [ref=f7e1015]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e1016]:
+                - link "$48.58" [ref=f7e1017]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=AK-47%20%7C%20Crane%20Flight%20(Factory%20New)
+              - cell [ref=f7e1018]:
+                - link "$52.94" [ref=f7e1019]:
+                  - /url: https://pirateswap.com/store?mhn=AK-47+%7C+Crane+Flight+%28Factory+New%29&mhnc=1031369995&ref=steamanalyst
+              - cell [ref=f7e1020]:
+                - link "$49.04" [ref=f7e1021]:
+                  - /url: https://white.market/item?appId=730&nameHash=AK-47%20%7C%20Crane%20Flight%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1022]:
+                - link "$49.55" [ref=f7e1023]:
+                  - /url: https://skinflow.gg/market/ak-47-crane-flight-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e1024]
+              - cell [ref=f7e1025]:
+                - link "$48.25" [ref=f7e1026]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/ak-47-crane-flight-factory-new
+              - cell [ref=f7e1027]:
+                - link "$49.11" [ref=f7e1028]:
+                  - /url: https://skin.place/buy-cs2-skins/ak-47-crane-flight?exterior=Factory+New&utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1029] [cursor=pointer]:
+              - cell [ref=f7e1030]:
+                - generic [ref=f7e1031]:
+                  - button "Show every market price for AK-47 | Wild Lotus (Factory New)" [ref=f7e1032]:
+                    - generic [aria-hidden] [ref=f7e1033]: 
+                  - link "AK-47 | Wild Lotus (FN)" [ref=f7e1034]:
+                    - /url: /skin/ak-47-wild-lotus/factory-new
+              - cell [ref=f7e1035]:
+                - link "$14000.00 @ CSFloat" [ref=f7e1036]:
+                  - /url: https://csfloat.com/search?market_hash_name=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e1037]: $14000.00
+                  - generic [ref=f7e1038]: "@ CSFloat"
+              - cell [ref=f7e1039]:
+                - link "$15415.25" [ref=f7e1040]:
+                  - /url: /skin/ak-47-wild-lotus/factory-new
+              - cell "-" [ref=f7e1041]
+              - cell [ref=f7e1042]:
+                - link "$16268.24" [ref=f7e1043]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell [ref=f7e1044]:
+                - link "$15000.00" [ref=f7e1045]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/ak-47-wild-lotus?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e1046]:
+                - link "$15255.52" [ref=f7e1047]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e1048]:
+                - link "$15777.44" [ref=f7e1049]:
+                  - /url: https://waxpeer.com/ak-47-wild-lotus-factory-new/item/
+              - cell [ref=f7e1050]:
+                - link "$15298.68" [ref=f7e1051]:
+                  - /url: https://lis-skins.com/market/csgo/ak-47-wild-lotus-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1052]:
+                - link "$15313.97" [ref=f7e1053]:
+                  - /url: https://skin.land/market/cs2/ak-47-wild-lotus-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1054]:
+                - link "$16145.92" [ref=f7e1055]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell [ref=f7e1056]:
+                - link "$14481.21" [ref=f7e1057]:
+                  - /url: https://skinswap.com/skins/ak-47-wild-lotus/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e1058]
+              - cell [ref=f7e1059]:
+                - link "$15298.68" [ref=f7e1060]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell [ref=f7e1061]:
+                - link "$14893.24" [ref=f7e1062]:
+                  - /url: https://moon.market/en/shop?search=AK-47%20%7C%20Wild%20Lotus%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1063]:
+                - link "$14902.22" [ref=f7e1064]:
+                  - /url: https://avan.market/market/cs/ak-47-wild-lotus-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1065]:
+                - link "$14634.05" [ref=f7e1066]:
+                  - /url: https://buff.market/market/goods/cs2/AK-47%20%7C%20Wild%20Lotus%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e1067]:
+                - link "$14000.00" [ref=f7e1068]:
+                  - /url: https://csfloat.com/search?market_hash_name=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1069]:
+                - link "$14299.85" [ref=f7e1070]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell [ref=f7e1071]:
+                - link "$16795.26" [ref=f7e1072]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell [ref=f7e1073]:
+                - link "$15157.00" [ref=f7e1074]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell [ref=f7e1075]:
+                - link "$14935.83" [ref=f7e1076]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=AK-47%20%7C%20Wild%20Lotus%20(Factory%20New)
+              - cell "-" [ref=f7e1077]
+              - cell [ref=f7e1078]:
+                - link "$15084.59" [ref=f7e1079]:
+                  - /url: https://white.market/item?appId=730&nameHash=AK-47%20%7C%20Wild%20Lotus%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1080]:
+                - link "$15329.07" [ref=f7e1081]:
+                  - /url: https://skinflow.gg/market/ak-47-wild-lotus-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e1082]
+              - cell "-" [ref=f7e1083]
+              - cell "-" [ref=f7e1084]
+              - cell
+            - row [ref=f7e1085] [cursor=pointer]:
+              - cell [ref=f7e1086]:
+                - generic [ref=f7e1087]:
+                  - button "Show every market price for Clutch Case" [ref=f7e1088]:
+                    - generic [aria-hidden] [ref=f7e1089]: 
+                  - link "Clutch Case" [ref=f7e1090]:
+                    - /url: /skin/clutch-case
+              - cell [ref=f7e1091]:
+                - link "$0.47 @ CS.MONEY" [ref=f7e1092]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Clutch%20Case
+                  - generic [ref=f7e1093]: $0.47
+                  - generic [ref=f7e1094]: "@ CS.MONEY"
+              - cell [ref=f7e1095]:
+                - link "$0.53" [ref=f7e1096]:
+                  - /url: /skin/clutch-case
+              - cell [ref=f7e1097]:
+                - link "$0.70" [ref=f7e1098]:
+                  - /url: https://steamcommunity.com/market/listings/730/Clutch%20Case
+              - cell [ref=f7e1099]:
+                - link "$0.47" [ref=f7e1100]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Clutch%20Case
+              - cell [ref=f7e1101]:
+                - link "$0.72" [ref=f7e1102]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/clutch-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e1103]:
+                - link "$0.48" [ref=f7e1104]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Clutch%20Case&sort=price&order=asc
+              - cell [ref=f7e1105]:
+                - link "$0.48" [ref=f7e1106]:
+                  - /url: https://waxpeer.com/clutch-case/item/
+              - cell [ref=f7e1107]:
+                - link "$0.52" [ref=f7e1108]:
+                  - /url: https://lis-skins.com/market/csgo/clutch-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1109]:
+                - link "$0.53" [ref=f7e1110]:
+                  - /url: https://skin.land/market/cs2/clutch-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1111]:
+                - link "$0.60" [ref=f7e1112]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Clutch%20Case
+              - cell [ref=f7e1113]:
+                - link "$0.47" [ref=f7e1114]:
+                  - /url: https://skinswap.com/skins/clutch-case?r=steamanalyst
+              - cell [ref=f7e1115]:
+                - link "$0.55" [ref=f7e1116]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Clutch+Case&sort_by=price_asc
+              - cell "-" [ref=f7e1117]
+              - cell [ref=f7e1118]:
+                - link "$0.48" [ref=f7e1119]:
+                  - /url: https://moon.market/en/shop?search=Clutch%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1120]:
+                - link "$0.54" [ref=f7e1121]:
+                  - /url: https://avan.market/market/cs/clutch-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1122]:
+                - link "$0.48" [ref=f7e1123]:
+                  - /url: https://buff.market/market/goods/cs2/Clutch%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e1124]:
+                - link "$0.48" [ref=f7e1125]:
+                  - /url: https://csfloat.com/search?market_hash_name=Clutch%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1126]:
+                - link "$0.50" [ref=f7e1127]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Clutch%20Case
+              - cell [ref=f7e1128]:
+                - link "$0.50" [ref=f7e1129]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Clutch%20Case
+              - cell [ref=f7e1130]:
+                - link "$0.48" [ref=f7e1131]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Clutch%20Case
+              - cell [ref=f7e1132]:
+                - link "$0.47" [ref=f7e1133]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Clutch%20Case
+              - cell [ref=f7e1134]:
+                - link "$0.49" [ref=f7e1135]:
+                  - /url: https://pirateswap.com/store?mhn=Clutch+Case&mhnc=867749017&ref=steamanalyst
+              - cell "-" [ref=f7e1136]
+              - cell [ref=f7e1137]:
+                - link "$0.49" [ref=f7e1138]:
+                  - /url: https://skinflow.gg/market/clutch-case?referral=STEAMANALYST
+              - cell [ref=f7e1139]:
+                - link "$0.48" [ref=f7e1140]:
+                  - /url: https://skins.com/item/clutch-case
+              - cell [ref=f7e1141]:
+                - link "$0.52" [ref=f7e1142]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/clutch-case
+              - cell [ref=f7e1143]:
+                - link "$0.54" [ref=f7e1144]:
+                  - /url: https://skin.place/buy-cs2-skins/clutch-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1145] [cursor=pointer]:
+              - cell [ref=f7e1146]:
+                - generic [ref=f7e1147]:
+                  - button "Show every market price for ★ Karambit | Doppler (Factory New) Ruby" [ref=f7e1148]:
+                    - generic [aria-hidden] [ref=f7e1149]: 
+                  - link "★ Karambit | Doppler (FN) Ruby" [ref=f7e1150]:
+                    - /url: /skin/karambit-doppler-ruby/factory-new
+              - cell [ref=f7e1151]:
+                - link "$7440.20 @ SkinPort" [ref=f7e1152]:
+                  - /url: https://skinport.com/market/knife/karambit?item=Doppler&phase=7&r=steamanalyst&sort=price&order=asc
+                  - generic [ref=f7e1153]: $7440.20
+                  - generic [ref=f7e1154]: "@ SkinPort"
+              - cell [ref=f7e1155]:
+                - link "$8028.66" [ref=f7e1156]:
+                  - /url: /skin/karambit-doppler-ruby/factory-new
+              - cell "-" [ref=f7e1157]
+              - cell [ref=f7e1158]:
+                - link "$7600.00" [ref=f7e1159]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=%E2%98%85%20Karambit%20%7C%20Doppler%20(Factory%20New)%20Ruby
+              - cell "-" [ref=f7e1160]
+              - cell [ref=f7e1161]:
+                - link "$7440.20" [ref=f7e1162]:
+                  - /url: https://skinport.com/market/knife/karambit?item=Doppler&phase=7&r=steamanalyst&sort=price&order=asc
+              - cell [ref=f7e1163]:
+                - link "$8274.32" [ref=f7e1164]:
+                  - /url: https://waxpeer.com/karambit-doppler-ruby-factory-new/item/
+              - cell [ref=f7e1165]:
+                - link "$7678.62" [ref=f7e1166]:
+                  - /url: https://lis-skins.com/market/csgo/%E2%98%85-karambit-doppler-ruby-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1167]:
+                - link "$7686.29" [ref=f7e1168]:
+                  - /url: https://skin.land/market/cs2/%E2%98%85-karambit-doppler-ruby-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1169]:
+                - link "$8376.10" [ref=f7e1170]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=%E2%98%85%20Karambit%20%7C%20Doppler%20(Factory%20New)%20Ruby
+              - cell [ref=f7e1171]:
+                - link "$7508.94" [ref=f7e1172]:
+                  - /url: https://skinswap.com/skins/karambit-doppler-ruby/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e1173]
+              - cell "-" [ref=f7e1174]
+              - cell [ref=f7e1175]:
+                - link "$8042.04" [ref=f7e1176]:
+                  - /url: https://moon.market/en/shop/?item_name=%E2%98%85%20Karambit%20%7C%20Doppler%20(Factory%20New)&app_id=730&phase=Ruby&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1177]:
+                - link "$8046.89" [ref=f7e1178]:
+                  - /url: https://avan.market/market/cs/★-karambit-doppler-factory-new-ruby?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1179]:
+                - link "$7498.24" [ref=f7e1180]:
+                  - /url: https://buff.market/market/goods/cs2/%E2%98%85%20Karambit%20%7C%20Doppler%20%28Factory%20New%29?tag_ids=30650&from=google&promotion=steamanalyst
+              - cell [ref=f7e1181]:
+                - link "$7458.20" [ref=f7e1182]:
+                  - /url: https://csfloat.com/search?category=1&sort_by=lowest_price&max_float=0.07&def_index=507&paint_index=415&ref=steamanalyst
+              - cell [ref=f7e1183]:
+                - link "$7327.00" [ref=f7e1184]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=%E2%98%85%20Karambit%20%7C%20Doppler%20(Factory%20New)%20Ruby
+              - cell "-" [ref=f7e1185]
+              - cell [ref=f7e1186]:
+                - link "$7685.18" [ref=f7e1187]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=%E2%98%85%20Karambit%20%7C%20Doppler%20(Factory%20New)%20Ruby
+              - cell [ref=f7e1188]:
+                - link "$7641.09" [ref=f7e1189]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=%E2%98%85%20Karambit%20%7C%20Doppler%20(Factory%20New)%20Ruby
+              - cell "-" [ref=f7e1190]
+              - cell [ref=f7e1191]:
+                - link "$8084.65" [ref=f7e1192]:
+                  - /url: https://white.market/item?appId=730&nameHash=%E2%98%85%20Karambit%20%7C%20Doppler%20%28Factory%20New%29&csgoPhase=RUBY&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1193]:
+                - link "$8039.18" [ref=f7e1194]:
+                  - /url: https://skinflow.gg/market/karambit-doppler-ruby-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e1195]
+              - cell "-" [ref=f7e1196]
+              - cell "-" [ref=f7e1197]
+              - cell
+            - row [ref=f7e1198] [cursor=pointer]:
+              - cell [ref=f7e1199]:
+                - generic [ref=f7e1200]:
+                  - button "Show every market price for Snakebite Case" [ref=f7e1201]:
+                    - generic [aria-hidden] [ref=f7e1202]: 
+                  - link "Snakebite Case" [ref=f7e1203]:
+                    - /url: /skin/snakebite-case
+              - cell [ref=f7e1204]:
+                - link "$0.34 @ PirateSwap" [ref=f7e1205]:
+                  - /url: https://pirateswap.com/store?mhn=Snakebite+Case&mhnc=622255025&ref=steamanalyst
+                  - generic [ref=f7e1206]: $0.34
+                  - generic [ref=f7e1207]: "@ PirateSwap"
+              - cell [ref=f7e1208]:
+                - link "$0.40" [ref=f7e1209]:
+                  - /url: /skin/snakebite-case
+              - cell [ref=f7e1210]:
+                - link "$0.54" [ref=f7e1211]:
+                  - /url: https://steamcommunity.com/market/listings/730/Snakebite%20Case
+              - cell [ref=f7e1212]:
+                - link "$0.37" [ref=f7e1213]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Snakebite%20Case
+              - cell [ref=f7e1214]:
+                - link "$0.57" [ref=f7e1215]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/snakebite-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e1216]:
+                - link "$0.40" [ref=f7e1217]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Snakebite%20Case&sort=price&order=asc
+              - cell [ref=f7e1218]:
+                - link "$0.39" [ref=f7e1219]:
+                  - /url: https://waxpeer.com/snakebite-case/item/
+              - cell [ref=f7e1220]:
+                - link "$0.37" [ref=f7e1221]:
+                  - /url: https://lis-skins.com/market/csgo/snakebite-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1222]:
+                - link "$0.37" [ref=f7e1223]:
+                  - /url: https://skin.land/market/cs2/snakebite-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1224]:
+                - link "$0.40" [ref=f7e1225]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Snakebite%20Case
+              - cell [ref=f7e1226]:
+                - link "$0.38" [ref=f7e1227]:
+                  - /url: https://skinswap.com/skins/snakebite-case?r=steamanalyst
+              - cell [ref=f7e1228]:
+                - link "$0.35" [ref=f7e1229]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Snakebite+Case&sort_by=price_asc
+              - cell "-" [ref=f7e1230]
+              - cell [ref=f7e1231]:
+                - link "$0.38" [ref=f7e1232]:
+                  - /url: https://moon.market/en/shop?search=Snakebite%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1233]:
+                - link "$0.43" [ref=f7e1234]:
+                  - /url: https://avan.market/market/cs/snakebite-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1235]:
+                - link "$0.36" [ref=f7e1236]:
+                  - /url: https://buff.market/market/goods/cs2/Snakebite%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e1237]:
+                - link "$0.36" [ref=f7e1238]:
+                  - /url: https://csfloat.com/search?market_hash_name=Snakebite%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1239]:
+                - link "$0.35" [ref=f7e1240]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Snakebite%20Case
+              - cell [ref=f7e1241]:
+                - link "$0.38" [ref=f7e1242]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Snakebite%20Case
+              - cell [ref=f7e1243]:
+                - link "$0.37" [ref=f7e1244]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Snakebite%20Case
+              - cell [ref=f7e1245]:
+                - link "$0.39" [ref=f7e1246]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Snakebite%20Case
+              - cell [ref=f7e1247]:
+                - link "$0.34" [ref=f7e1248]:
+                  - /url: https://pirateswap.com/store?mhn=Snakebite+Case&mhnc=622255025&ref=steamanalyst
+              - cell "-" [ref=f7e1249]
+              - cell [ref=f7e1250]:
+                - link "$0.36" [ref=f7e1251]:
+                  - /url: https://skinflow.gg/market/snakebite-case?referral=STEAMANALYST
+              - cell [ref=f7e1252]:
+                - link "$0.38" [ref=f7e1253]:
+                  - /url: https://skins.com/item/snakebite-case
+              - cell [ref=f7e1254]:
+                - link "$0.37" [ref=f7e1255]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/snakebite-case
+              - cell [ref=f7e1256]:
+                - link "$0.37" [ref=f7e1257]:
+                  - /url: https://skin.place/buy-cs2-skins/snakebite-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1258] [cursor=pointer]:
+              - cell [ref=f7e1259]:
+                - generic [ref=f7e1260]:
+                  - button "Show every market price for ★ Sport Gloves | Pandora's Box (Factory New)" [ref=f7e1261]:
+                    - generic [aria-hidden] [ref=f7e1262]: 
+                  - link "★ Sport Gloves | Pandora's Box (FN)" [ref=f7e1263]:
+                    - /url: /skin/sport-gloves-pandoras-box/factory-new
+              - cell [ref=f7e1264]:
+                - link "$19587.63 @ CS.MONEY" [ref=f7e1265]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=%E2%98%85%20Sport%20Gloves%20%7C%20Pandora's%20Box%20(Factory%20New)
+                  - generic [ref=f7e1266]: $19587.63
+                  - generic [ref=f7e1267]: "@ CS.MONEY"
+              - cell [ref=f7e1268]:
+                - link "$24457.08" [ref=f7e1269]:
+                  - /url: /skin/sport-gloves-pandoras-box/factory-new
+              - cell "-" [ref=f7e1270]
+              - cell [ref=f7e1271]:
+                - link "$19587.63" [ref=f7e1272]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=%E2%98%85%20Sport%20Gloves%20%7C%20Pandora's%20Box%20(Factory%20New)
+              - cell "-" [ref=f7e1273]
+              - cell "-" [ref=f7e1274]
+              - cell [ref=f7e1275]:
+                - link "$24447.65" [ref=f7e1276]:
+                  - /url: https://waxpeer.com/sport-gloves-pandora-s-box-factory-new/item/
+              - cell [ref=f7e1277]:
+                - link "$23283.48" [ref=f7e1278]:
+                  - /url: https://lis-skins.com/market/csgo/%E2%98%85-sport-gloves-pandora%27s-box-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1279]:
+                - link "$23306.76" [ref=f7e1280]:
+                  - /url: https://skin.land/market/cs2/%E2%98%85-sport-gloves-pandora%27s-box-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell "-" [ref=f7e1281]
+              - cell [ref=f7e1282]:
+                - link "$22098.50" [ref=f7e1283]:
+                  - /url: https://skinswap.com/skins/sport-gloves-pandora-s-box/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e1284]
+              - cell [ref=f7e1285]:
+                - link "$23283.48" [ref=f7e1286]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=%E2%98%85%20Sport%20Gloves%20%7C%20Pandora's%20Box%20(Factory%20New)
+              - cell "-" [ref=f7e1287]
+              - cell [ref=f7e1288]:
+                - link "$23566.84" [ref=f7e1289]:
+                  - /url: https://avan.market/market/cs/★-sport-gloves-pandora's-box-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1290]:
+                - link "$22222.00" [ref=f7e1291]:
+                  - /url: https://buff.market/market/goods/cs2/%E2%98%85%20Sport%20Gloves%20%7C%20Pandora%27s%20Box%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e1292]:
+                - link "$22100.00" [ref=f7e1293]:
+                  - /url: https://csfloat.com/search?market_hash_name=%E2%98%85%20Sport%20Gloves%20%7C%20Pandora's%20Box%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1294]:
+                - link "$29791.68" [ref=f7e1295]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=%E2%98%85%20Sport%20Gloves%20%7C%20Pandora's%20Box%20(Factory%20New)
+              - cell "-" [ref=f7e1296]
+              - cell "-" [ref=f7e1297]
+              - cell "-" [ref=f7e1298]
+              - cell "-" [ref=f7e1299]
+              - cell [ref=f7e1300]:
+                - link "$23566.29" [ref=f7e1301]:
+                  - /url: https://white.market/item?appId=730&nameHash=%E2%98%85%20Sport%20Gloves%20%7C%20Pandora%27s%20Box%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1302]:
+                - link "$24533.30" [ref=f7e1303]:
+                  - /url: https://skinflow.gg/market/sport-gloves-pandora-s-box-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e1304]
+              - cell "-" [ref=f7e1305]
+              - cell "-" [ref=f7e1306]
+              - cell
+            - row [ref=f7e1307] [cursor=pointer]:
+              - cell [ref=f7e1308]:
+                - generic [ref=f7e1309]:
+                  - button "Show every market price for Prisma Case" [ref=f7e1310]:
+                    - generic [aria-hidden] [ref=f7e1311]: 
+                  - link "Prisma Case" [ref=f7e1312]:
+                    - /url: /skin/prisma-case
+              - cell [ref=f7e1313]:
+                - link "$1.05 @ CSFloat" [ref=f7e1314]:
+                  - /url: https://csfloat.com/search?market_hash_name=Prisma%20Case&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e1315]: $1.05
+                  - generic [ref=f7e1316]: "@ CSFloat"
+              - cell [ref=f7e1317]:
+                - link "$1.20" [ref=f7e1318]:
+                  - /url: /skin/prisma-case
+              - cell [ref=f7e1319]:
+                - link "$1.70" [ref=f7e1320]:
+                  - /url: https://steamcommunity.com/market/listings/730/Prisma%20Case
+              - cell [ref=f7e1321]:
+                - link "$1.08" [ref=f7e1322]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Prisma%20Case
+              - cell [ref=f7e1323]:
+                - link "$1.92" [ref=f7e1324]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/prisma-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e1325]:
+                - link "$1.08" [ref=f7e1326]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Prisma%20Case&sort=price&order=asc
+              - cell [ref=f7e1327]:
+                - link "$1.15" [ref=f7e1328]:
+                  - /url: https://waxpeer.com/prisma-case/item/
+              - cell [ref=f7e1329]:
+                - link "$1.10" [ref=f7e1330]:
+                  - /url: https://lis-skins.com/market/csgo/prisma-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1331]:
+                - link "$1.11" [ref=f7e1332]:
+                  - /url: https://skin.land/market/cs2/prisma-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1333]:
+                - link "$1.29" [ref=f7e1334]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Prisma%20Case
+              - cell [ref=f7e1335]:
+                - link "$1.09" [ref=f7e1336]:
+                  - /url: https://skinswap.com/skins/prisma-case?r=steamanalyst
+              - cell [ref=f7e1337]:
+                - link "$1.19" [ref=f7e1338]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Prisma+Case&sort_by=price_asc
+              - cell "-" [ref=f7e1339]
+              - cell [ref=f7e1340]:
+                - link "$1.08" [ref=f7e1341]:
+                  - /url: https://moon.market/en/shop?search=Prisma%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1342]:
+                - link "$1.14" [ref=f7e1343]:
+                  - /url: https://avan.market/market/cs/prisma-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1344]:
+                - link "$1.12" [ref=f7e1345]:
+                  - /url: https://buff.market/market/goods/cs2/Prisma%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e1346]:
+                - link "$1.05" [ref=f7e1347]:
+                  - /url: https://csfloat.com/search?market_hash_name=Prisma%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1348]:
+                - link "$1.14" [ref=f7e1349]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Prisma%20Case
+              - cell [ref=f7e1350]:
+                - link "$1.12" [ref=f7e1351]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Prisma%20Case
+              - cell [ref=f7e1352]:
+                - link "$1.13" [ref=f7e1353]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Prisma%20Case
+              - cell [ref=f7e1354]:
+                - link "$1.05" [ref=f7e1355]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Prisma%20Case
+              - cell [ref=f7e1356]:
+                - link "$1.16" [ref=f7e1357]:
+                  - /url: https://pirateswap.com/store?mhn=Prisma+Case&mhnc=-2067952841&ref=steamanalyst
+              - cell "-" [ref=f7e1358]
+              - cell [ref=f7e1359]:
+                - link "$1.09" [ref=f7e1360]:
+                  - /url: https://skinflow.gg/market/prisma-case?referral=STEAMANALYST
+              - cell [ref=f7e1361]:
+                - link "$1.14" [ref=f7e1362]:
+                  - /url: https://skins.com/item/prisma-case
+              - cell [ref=f7e1363]:
+                - link "$1.10" [ref=f7e1364]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/prisma-case
+              - cell [ref=f7e1365]:
+                - link "$1.10" [ref=f7e1366]:
+                  - /url: https://skin.place/buy-cs2-skins/prisma-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1367] [cursor=pointer]:
+              - cell [ref=f7e1368]:
+                - generic [ref=f7e1369]:
+                  - button "Show every market price for ★ Butterfly Knife | Gamma Doppler (Factory New) Emerald" [ref=f7e1370]:
+                    - generic [aria-hidden] [ref=f7e1371]: 
+                  - link "★ Butterfly Knife | Gamma Doppler (FN) Emerald" [ref=f7e1372]:
+                    - /url: /skin/butterfly-knife-gamma-doppler-emerald/factory-new
+              - cell [ref=f7e1373]:
+                - link "$7545.99 @ CSFloat" [ref=f7e1374]:
+                  - /url: https://csfloat.com/search?category=1&sort_by=lowest_price&max_float=0.07&def_index=515&paint_index=568&ref=steamanalyst
+                  - generic [ref=f7e1375]: $7545.99
+                  - generic [ref=f7e1376]: "@ CSFloat"
+              - cell [ref=f7e1377]:
+                - link "$8164.66" [ref=f7e1378]:
+                  - /url: /skin/butterfly-knife-gamma-doppler-emerald/factory-new
+              - cell "-" [ref=f7e1379]
+              - cell [ref=f7e1380]:
+                - link "$7731.78" [ref=f7e1381]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20(Factory%20New)%20Emerald
+              - cell "-" [ref=f7e1382]
+              - cell [ref=f7e1383]:
+                - link "$7615.28" [ref=f7e1384]:
+                  - /url: https://skinport.com/market/knife/butterfly-knife?item=Gamma+Doppler&phase=9&r=steamanalyst&sort=price&order=asc
+              - cell [ref=f7e1385]:
+                - link "$8190.00" [ref=f7e1386]:
+                  - /url: https://waxpeer.com/butterfly-knife-gamma-doppler-emerald-factory-new/item/
+              - cell [ref=f7e1387]:
+                - link "$8031.80" [ref=f7e1388]:
+                  - /url: https://lis-skins.com/market/csgo/%E2%98%85-butterfly-knife-gamma-doppler-emerald-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1389]:
+                - link "$8039.83" [ref=f7e1390]:
+                  - /url: https://skin.land/market/cs2/%E2%98%85-butterfly-knife-gamma-doppler-emerald-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1391]:
+                - link "$8643.19" [ref=f7e1392]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20(Factory%20New)%20Emerald
+              - cell [ref=f7e1393]:
+                - link "$7788.21" [ref=f7e1394]:
+                  - /url: https://skinswap.com/skins/butterfly-knife-gamma-doppler-emerald/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e1395]
+              - cell "-" [ref=f7e1396]
+              - cell [ref=f7e1397]:
+                - link "$8021.86" [ref=f7e1398]:
+                  - /url: https://moon.market/en/shop/?item_name=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20(Factory%20New)&app_id=730&phase=Emerald&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1399]:
+                - link "$8014.64" [ref=f7e1400]:
+                  - /url: https://avan.market/market/cs/★-butterfly-knife-gamma-doppler-factory-new-emerald?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1401]:
+                - link "$7834.60" [ref=f7e1402]:
+                  - /url: https://buff.market/market/goods/cs2/%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20%28Factory%20New%29?tag_ids=156894&from=google&promotion=steamanalyst
+              - cell [ref=f7e1403]:
+                - link "$7545.99" [ref=f7e1404]:
+                  - /url: https://csfloat.com/search?category=1&sort_by=lowest_price&max_float=0.07&def_index=515&paint_index=568&ref=steamanalyst
+              - cell [ref=f7e1405]:
+                - link "$7655.68" [ref=f7e1406]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20(Factory%20New)%20Emerald
+              - cell "-" [ref=f7e1407]
+              - cell [ref=f7e1408]:
+                - link "$8014.07" [ref=f7e1409]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20(Factory%20New)%20Emerald
+              - cell [ref=f7e1410]:
+                - link "$7935.67" [ref=f7e1411]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20(Factory%20New)%20Emerald
+              - cell "-" [ref=f7e1412]
+              - cell [ref=f7e1413]:
+                - link "$8209.99" [ref=f7e1414]:
+                  - /url: https://white.market/item?appId=730&nameHash=%E2%98%85%20Butterfly%20Knife%20%7C%20Gamma%20Doppler%20%28Factory%20New%29&csgoPhase=EMERALD&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1415]:
+                - link "$8047.77" [ref=f7e1416]:
+                  - /url: https://skinflow.gg/market/butterfly-knife-gamma-doppler-emerald-factory-new?referral=STEAMANALYST
+              - cell [ref=f7e1417]:
+                - link "$7867.26" [ref=f7e1418]:
+                  - /url: https://skins.com/item/butterfly-knife-gamma-doppler-emerald?exterior=fn&phase=Emerald
+              - cell "-" [ref=f7e1419]
+              - cell "-" [ref=f7e1420]
+              - cell
+            - row [ref=f7e1421] [cursor=pointer]:
+              - cell [ref=f7e1422]:
+                - generic [ref=f7e1423]:
+                  - button "Show every market price for Glock-18 | Fade (Factory New)" [ref=f7e1424]:
+                    - generic [aria-hidden] [ref=f7e1425]: 
+                  - link "Glock-18 | Fade (FN)" [ref=f7e1426]:
+                    - /url: /skin/glock-18-fade/factory-new
+              - cell [ref=f7e1427]:
+                - link "$1320.00 @ BUFF Market" [ref=f7e1428]:
+                  - /url: https://buff.market/market/goods/cs2/Glock-18%20%7C%20Fade%20%28Factory%20New%29?from=google&promotion=steamanalyst
+                  - generic [ref=f7e1429]: $1320.00
+                  - generic [ref=f7e1430]: "@ BUFF Market"
+              - cell [ref=f7e1431]:
+                - link "$1472.75" [ref=f7e1432]:
+                  - /url: /skin/glock-18-fade/factory-new
+              - cell "-" [ref=f7e1433]
+              - cell [ref=f7e1434]:
+                - link "$1420.33" [ref=f7e1435]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1436]:
+                - link "$1438.53" [ref=f7e1437]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/glock-18-fade?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e1438]:
+                - link "$1473.47" [ref=f7e1439]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Glock-18%20%7C%20Fade%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e1440]:
+                - link "$1453.84" [ref=f7e1441]:
+                  - /url: https://waxpeer.com/glock-18-fade-factory-new/item/
+              - cell [ref=f7e1442]:
+                - link "$1436.14" [ref=f7e1443]:
+                  - /url: https://lis-skins.com/market/csgo/glock-18-fade-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1444]:
+                - link "$1437.57" [ref=f7e1445]:
+                  - /url: https://skin.land/market/cs2/glock-18-fade-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1446]:
+                - link "$1571.54" [ref=f7e1447]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1448]:
+                - link "$1324.70" [ref=f7e1449]:
+                  - /url: https://skinswap.com/skins/glock-18-fade/factory-new?r=steamanalyst
+              - cell [ref=f7e1450]:
+                - link "$1491.11" [ref=f7e1451]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Glock-18+%7C+Fade+%28Factory+New%29&sort_by=price_asc
+              - cell [ref=f7e1452]:
+                - link "$1436.14" [ref=f7e1453]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1454]:
+                - link "$1372.31" [ref=f7e1455]:
+                  - /url: https://moon.market/en/shop?search=Glock-18%20%7C%20Fade%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1456]:
+                - link "$1403.69" [ref=f7e1457]:
+                  - /url: https://avan.market/market/cs/glock-18-fade-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1458]:
+                - link "$1320.00" [ref=f7e1459]:
+                  - /url: https://buff.market/market/goods/cs2/Glock-18%20%7C%20Fade%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e1460]:
+                - link "$1360.00" [ref=f7e1461]:
+                  - /url: https://csfloat.com/search?market_hash_name=Glock-18%20%7C%20Fade%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1462]:
+                - link "$1407.35" [ref=f7e1463]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1464]:
+                - link "$1599.48" [ref=f7e1465]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1466]:
+                - link "$1466.75" [ref=f7e1467]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1468]:
+                - link "$1399.62" [ref=f7e1469]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Glock-18%20%7C%20Fade%20(Factory%20New)
+              - cell [ref=f7e1470]:
+                - link "$1610.23" [ref=f7e1471]:
+                  - /url: https://pirateswap.com/store?mhn=Glock-18+%7C+Fade+%28Factory+New%29&mhnc=-1636848546&ref=steamanalyst
+              - cell [ref=f7e1472]:
+                - link "$1413.04" [ref=f7e1473]:
+                  - /url: https://white.market/item?appId=730&nameHash=Glock-18%20%7C%20Fade%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1474]:
+                - link "$1639.06" [ref=f7e1475]:
+                  - /url: https://skinflow.gg/market/glock-18-fade-factory-new?referral=STEAMANALYST
+              - cell [ref=f7e1476]:
+                - link "$1369.40" [ref=f7e1477]:
+                  - /url: https://skins.com/item/glock-18-fade?exterior=fn
+              - cell [ref=f7e1478]:
+                - link "$1479.22" [ref=f7e1479]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/glock-18-fade-factory-new
+              - cell [ref=f7e1480]:
+                - link "$1479.22" [ref=f7e1481]:
+                  - /url: https://skin.place/buy-cs2-skins/glock-18-fade?exterior=Factory+New&utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1482] [cursor=pointer]:
+              - cell [ref=f7e1483]:
+                - generic [ref=f7e1484]:
+                  - button "Show every market price for AK-47 | Redline (Minimal Wear)" [ref=f7e1485]:
+                    - generic [aria-hidden] [ref=f7e1486]: 
+                  - link "AK-47 | Redline (MW)" [ref=f7e1487]:
+                    - /url: /skin/ak-47-redline/minimal-wear
+              - cell [ref=f7e1488]:
+                - link "$125.00 @ CSFloat" [ref=f7e1489]:
+                  - /url: https://csfloat.com/search?market_hash_name=AK-47%20%7C%20Redline%20(Minimal%20Wear)&sort_by=lowest_price&ref=steamanalyst
+                  - generic [ref=f7e1490]: $125.00
+                  - generic [ref=f7e1491]: "@ CSFloat"
+              - cell [ref=f7e1492]:
+                - link "$138.58" [ref=f7e1493]:
+                  - /url: /skin/ak-47-redline/minimal-wear
+              - cell [ref=f7e1494]:
+                - link "$171.98" [ref=f7e1495]:
+                  - /url: https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1496]:
+                - link "$136.54" [ref=f7e1497]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1498]:
+                - link "$130.97" [ref=f7e1499]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/ak-47-redline?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=minimal%20wear&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e1500]:
+                - link "$132.13" [ref=f7e1501]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)&sort=price&order=asc
+              - cell [ref=f7e1502]:
+                - link "$137.89" [ref=f7e1503]:
+                  - /url: https://waxpeer.com/ak-47-redline-minimal-wear/item/
+              - cell [ref=f7e1504]:
+                - link "$136.29" [ref=f7e1505]:
+                  - /url: https://lis-skins.com/market/csgo/ak-47-redline-minimal-wear/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1506]:
+                - link "$136.42" [ref=f7e1507]:
+                  - /url: https://skin.land/market/cs2/ak-47-redline-minimal-wear/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1508]:
+                - link "$149.93" [ref=f7e1509]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1510]:
+                - link "$128.95" [ref=f7e1511]:
+                  - /url: https://skinswap.com/skins/ak-47-redline/minimal-wear?r=steamanalyst
+              - cell "-" [ref=f7e1512]
+              - cell [ref=f7e1513]:
+                - link "$136.29" [ref=f7e1514]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1515]:
+                - link "$135.32" [ref=f7e1516]:
+                  - /url: https://moon.market/en/shop?search=AK-47%20%7C%20Redline%20%28Minimal%20Wear%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1517]:
+                - link "$136.95" [ref=f7e1518]:
+                  - /url: https://avan.market/market/cs/ak-47-redline-minimal-wear?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1519]:
+                - link "$130.00" [ref=f7e1520]:
+                  - /url: https://buff.market/market/goods/cs2/AK-47%20%7C%20Redline%20%28Minimal%20Wear%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e1521]:
+                - link "$125.00" [ref=f7e1522]:
+                  - /url: https://csfloat.com/search?market_hash_name=AK-47%20%7C%20Redline%20(Minimal%20Wear)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1523]:
+                - link "$129.30" [ref=f7e1524]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1525]:
+                - link "$145.77" [ref=f7e1526]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1527]:
+                - link "$138.36" [ref=f7e1528]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1529]:
+                - link "$135.60" [ref=f7e1530]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=AK-47%20%7C%20Redline%20(Minimal%20Wear)
+              - cell [ref=f7e1531]:
+                - link "$143.69" [ref=f7e1532]:
+                  - /url: https://pirateswap.com/store?mhn=AK-47+%7C+Redline+%28Minimal+Wear%29&mhnc=1172136283&ref=steamanalyst
+              - cell [ref=f7e1533]:
+                - link "$137.07" [ref=f7e1534]:
+                  - /url: https://white.market/item?appId=730&nameHash=AK-47%20%7C%20Redline%20%28Minimal%20Wear%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1535]:
+                - link "$142.79" [ref=f7e1536]:
+                  - /url: https://skinflow.gg/market/ak-47-redline-minimal-wear?referral=STEAMANALYST
+              - cell [ref=f7e1537]:
+                - link "$135.08" [ref=f7e1538]:
+                  - /url: https://skins.com/item/ak-47-redline?exterior=mw
+              - cell [ref=f7e1539]:
+                - link "$136.51" [ref=f7e1540]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/ak-47-redline-minimal-wear
+              - cell [ref=f7e1541]:
+                - link "$140.38" [ref=f7e1542]:
+                  - /url: https://skin.place/buy-cs2-skins/ak-47-redline?exterior=Minimal+Wear&utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1543] [cursor=pointer]:
+              - cell [ref=f7e1544]:
+                - generic [ref=f7e1545]:
+                  - button "Show every market price for AK-47 | Fire Serpent (Factory New)" [ref=f7e1546]:
+                    - generic [aria-hidden] [ref=f7e1547]: 
+                  - link "AK-47 | Fire Serpent (FN)" [ref=f7e1548]:
+                    - /url: /skin/ak-47-fire-serpent/factory-new
+              - cell [ref=f7e1549]:
+                - link "$2162.06 @ SkinPort" [ref=f7e1550]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)&sort=price&order=asc
+                  - generic [ref=f7e1551]: $2162.06
+                  - generic [ref=f7e1552]: "@ SkinPort"
+              - cell [ref=f7e1553]:
+                - link "$2416.14" [ref=f7e1554]:
+                  - /url: /skin/ak-47-fire-serpent/factory-new
+              - cell "-" [ref=f7e1555]
+              - cell [ref=f7e1556]:
+                - link "$2253.15" [ref=f7e1557]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell [ref=f7e1558]:
+                - link "$2179.88" [ref=f7e1559]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/ak-47-fire-serpent?ref=lhbw4muFRi&utm_source=steamanalyst&exterior=factory%20new&stattrak=false&souvenir=false&orderBy=price&orderDir=asc
+              - cell [ref=f7e1560]:
+                - link "$2162.06" [ref=f7e1561]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)&sort=price&order=asc
+              - cell [ref=f7e1562]:
+                - link "$2361.74" [ref=f7e1563]:
+                  - /url: https://waxpeer.com/ak-47-fire-serpent-factory-new/item/
+              - cell [ref=f7e1564]:
+                - link "$2383.60" [ref=f7e1565]:
+                  - /url: https://lis-skins.com/market/csgo/ak-47-fire-serpent-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1566]:
+                - link "$2385.98" [ref=f7e1567]:
+                  - /url: https://skin.land/market/cs2/ak-47-fire-serpent-factory-new/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1568]:
+                - link "$2419.26" [ref=f7e1569]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell [ref=f7e1570]:
+                - link "$2199.08" [ref=f7e1571]:
+                  - /url: https://skinswap.com/skins/ak-47-fire-serpent/factory-new?r=steamanalyst
+              - cell "-" [ref=f7e1572]
+              - cell [ref=f7e1573]:
+                - link "$2364.07" [ref=f7e1574]:
+                  - /url: https://skinrave.gg/en/marketplace?active-tab=market&sort=priceAscending&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell [ref=f7e1575]:
+                - link "$2307.80" [ref=f7e1576]:
+                  - /url: https://moon.market/en/shop?search=AK-47%20%7C%20Fire%20Serpent%20%28Factory%20New%29&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1577]:
+                - link "$2309.19" [ref=f7e1578]:
+                  - /url: https://avan.market/market/cs/ak-47-fire-serpent-factory-new?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1579]:
+                - link "$2192.99" [ref=f7e1580]:
+                  - /url: https://buff.market/market/goods/cs2/AK-47%20%7C%20Fire%20Serpent%20%28Factory%20New%29?from=google&promotion=steamanalyst
+              - cell [ref=f7e1581]:
+                - link "$2170.00" [ref=f7e1582]:
+                  - /url: https://csfloat.com/search?market_hash_name=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1583]:
+                - link "$2256.66" [ref=f7e1584]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell [ref=f7e1585]:
+                - link "$2529.55" [ref=f7e1586]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell [ref=f7e1587]:
+                - link "$2348.68" [ref=f7e1588]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell [ref=f7e1589]:
+                - link "$2238.84" [ref=f7e1590]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=AK-47%20%7C%20Fire%20Serpent%20(Factory%20New)
+              - cell "-" [ref=f7e1591]
+              - cell [ref=f7e1592]:
+                - link "$2337.44" [ref=f7e1593]:
+                  - /url: https://white.market/item?appId=730&nameHash=AK-47%20%7C%20Fire%20Serpent%20%28Factory%20New%29&ref=c94b530c8e6ff7f3&refTag=steamanalyst
+              - cell [ref=f7e1594]:
+                - link "$2388.34" [ref=f7e1595]:
+                  - /url: https://skinflow.gg/market/ak-47-fire-serpent-factory-new?referral=STEAMANALYST
+              - cell "-" [ref=f7e1596]
+              - cell [ref=f7e1597]:
+                - link "$2337.44" [ref=f7e1598]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/ak-47-fire-serpent-factory-new
+              - cell [ref=f7e1599]:
+                - link "$2343.16" [ref=f7e1600]:
+                  - /url: https://skin.place/buy-cs2-skins/ak-47-fire-serpent?exterior=Factory+New&utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1601] [cursor=pointer]:
+              - cell [ref=f7e1602]:
+                - generic [ref=f7e1603]:
+                  - button "Show every market price for Gallery Case" [ref=f7e1604]:
+                    - generic [aria-hidden] [ref=f7e1605]: 
+                  - link "Gallery Case" [ref=f7e1606]:
+                    - /url: /skin/gallery-case
+              - cell [ref=f7e1607]:
+                - link "$0.60 @ TradeIt" [ref=f7e1608]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Gallery%20Case
+                  - generic [ref=f7e1609]: $0.60
+                  - generic [ref=f7e1610]: "@ TradeIt"
+              - cell [ref=f7e1611]:
+                - link "$0.69" [ref=f7e1612]:
+                  - /url: /skin/gallery-case
+              - cell [ref=f7e1613]:
+                - link "$0.93" [ref=f7e1614]:
+                  - /url: https://steamcommunity.com/market/listings/730/Gallery%20Case
+              - cell [ref=f7e1615]:
+                - link "$0.62" [ref=f7e1616]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Gallery%20Case
+              - cell [ref=f7e1617]:
+                - link "$0.74" [ref=f7e1618]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/gallery-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e1619]:
+                - link "$0.74" [ref=f7e1620]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Gallery%20Case&sort=price&order=asc
+              - cell [ref=f7e1621]:
+                - link "$0.64" [ref=f7e1622]:
+                  - /url: https://waxpeer.com/gallery-case/item/
+              - cell [ref=f7e1623]:
+                - link "$0.61" [ref=f7e1624]:
+                  - /url: https://lis-skins.com/market/csgo/gallery-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1625]:
+                - link "$0.62" [ref=f7e1626]:
+                  - /url: https://skin.land/market/cs2/gallery-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1627]:
+                - link "$0.76" [ref=f7e1628]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Gallery%20Case
+              - cell [ref=f7e1629]:
+                - link "$0.61" [ref=f7e1630]:
+                  - /url: https://skinswap.com/skins/gallery-case?r=steamanalyst
+              - cell [ref=f7e1631]:
+                - link "$0.68" [ref=f7e1632]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Gallery+Case&sort_by=price_asc
+              - cell "-" [ref=f7e1633]
+              - cell [ref=f7e1634]:
+                - link "$0.62" [ref=f7e1635]:
+                  - /url: https://moon.market/en/shop?search=Gallery%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1636]:
+                - link "$0.64" [ref=f7e1637]:
+                  - /url: https://avan.market/market/cs/gallery-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1638]:
+                - link "$0.65" [ref=f7e1639]:
+                  - /url: https://buff.market/market/goods/cs2/Gallery%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e1640]:
+                - link "$0.62" [ref=f7e1641]:
+                  - /url: https://csfloat.com/search?market_hash_name=Gallery%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1642]:
+                - link "$0.63" [ref=f7e1643]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Gallery%20Case
+              - cell [ref=f7e1644]:
+                - link "$0.63" [ref=f7e1645]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Gallery%20Case
+              - cell [ref=f7e1646]:
+                - link "$0.63" [ref=f7e1647]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Gallery%20Case
+              - cell [ref=f7e1648]:
+                - link "$0.60" [ref=f7e1649]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Gallery%20Case
+              - cell "-" [ref=f7e1650]
+              - cell "-" [ref=f7e1651]
+              - cell [ref=f7e1652]:
+                - link "$0.76" [ref=f7e1653]:
+                  - /url: https://skinflow.gg/market/gallery-case?referral=STEAMANALYST
+              - cell [ref=f7e1654]:
+                - link "$0.68" [ref=f7e1655]:
+                  - /url: https://skins.com/item/gallery-case
+              - cell [ref=f7e1656]:
+                - link "$0.63" [ref=f7e1657]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/gallery-case
+              - cell [ref=f7e1658]:
+                - link "$0.63" [ref=f7e1659]:
+                  - /url: https://skin.place/buy-cs2-skins/gallery-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+            - row [ref=f7e1660] [cursor=pointer]:
+              - cell [ref=f7e1661]:
+                - generic [ref=f7e1662]:
+                  - button "Show every market price for Fever Case" [ref=f7e1663]:
+                    - generic [aria-hidden] [ref=f7e1664]: 
+                  - link "Fever Case" [ref=f7e1665]:
+                    - /url: /skin/fever-case
+              - cell [ref=f7e1666]:
+                - link "$0.56 @ SkinSwap" [ref=f7e1667]:
+                  - /url: https://skinswap.com/skins/fever-case?r=steamanalyst
+                  - generic [ref=f7e1668]: $0.56
+                  - generic [ref=f7e1669]: "@ SkinSwap"
+              - cell [ref=f7e1670]:
+                - link "$0.63" [ref=f7e1671]:
+                  - /url: /skin/fever-case
+              - cell [ref=f7e1672]:
+                - link "$0.89" [ref=f7e1673]:
+                  - /url: https://steamcommunity.com/market/listings/730/Fever%20Case
+              - cell [ref=f7e1674]:
+                - link "$0.58" [ref=f7e1675]:
+                  - /url: https://cs.money/market/buy/?utm_source=mediabuy&utm_medium=stemanlst&utm_campaign=stemanlst&utm_content=button&search=Fever%20Case
+              - cell [ref=f7e1676]:
+                - link "$0.83" [ref=f7e1677]:
+                  - /url: https://dmarket.com/csgo-skins/product-card/fever-case?ref=lhbw4muFRi&utm_source=steamanalyst&orderBy=price&orderDir=asc
+              - cell [ref=f7e1678]:
+                - link "$0.62" [ref=f7e1679]:
+                  - /url: https://skinport.com/market?r=steamanalyst&search=Fever%20Case&sort=price&order=asc
+              - cell [ref=f7e1680]:
+                - link "$0.60" [ref=f7e1681]:
+                  - /url: https://waxpeer.com/fever-case/item/
+              - cell [ref=f7e1682]:
+                - link "$0.58" [ref=f7e1683]:
+                  - /url: https://lis-skins.com/market/csgo/fever-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1684]:
+                - link "$0.58" [ref=f7e1685]:
+                  - /url: https://skin.land/market/cs2/fever-case/?utm_source=steamanalyst&utm_medium=banner&utm_campaign=promo&utm_content=link&rf=202821513
+              - cell [ref=f7e1686]:
+                - link "$0.67" [ref=f7e1687]:
+                  - /url: https://skinsmonkey.com/market?appId=730&r=STEAMANALYST&q=Fever%20Case
+              - cell [ref=f7e1688]:
+                - link "$0.56" [ref=f7e1689]:
+                  - /url: https://skinswap.com/skins/fever-case?r=steamanalyst
+              - cell [ref=f7e1690]:
+                - link "$0.57" [ref=f7e1691]:
+                  - /url: https://cs.trade/store?ref=STEAMANALYST&market_name=Fever+Case&sort_by=price_asc
+              - cell "-" [ref=f7e1692]
+              - cell [ref=f7e1693]:
+                - link "$0.59" [ref=f7e1694]:
+                  - /url: https://moon.market/en/shop?search=Fever%20Case&r=UGoBN57b74e06&utm_source=steamanalyst&utm_medium=referral&utm_campaign=main
+              - cell [ref=f7e1695]:
+                - link "$0.59" [ref=f7e1696]:
+                  - /url: https://avan.market/market/cs/fever-case?currency=1&r=AzgCNf3cb1658
+              - cell [ref=f7e1697]:
+                - link "$0.64" [ref=f7e1698]:
+                  - /url: https://buff.market/market/goods/cs2/Fever%20Case?from=google&promotion=steamanalyst
+              - cell [ref=f7e1699]:
+                - link "$0.57" [ref=f7e1700]:
+                  - /url: https://csfloat.com/search?market_hash_name=Fever%20Case&sort_by=lowest_price&ref=steamanalyst
+              - cell [ref=f7e1701]:
+                - link "$0.58" [ref=f7e1702]:
+                  - /url: https://buff.163.com/market/csgo#tab=selling&page_num=1&search=Fever%20Case
+              - cell [ref=f7e1703]:
+                - link "$0.60" [ref=f7e1704]:
+                  - /url: https://market.csgo.com/en/?utm_campaign=SteamAnalyst&utm_source=SteamAnalyst&cpid=8627c97f-cb2a-494d-bfcf-0668221e66df&oid=4c69d079-ad2a-44b0-a9ac-d0afc2167ee7&search=Fever%20Case
+              - cell [ref=f7e1705]:
+                - link "$0.58" [ref=f7e1706]:
+                  - /url: https://shadowpay.com/csgo-items?ref=steamanalyst&utm_campaign=0F4TUTXlbzou5LB&search=Fever%20Case
+              - cell [ref=f7e1707]:
+                - link "$0.56" [ref=f7e1708]:
+                  - /url: https://tradeit.gg/csgo/store?aff=steamanalyst&search=Fever%20Case
+              - cell [ref=f7e1709]:
+                - link "$0.59" [ref=f7e1710]:
+                  - /url: https://pirateswap.com/store?mhn=Fever+Case&mhnc=480786794&ref=steamanalyst
+              - cell "-" [ref=f7e1711]
+              - cell [ref=f7e1712]:
+                - link "$0.60" [ref=f7e1713]:
+                  - /url: https://skinflow.gg/market/fever-case?referral=STEAMANALYST
+              - cell [ref=f7e1714]:
+                - link "$0.59" [ref=f7e1715]:
+                  - /url: https://skins.com/item/fever-case
+              - cell [ref=f7e1716]:
+                - link "$0.58" [ref=f7e1717]:
+                  - /url: https://skinvault.gg/buy-csgo-skins/fever-case
+              - cell [ref=f7e1718]:
+                - link "$0.59" [ref=f7e1719]:
+                  - /url: https://skin.place/buy-cs2-skins/fever-case?utm_campaign=eVZyfL7a9SN18ol
+              - cell
+        - generic [ref=f7e1720]:
+          - generic [ref=f7e1721]: Showing 1 to 25 of 42,245 items
+          - generic [ref=f7e1722]:
+            - button "First" [disabled] [ref=f7e1723]
+            - button "Prev" [disabled] [ref=f7e1724]
+            - generic [ref=f7e1725]: Page 1 of 1690
+            - button "Next" [ref=f7e1726] [cursor=pointer]
+            - button "Last" [ref=f7e1727] [cursor=pointer]
+      - region [ref=f7e1728]:
+        - heading "CS2 Marketplace FAQ" [level=2] [ref=f7e1729]
+        - generic [ref=f7e1730]:
+          - heading "What is the best marketplace to buy CS2 skins?" [level=3] [ref=f7e1731]
+          - paragraph [ref=f7e1732]: The best marketplace depends on the specific skin and current listings. SteamAnalyst compares prices across 40+ trusted marketplaces in real-time so you can instantly find the lowest price. Third-party markets like Skinport, DMarket, and Buff163 often offer lower prices than the Steam Market due to reduced fees.
+        - generic [ref=f7e1733]:
+          - heading "How do CS2 skin prices differ between marketplaces?" [level=3] [ref=f7e1734]
+          - paragraph [ref=f7e1735]: CS2 skin prices can vary by 10-30% between marketplaces due to differences in seller fees, regional pricing, supply and demand on each platform, and payment methods. The Steam Market charges 15% fees while third-party sites typically charge 5-10%, which is often reflected in lower listing prices.
+        - generic [ref=f7e1736]:
+          - heading "Is the Steam Market the cheapest place to buy CSGO skins?" [level=3] [ref=f7e1737]
+          - paragraph [ref=f7e1738]: The Steam Market is not always the cheapest option. While it is the most convenient, its 15% seller fee often results in higher prices compared to third-party marketplaces. Use SteamAnalyst's price comparison tool to check all platforms before buying.
+        - generic [ref=f7e1739]:
+          - heading "How often are marketplace prices updated on SteamAnalyst?" [level=3] [ref=f7e1740]
+          - paragraph [ref=f7e1741]: SteamAnalyst updates marketplace prices every 15 minutes, ensuring you always see near real-time pricing data. Our system aggregates listings from all major CS2 marketplaces to provide accurate, up-to-date price comparisons.
+        - generic [ref=f7e1742]:
+          - heading "What does the SA column show?" [level=3] [ref=f7e1743]
+          - paragraph [ref=f7e1744]: "SA is the SteamAnalyst reference price: an aggregate of the third-party markets we track, recomputed every few minutes, falling back to Steam's recent sale average for items no third-party market lists. It is the same number the skin page headlines, so the column and the page you click through to always agree. It is a statistic, not a listing, which is why it never wins the best-price marker."
+  - button "Back to top":
+    - generic [aria-hidden]: 
+  - text:  $    
+  - contentinfo [ref=f7e1746]:
+    - generic [ref=f7e1747]:
+      - generic [ref=f7e1748]:
+        - link [ref=f7e1750] [cursor=pointer]:
+          - /url: https://www.steamanalyst.com/
+          - img "SteamAnalyst" [ref=f7e1751]
+        - generic [ref=f7e1752]:
+          - generic [ref=f7e1753]:
+            - generic [ref=f7e1754]: Powered by Steam.
+            - generic [ref=f7e1755]: Not affiliated with Valve Corp.
+          - generic [ref=f7e1756]:
+            - link "Twitter/X" [ref=f7e1757] [cursor=pointer]:
+              - /url: https://twitter.com/SteamAnalyst
+            - link "Discord" [ref=f7e1760] [cursor=pointer]:
+              - /url: https://discord.gg/steamanalyst
+          - generic [ref=f7e1763]: © 2013-2026 SteamAnalyst.com - Tracking prices since 2013
+      - generic [ref=f7e1764]:
+        - generic [ref=f7e1765]:
+          - button "Latest Updates": Latest Updates 
+          - generic [ref=f7e1767]:
+            - link "The Arabesque Collection" [ref=f7e1769] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/collection/the-arabesque-collection
+            - link "The Spy Tech Collection" [ref=f7e1771] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/collection/the-spy-tech-collection
+            - link "Jackass Sticker Capsule" [ref=f7e1773] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/case/jackass-sticker-capsule
+            - link "The Dead Hand Collection" [ref=f7e1775] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/collection/the-dead-hand-collection
+            - link "The Achroma Collection" [ref=f7e1777] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/collection/the-achroma-collection
+            - link "The Harlequin Collection" [ref=f7e1779] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/collection/the-harlequin-collection
+        - generic [ref=f7e1780]:
+          - button "Partners": Partners 
+          - generic [ref=f7e1783]:
+            - img "Skin.club" [ref=f7e1784]
+            - link "Skin.club" [ref=f7e1785] [cursor=pointer]:
+              - /url: https://skin.club/en
+        - generic [ref=f7e1786]:
+          - button "Company": Company 
+          - generic [ref=f7e1788]:
+            - link "About Us" [ref=f7e1790] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/about
+            - link "Pricing Methodology" [ref=f7e1792] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/methodology
+            - link "API" [ref=f7e1794] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/api-info
+            - link "Feedback" [ref=f7e1796] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/contact
+            - link "Terms of Service" [ref=f7e1798] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/terms
+            - link "Privacy Policy" [ref=f7e1800] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/privacy
+            - link "Affiliate Disclosure" [ref=f7e1802] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/affiliate-disclosure
+        - generic [ref=f7e1803]:
+          - button "Quick Links": Quick Links 
+          - generic [ref=f7e1805]:
+            - link "All CS2 Tools" [ref=f7e1807] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/tools
+            - link "All CS2 Skins" [ref=f7e1809] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/
+            - link "All CS2 Stickers" [ref=f7e1811] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/sticker
+            - link "All CS2 Cases" [ref=f7e1813] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/container
+            - link "All CS2 Keys" [ref=f7e1815] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/key
+            - link "All CS2 Agents" [ref=f7e1817] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/agent
+            - link "All CS2 Markets" [ref=f7e1819] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/markets
+            - link "Marketplace Reviews" [ref=f7e1821] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/marketplace
+            - link "Instant Sell Markets" [ref=f7e1823] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/instant-sell
+            - link "Skin Arbitrage Finder" [ref=f7e1825] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/profit-generator
+            - link "Deals & Bargains" [ref=f7e1827] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/deals
+            - link "Matching Loadouts" [ref=f7e1829] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/complete-the-look
+            - link "Market Dashboard" [ref=f7e1831] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/dashboard
+            - link "Skin Liquidity Rankings" [ref=f7e1833] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/liquidity
+            - link "Best Skins to Buy" [ref=f7e1835] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/best-skins-to-buy
+            - link "Most Viewed Skins" [ref=f7e1837] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/most-viewed
+            - link "Most Sold Skins" [ref=f7e1839] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/most-sold
+            - link "Sell Prices & Spreads" [ref=f7e1841] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/sell-prices
+            - link "StatTrak Premium" [ref=f7e1843] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/stattrak-premium
+            - link "Souvenir Premium" [ref=f7e1845] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/souvenir-premium
+            - link "Premium Sales" [ref=f7e1847] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/premium-sales
+            - link "CS2 Guides" [ref=f7e1849] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/guides
+            - link "CS2 Updates & Patch Notes" [ref=f7e1851] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/updates
+            - link "CS2 Stats Tracker" [ref=f7e1853] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/tools/cs2-stats
+        - generic [ref=f7e1854]:
+          - button "Browse": Browse 
+          - generic [ref=f7e1856]:
+            - link "Knives" [ref=f7e1858] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/knife
+            - link "Rifles" [ref=f7e1860] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/rifle
+            - link "Pistols" [ref=f7e1862] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/pistol
+            - link "Sniper Rifles" [ref=f7e1864] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/sniper-rifle
+            - link "Gloves" [ref=f7e1866] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/gloves
+            - link "SMGs" [ref=f7e1868] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/smg
+            - link "Stickers" [ref=f7e1870] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/sticker
+            - link "Cases" [ref=f7e1872] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/browse/container
+            - link "Doppler Skins" [ref=f7e1874] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/name/doppler
+            - link "Fade Skins" [ref=f7e1876] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/name/fade
+            - link "Tiger Tooth Skins" [ref=f7e1878] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/name/tiger-tooth
+            - link "Case Hardened Skins" [ref=f7e1880] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/name/case-hardened
+        - generic [ref=f7e1881]:
+          - button "Popular Weapons": Popular Weapons 
+          - generic [ref=f7e1883]:
+            - link "AK-47" [ref=f7e1885] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/ak-47
+            - link "AWP" [ref=f7e1887] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/awp
+            - link "M4A4" [ref=f7e1889] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/m4a4
+            - link "M4A1-S" [ref=f7e1891] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/m4a1-s
+            - link "Karambit" [ref=f7e1893] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/karambit
+            - link "Butterfly Knife" [ref=f7e1895] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/butterfly-knife
+            - link "Desert Eagle" [ref=f7e1897] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/desert-eagle
+            - link "Glock-18" [ref=f7e1899] [cursor=pointer]:
+              - /url: https://www.steamanalyst.com/weapon/glock-18
+        - generic [ref=f7e1900]:
+          - button "Other Games": Other Games 
+          - generic [ref=f7e1902]:
+            - link "Dota 2" [ref=f7e1904] [cursor=pointer]:
+              - /url: https://dota2.steamanalyst.com/
+            - link "PUBG" [ref=f7e1906] [cursor=pointer]:
+              - /url: https://pubg.steamanalyst.com/
+  - complementary "Skin assistant" [ref=f7e1907]:
+    - button "Hide Casey" [ref=f7e1908] [cursor=pointer]: ×
+    - button "Open skin assistant" [ref=f7e1909] [cursor=pointer]
+  - alert [ref=f7e1927]

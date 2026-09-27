@@ -154,10 +154,15 @@ export function CaseBattle({
   initialPhase = "create",
   initialJoinCode = "",
   onExit,
+  // Если авто-вход по коду упёрся в «комната полная» (я уже в этой комнате),
+  // — автоматически выйти из комнаты. Нужно, чтобы страница ?code= всегда
+  // подключала пользователя к комнате, даже если он в ней был раньше.
+  autoLeaveIfFull = false,
 }: {
   initialPhase?: "create" | "join";
   initialJoinCode?: string;
   onExit?: () => void;
+  autoLeaveIfFull?: boolean;
 }) {
   // --- Фаза: create | join | lobby | play | end ---
   const [phase, setPhase] = useState<"create" | "join" | "lobby" | "play" | "end">(initialPhase);
@@ -232,8 +237,40 @@ export function CaseBattle({
         setPhase("lobby");
       } catch (e) {
         if (cancelled) return;
-        setError((e as Error).message);
-        setJoinCode(initialJoinCode.toUpperCase());
+        const msg = (e as Error).message;
+        // «Комната полная» при авто-входе = я уже в этой комнате.
+        // Выходим (leave) и повторяем join — теперь войдём как гость.
+        // ВАЖНО: делаем это ТОЛЬКО в фазе join (пока не в комнате),
+        // чтобы не вылетать из активной игры при ошибках.
+        if (
+          autoLeaveIfFull &&
+          phase === "join" &&
+          !room &&
+          /комната полная/i.test(msg)
+        ) {
+          try {
+            await api("leave", { code: initialJoinCode.toUpperCase() });
+          } catch {
+            /* ignore */
+          }
+          if (cancelled) return;
+          try {
+            const d2 = await api("join", { code: initialJoinCode.toUpperCase() });
+            if (cancelled) return;
+            setRoom(d2.room);
+            const me2 = (d2.room.players ?? []).find((p) => p.id === myId);
+            setMySeat(me2?.seat ?? "guest");
+            setPhase("lobby");
+          } catch (e2) {
+            if (!cancelled) {
+              setError((e2 as Error).message);
+              setJoinCode(initialJoinCode.toUpperCase());
+            }
+          }
+        } else {
+          setError(msg);
+          setJoinCode(initialJoinCode.toUpperCase());
+        }
       } finally {
         if (!cancelled) setAutoJoined(true);
       }
@@ -241,7 +278,7 @@ export function CaseBattle({
     return () => {
       cancelled = true;
     };
-  }, [autoJoined, initialJoinCode, room, api, myId]);
+  }, [autoJoined, initialJoinCode, room, api, myId, autoLeaveIfFull]);
 
   const pushToast = useCallback((text: string, kind: Toast["kind"] = "info") => {
     const id = toastSeq++;
@@ -326,11 +363,13 @@ export function CaseBattle({
   }, [api, room]);
 
   // ================= REALTIME =================
+  const prevPlayersRef = useRef<BattlePlayer[] | null>(null);
   useEffect(() => {
     const sb = getSupabaseBrowser();
     supabaseRef.current = sb;
     if (!sb || !room) return;
     const roomId = room.id;
+    prevPlayersRef.current = room.players ?? [];
 
     type RoomRow = Omit<BattleRoom, "match_seed">;
     const ch = sb
@@ -344,9 +383,17 @@ export function CaseBattle({
             prev ? ({ ...prev, ...r } as BattleRoom) : ({ ...(r as BattleRoom) })
           );
 
-          // Никто не ушёл → сбрасываем "вышел"
-          const gone = (r.players ?? []).find((p) => p.name.endsWith("(вышел)"));
-          setLeftBy(gone ? gone.name.replace(" (вышел)", "") : null);
+          // Выход соперника: игрок исчез из players (leave убирает из списка).
+          // Мы сами не «пропали» — наш deviceId всегда в списке, пока мы в комнате.
+          const prevP = prevPlayersRef.current ?? [];
+          const newP = (r.players ?? []) as BattlePlayer[];
+          if (r.status === "playing" || r.status === "finished") {
+            const gone = prevP.find((p) => p.id !== myId && !newP.some((n) => n.id === p.id));
+            if (gone) setLeftBy(gone.name);
+          } else if (r.status === "waiting") {
+            setLeftBy(null); // реванш — чистое состояние
+          }
+          prevPlayersRef.current = newP;
 
           // Соперник открыл кейс
           const oppOpens = (r.rounds_data ?? []).filter(

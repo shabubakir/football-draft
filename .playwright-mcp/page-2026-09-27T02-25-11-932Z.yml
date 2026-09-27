@@ -1,0 +1,21 @@
+- generic [active] [ref=f16e1]:
+  - main [ref=f16e2]:
+    - generic [ref=f16e3]:
+      - link "FOOTBALL DRAFT" [ref=f16e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f16e5]
+    - generic [ref=f16e157]:
+      - paragraph [ref=f16e206]: Я думаю, ты загадал...
+      - generic [ref=f16e208]:
+        - generic [ref=f16e209]: ⚽
+        - generic [ref=f16e210]:
+          - generic [ref=f16e211]: Футболист
+          - heading "Артём Дзюба" [level=3] [ref=f16e212]
+          - paragraph [ref=f16e213]: Artem Dzyuba
+          - paragraph [ref=f16e214]: Русский. «Атлет Дзюба» Zenit, рекордсмен сборной по голам.
+      - generic [ref=f16e215]:
+        - button "✅ Да, угадал!" [ref=f16e216] [cursor=pointer]
+        - button "❌ Нет, ошибся" [ref=f16e217] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f16e75] [cursor=pointer]
+  - alert [ref=f16e79]

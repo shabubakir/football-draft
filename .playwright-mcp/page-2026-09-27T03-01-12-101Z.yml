@@ -1,0 +1,21 @@
+- generic [active] [ref=f18e1]:
+  - main [ref=f18e2]:
+    - generic [ref=f18e3]:
+      - link "FOOTBALL DRAFT" [ref=f18e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f18e5]
+    - generic [ref=f18e425]:
+      - paragraph [ref=f18e474]: Я думаю, ты загадал...
+      - generic [ref=f18e476]:
+        - generic [ref=f18e477]: ⚽
+        - generic [ref=f18e478]:
+          - generic [ref=f18e479]: Футболист
+          - heading "Мохамед Салах" [level=3] [ref=f18e480]
+          - paragraph [ref=f18e481]: Mohamed Salah
+          - paragraph [ref=f18e482]: Египтянин. Левое крыло Liverpool, капитан сборной Египта.
+      - generic [ref=f18e483]:
+        - button "✅ Да, угадал!" [ref=f18e484] [cursor=pointer]
+        - button "❌ Нет, ошибся" [ref=f18e485] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f18e75] [cursor=pointer]
+  - alert [ref=f18e79]

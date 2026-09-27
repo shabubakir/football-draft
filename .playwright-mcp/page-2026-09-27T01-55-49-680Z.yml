@@ -1,0 +1,33 @@
+- generic [active] [ref=f11e1]:
+  - main [ref=f11e2]:
+    - generic [ref=f11e3]:
+      - link "FOOTBALL DRAFT" [ref=f11e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f11e5]
+    - generic [ref=f11e10]:
+      - generic [ref=f11e46]:
+        - generic [ref=f11e47]: ⚔ CASE BATTLE
+        - generic [ref=f11e80]:
+          - button "🔊" [ref=f11e81]
+          - button "Выйти" [ref=f11e82]
+      - generic [ref=f11e66]:
+        - generic [ref=f11e83]:
+          - generic [ref=f11e84]: 🟢 Тестер (ВЫ)
+          - generic [ref=f11e86]: $0
+          - generic [ref=f11e87]:
+            - generic [ref=f11e88]: 0/10
+            - generic [ref=f11e89]: 0/10 откр.
+        - generic [ref=f11e70]: VS
+        - generic [ref=f11e92]:
+          - generic [ref=f11e93]: 🔴 Гость2
+          - generic [ref=f11e95]: $0
+          - generic [ref=f11e96]:
+            - generic [ref=f11e97]: 0/10
+            - generic [ref=f11e98]: 0/10 откр.
+      - button "КРУТИТЬ (1/10)" [ref=f11e101]
+      - generic [ref=f11e102]: Завершаем матч...
+    - link "← к CS2 кейсам" [ref=f11e35] [cursor=pointer]:
+      - /url: /cs2
+  - button "Open Next.js Dev Tools" [ref=f11e41] [cursor=pointer]
+  - alert [ref=f11e45]

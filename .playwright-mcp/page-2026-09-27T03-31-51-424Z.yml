@@ -1,0 +1,16 @@
+- generic [active] [ref=f20e1]:
+  - main [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - link "FOOTBALL DRAFT" [ref=f20e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f20e5]
+    - generic [ref=f20e486]:
+      - heading "Не угадал..." [level=2] [ref=f20e529]
+      - paragraph [ref=f20e530]:
+        - text: "Последний мой догад:"
+        - strong [ref=f20e531]: Виргил ван Дейк
+      - button "📝 Назови правильный ответ" [ref=f20e532] [cursor=pointer]
+      - button "ИГРАТЬ СНОВА →" [ref=f20e533] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f20e75] [cursor=pointer]
+  - alert [ref=f20e79]

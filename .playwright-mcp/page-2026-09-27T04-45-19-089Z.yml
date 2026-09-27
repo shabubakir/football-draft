@@ -1,0 +1,217 @@
+- generic [ref=f6e3]:
+  - banner [ref=f6e4]:
+    - generic [ref=f6e5]:
+      - link "Ссылка на главную страницу Steam" [ref=f6e8] [cursor=pointer]:
+        - /url: https://store.steampowered.com/
+        - img "Ссылка на главную страницу Steam" [ref=f6e9]
+      - navigation "Глобальное меню" [ref=f6e10]:
+        - link "МАГАЗИН" [ref=f6e11] [cursor=pointer]:
+          - /url: https://store.steampowered.com/
+        - link "СООБЩЕСТВО" [ref=f6e12] [cursor=pointer]:
+          - /url: https://steamcommunity.com/
+        - link "Информация" [ref=f6e13] [cursor=pointer]:
+          - /url: https://store.steampowered.com/about/
+        - link "ПОДДЕРЖКА" [ref=f6e14] [cursor=pointer]:
+          - /url: https://help.steampowered.com/ru/
+      - navigation "Меню аккаунта" [ref=f6e16]:
+        - link "Установить Steam" [ref=f6e17] [cursor=pointer]:
+          - /url: https://store.steampowered.com/about/
+        - link "вход" [ref=f6e19] [cursor=pointer]:
+          - /url: https://steamcommunity.com/login/home/?goto=market%2Fpricelist%2F%3Fcurrency%3D2%26country%3DRU%26appid%3D730
+        - text: "| язык"
+  - main [ref=f6e20]:
+    - generic [ref=f6e21]:
+      - generic [ref=f6e23]:
+        - heading [level=1] [ref=f6e24]:
+          - link "Торговая площадка Продавайте и покупайте предметы участников сообщества за средства из кошелька Steam." [ref=f6e25] [cursor=pointer]:
+            - /url: https://steamcommunity.com/market/
+        - paragraph [ref=f6e29]: Продавайте и покупайте предметы участников сообщества за средства из кошелька Steam.
+      - generic [ref=f6e30]:
+        - generic [ref=f6e31]:
+          - generic [ref=f6e32]:
+            - text: Мы тестируем некоторые разделы торговой площадки, такие как
+            - link "страницы предметов" [ref=f6e33] [cursor=pointer]:
+              - /url: https://steamcommunity.com/market/listings/730/G180720F7083004
+            - text: и
+            - link "расширенный поиск" [ref=f6e34] [cursor=pointer]:
+              - /url: "#"
+            - text: .
+          - generic [ref=f6e35]:
+            - text: Будем рады
+            - link "получить ваши отзывы" [ref=f6e36] [cursor=pointer]:
+              - /url: http://steamcommunity.com/groups/community_market/discussions
+            - text: .
+            - link "Подробнее об изменениях" [ref=f6e37] [cursor=pointer]:
+              - /url: https://store.steampowered.com/news/app/593110/view/673994309884707670
+            - text: .
+        - generic [ref=f6e38]:
+          - heading "Мои история сделок" [level=2] [ref=f6e39]
+          - generic [ref=f6e40]:
+            - link "Активные лоты (0)" [ref=f6e41]:
+              - /url: "#"
+              - generic [ref=f6e42]:
+                - text: Активные лоты
+                - generic [ref=f6e43]: (0)
+            - link "История сделок" [ref=f6e44]:
+              - /url: "#"
+          - link "Продать предмет" [ref=f6e47] [cursor=pointer]:
+            - /url: javascript:void(0)
+        - generic [ref=f6e49]:
+          - generic [ref=f6e52]:
+            - link "Войдите в систему" [ref=f6e53] [cursor=pointer]:
+              - /url: https://steamcommunity.com/login/home/?goto=market%2Fpricelist%2F%3Fcurrency%3D2%26country%3DRU%26appid%3D730
+            - text: ", чтобы просматривать, редактировать и удалять свои заявки на торговой площадке."
+          - generic [ref=f6e54]:
+            - generic [ref=f6e56]:
+              - generic [ref=f6e58]:
+                - link "Прочтите требования к безопасности" [ref=f6e59] [cursor=pointer]:
+                  - /url: "#"
+                - text: для использования Торговой площадки
+              - text: Поиск предметов
+              - generic [ref=f6e60]: Дополнительные настройки поиска…
+              - generic [ref=f6e69]:
+                - text: Фильтр по игре
+                - link "Counter-Strike 2 Counter-Strike 2" [ref=f6e70] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/search?appid=730
+                  - generic [ref=f6e71]:
+                    - img "Counter-Strike 2" [ref=f6e72]
+                    - generic [ref=f6e73]: Counter-Strike 2
+                - link "Don't Starve Together Don't Starve Together" [ref=f6e74] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/search?appid=322330
+                  - generic [ref=f6e75]:
+                    - img "Don't Starve Together" [ref=f6e76]
+                    - generic [ref=f6e77]: Don't Starve Together
+                - link "Dota 2 Dota 2" [ref=f6e78] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/search?appid=570
+                  - generic [ref=f6e79]:
+                    - img "Dota 2" [ref=f6e80]
+                    - generic [ref=f6e81]: Dota 2
+                - 'link "NARAKA: BLADEPOINT NARAKA: BLADEPOINT" [ref=f6e82] [cursor=pointer]':
+                  - /url: https://steamcommunity.com/market/search?appid=1203220
+                  - generic [ref=f6e83]:
+                    - 'img "NARAKA: BLADEPOINT" [ref=f6e84]'
+                    - generic [ref=f6e85]: "NARAKA: BLADEPOINT"
+                - 'link "PUBG: BATTLEGROUNDS PUBG: BATTLEGROUNDS" [ref=f6e86] [cursor=pointer]':
+                  - /url: https://steamcommunity.com/market/search?appid=578080
+                  - generic [ref=f6e87]:
+                    - 'img "PUBG: BATTLEGROUNDS" [ref=f6e88]'
+                    - generic [ref=f6e89]: "PUBG: BATTLEGROUNDS"
+                - link "Rust Rust" [ref=f6e90] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/search?appid=252490
+                  - generic [ref=f6e91]:
+                    - img "Rust" [ref=f6e92]
+                    - generic [ref=f6e93]: Rust
+                - link "Steam Steam" [ref=f6e94] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/search?appid=753
+                  - generic [ref=f6e95]:
+                    - img "Steam" [ref=f6e96]
+                    - generic [ref=f6e97]: Steam
+                - 'link "TBH: Таск Бар Хиро TBH: Таск Бар Хиро" [ref=f6e98] [cursor=pointer]':
+                  - /url: https://steamcommunity.com/market/search?appid=3678970
+                  - generic [ref=f6e99]:
+                    - 'img "TBH: Таск Бар Хиро" [ref=f6e100]'
+                    - generic [ref=f6e101]: "TBH: Таск Бар Хиро"
+                - link "Team Fortress 2 Team Fortress 2" [ref=f6e102] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/search?appid=440
+                  - generic [ref=f6e103]:
+                    - img "Team Fortress 2" [ref=f6e104]
+                    - generic [ref=f6e105]: Team Fortress 2
+                - 'link "[WoG] War of Genesis: Idle Loot [WoG] War of Genesis: Idle Loot" [ref=f6e106] [cursor=pointer]':
+                  - /url: https://steamcommunity.com/market/search?appid=4891320
+                  - generic [ref=f6e107]:
+                    - 'img "[WoG] War of Genesis: Idle Loot" [ref=f6e108]'
+                    - generic [ref=f6e109]: "[WoG] War of Genesis: Idle Loot"
+                - generic [ref=f6e110]: Ещё
+            - generic [ref=f6e115]:
+              - link "Частые вопросы" [ref=f6e116] [cursor=pointer]:
+                - /url: https://steamcommunity.com/market/faq/
+              - text: о Торговой площадке Вступайте в
+              - link "группу Торговой площадки" [ref=f6e117] [cursor=pointer]:
+                - /url: https://steamcommunity.com/market/communitygroup/
+              - text: для обсуждений и официальных объявлений
+          - generic [ref=f6e118]:
+            - generic [ref=f6e121]:
+              - link "Популярные" [ref=f6e122]:
+                - /url: "#"
+              - link "Новые" [ref=f6e124]:
+                - /url: "#"
+              - link "Недавно проданные" [ref=f6e126]:
+                - /url: "#"
+            - generic [ref=f6e128]:
+              - generic [ref=f6e129]:
+                - generic [ref=f6e130]:
+                  - generic [ref=f6e131]:
+                    - generic [ref=f6e132]: ЦЕНА
+                    - generic [ref=f6e133]: КОЛ-ВО
+                  - generic [ref=f6e134]: НАЗВАНИЕ
+                - link "535,157 От $1.54 USD Кейс «Грёзы и кошмары» Counter-Strike 2" [ref=f6e135] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Dreams%20%26%20Nightmares%20Case
+                  - generic [ref=f6e136]:
+                    - generic [ref=f6e137]:
+                      - generic [ref=f6e138]: 535,157
+                      - generic [ref=f6e140]: От $1.54 USD
+                    - generic [ref=f6e142]: Кейс «Грёзы и кошмары» Counter-Strike 2
+                - link "33,033 От $2.27 USD Ключ от ящика Манн Ко Team Fortress 2" [ref=f6e143] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/440/Mann%20Co.%20Supply%20Crate%20Key
+                  - generic [ref=f6e144]:
+                    - generic [ref=f6e145]:
+                      - generic [ref=f6e146]: 33,033
+                      - generic [ref=f6e148]: От $2.27 USD
+                    - generic [ref=f6e150]: Ключ от ящика Манн Ко Team Fortress 2
+                - link "248,586 От $0.89 USD Кейс «Лихорадка» Counter-Strike 2" [ref=f6e151] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Fever%20Case
+                  - generic [ref=f6e152]:
+                    - generic [ref=f6e153]:
+                      - generic [ref=f6e154]: 248,586
+                      - generic [ref=f6e156]: От $0.89 USD
+                    - generic [ref=f6e158]: Кейс «Лихорадка» Counter-Strike 2
+                - link "52,011 От $1.67 USD Кейс «Призма 2» Counter-Strike 2" [ref=f6e159] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Prisma%202%20Case
+                  - generic [ref=f6e160]:
+                    - generic [ref=f6e161]:
+                      - generic [ref=f6e162]: 52,011
+                      - generic [ref=f6e164]: От $1.67 USD
+                    - generic [ref=f6e166]: Кейс «Призма 2» Counter-Strike 2
+                - link "19,476 От $10.95 USD Оружейный кейс операции «Прорыв» Counter-Strike 2" [ref=f6e167] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Operation%20Breakout%20Weapon%20Case
+                  - generic [ref=f6e168]:
+                    - generic [ref=f6e169]:
+                      - generic [ref=f6e170]: 19,476
+                      - generic [ref=f6e172]: От $10.95 USD
+                    - generic [ref=f6e174]: Оружейный кейс операции «Прорыв» Counter-Strike 2
+                - link "481,046 От $0.28 USD Кейс «Революция» Counter-Strike 2" [ref=f6e175] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Revolution%20Case
+                  - generic [ref=f6e176]:
+                    - generic [ref=f6e177]:
+                      - generic [ref=f6e178]: 481,046
+                      - generic [ref=f6e180]: От $0.28 USD
+                    - generic [ref=f6e182]: Кейс «Революция» Counter-Strike 2
+                - link "211,111 От $0.58 USD Неактивный терминал «Мёртвая рука» Counter-Strike 2" [ref=f6e183] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Sealed%20Dead%20Hand%20Terminal
+                  - generic [ref=f6e184]:
+                    - generic [ref=f6e185]:
+                      - generic [ref=f6e186]: 211,111
+                      - generic [ref=f6e188]: От $0.58 USD
+                    - generic [ref=f6e190]: Неактивный терминал «Мёртвая рука» Counter-Strike 2
+                - link "180,274 От $0.65 USD Кейс «Разлом» Counter-Strike 2" [ref=f6e191] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Fracture%20Case
+                  - generic [ref=f6e192]:
+                    - generic [ref=f6e193]:
+                      - generic [ref=f6e194]: 180,274
+                      - generic [ref=f6e196]: От $0.65 USD
+                    - generic [ref=f6e198]: Кейс «Разлом» Counter-Strike 2
+                - 'link "14,502 От $5.35 USD Хромированный кейс #2 Counter-Strike 2" [ref=f6e199] [cursor=pointer]':
+                  - /url: https://steamcommunity.com/market/listings/730/Chroma%202%20Case
+                  - generic [ref=f6e200]:
+                    - generic [ref=f6e201]:
+                      - generic [ref=f6e202]: 14,502
+                      - generic [ref=f6e204]: От $5.35 USD
+                    - generic [ref=f6e206]: "Хромированный кейс #2 Counter-Strike 2"
+                - link "5,125 От $6.99 USD Хромированный оружейный кейс Counter-Strike 2" [ref=f6e207] [cursor=pointer]:
+                  - /url: https://steamcommunity.com/market/listings/730/Chroma%20Case
+                  - generic [ref=f6e208]:
+                    - generic [ref=f6e209]:
+                      - generic [ref=f6e210]: 5,125
+                      - generic [ref=f6e212]: От $6.99 USD
+                    - generic [ref=f6e214]: Хромированный оружейный кейс Counter-Strike 2
+              - generic [ref=f6e215]: Найти больше

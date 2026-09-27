@@ -1,0 +1,24 @@
+- generic [active] [ref=f16e1]:
+  - main [ref=f16e2]:
+    - generic [ref=f16e3]:
+      - link "FOOTBALL DRAFT" [ref=f16e4] [cursor=pointer]:
+        - /url: /
+        - text: FOOTBALLDRAFT
+      - button "Меню" [ref=f16e5]
+    - generic [ref=f16e80]:
+      - generic [ref=f16e81]:
+        - generic [ref=f16e82]:
+          - text: Вопрос
+          - strong [ref=f16e83]: "9"
+        - generic [ref=f16e84]:
+          - text: "Осталось:"
+          - strong [ref=f16e85]: "145"
+      - paragraph [ref=f16e154]: Выступал за Liverpool?
+      - generic [ref=f16e131]:
+        - button "Да" [ref=f16e132] [cursor=pointer]
+        - button "Скорее да" [ref=f16e133] [cursor=pointer]
+        - button "Не знаю" [ref=f16e134] [cursor=pointer]
+        - button "Скорее нет" [ref=f16e135] [cursor=pointer]
+        - button "Нет" [ref=f16e136] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f16e75] [cursor=pointer]
+  - alert [ref=f16e79]
