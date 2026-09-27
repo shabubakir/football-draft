@@ -52,6 +52,8 @@ export interface GeoGuessEntry {
 export interface GeoRoomRound {
   location_id: string | null;
   guesses: GeoGuessEntry[];
+  /** timestamp последнего изменения (активация или ответ) — для авто-перехода */
+  last_activity?: string;
 }
 
 // ---------- Комната ----------

@@ -205,9 +205,11 @@ export async function POST(req: NextRequest) {
           : pickRoundLocationIds(room.rounds);
       // Активируем ТОЛЬКО первый раунд (location_id ставится).
       // Остальные — location_id: null, пока next не дойдёт до них.
+      const now = new Date().toISOString();
       const roundsData: GeoRoomRound[] = Array.from({ length: room.rounds }, (_, i) => ({
         location_id: i === 0 ? (roundLocationIds[0] ?? null) : null,
         guesses: [],
+        last_activity: i === 0 ? now : undefined,
       }));
       const { error: upE } = await sb
         .from("geo_rooms")
@@ -283,6 +285,7 @@ export async function POST(req: NextRequest) {
       newRounds[roundIdx] = {
         location_id: locationId,
         guesses: [...rnd.guesses, entry],
+        last_activity: new Date().toISOString(),
       };
 
       // Записываем через raw fetch к PostgREST
@@ -362,7 +365,16 @@ export async function POST(req: NextRequest) {
       const answeredIds = new Set(activeRound.guesses.map((g) => g.playerId));
       const onlinePlayers = allPlayers.filter((p) => p.online);
       const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
-      if (pendingHere.length > 0) {
+
+      // АВТО-ПЕРЕХОД: если раунд висит > 60 сек и есть хотя бы один ответ —
+      // не блокируем, переходим дальше (игрок завис/закрыл вкладку).
+      const isStuck =
+        pendingHere.length > 0 &&
+        activeRound.guesses.length > 0 &&
+        activeRound.last_activity &&
+        Date.now() - new Date(activeRound.last_activity).getTime() > 60_000;
+
+      if (pendingHere.length > 0 && !isStuck) {
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
       }
 
@@ -393,6 +405,7 @@ export async function POST(req: NextRequest) {
         roundsData[nextIdx] = {
           location_id: room.round_location_ids[nextIdx] ?? null,
           guesses: [],
+          last_activity: new Date().toISOString(),
         };
       }
 

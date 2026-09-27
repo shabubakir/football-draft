@@ -388,6 +388,27 @@ export function GeoMultiplayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentRoundIdx, phase, myAnswered, currentLocation?.id]);
 
+  // ---------- Авто-переход: все онлайн ответили, но никто не нажал "next" ----------
+  const doNextRef = useRef<(() => void) | null>(null);
+  const allAnsweredRef = useRef(false);
+  allAnsweredRef.current =
+    phase === "play" &&
+    myAnswered &&
+    room !== null &&
+    (() => {
+      const rnd = room.rounds_data[currentRoundIdx];
+      if (!rnd) return false;
+      const online = room.players.filter((p) => p.online);
+      return online.length > 0 && online.every((p) => rnd.guesses.some((g) => g.playerId === p.id));
+    })();
+  useEffect(() => {
+    if (!allAnsweredRef.current) return;
+    const t = setTimeout(() => {
+      if (allAnsweredRef.current) doNextRef.current?.();
+    }, 45_000);
+    return () => clearTimeout(t);
+  }, [allAnsweredRef.current, currentRoundIdx]);
+
   const myScore = useMemo(() => {
     if (!room) return 0;
     const s = room.scores.find((s) => s.playerId === myId);
@@ -525,6 +546,7 @@ export function GeoMultiplayer({
       setBusy(false);
     }
   }, [api, room]);
+  doNextRef.current = doNext;
 
   const doRematch = useCallback(async () => {
     if (!room) return;
