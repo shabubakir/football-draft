@@ -178,22 +178,22 @@ export function CareerGame() {
   const isToday = true;
 
   return (
-    <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
+    <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6 text-white">
       {/* Левая колонка: поле игры */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <small className="text-[11px] tracking-[0.2em] text-stone-500">
-            {isToday ? "ЕЖЕДНЕВНАЯ ИГРА" : "АРХИВ"} · {dateLabel(today)}
+          <small className="text-[11px] tracking-[0.2em] text-blue-400/70">
+            ЕЖЕДНЕВНАЯ ИГРА · {dateLabel(today)}
           </small>
-          <span className="text-xs text-stone-500">
+          <span className="text-xs text-white/40">
             Подсказок: {revealedClues + 1} из {maxClues}
           </span>
         </div>
 
         <h2 className="mt-3 text-3xl font-black">
-          ПУТЬ <em className="font-light italic text-stone-500">ФУТБОЛИСТА</em>
+          ПУТЬ <em className="font-light italic text-blue-400">ФУТБОЛИСТА</em>
         </h2>
-        <p className="mt-2 text-sm text-stone-600 max-w-md">
+        <p className="mt-2 text-sm text-white/50 max-w-md">
           Перед вами клубы карьеры одного игрока. Угадайте футболиста как можно
           раньше — чем меньше подсказок, тем больше очков.
         </p>
@@ -205,12 +205,12 @@ export function CareerGame() {
             onChange={(e) => setInput(e.target.value)}
             disabled={finished}
             placeholder="Например: Лионель Месси"
-            className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-3 text-base outline-none focus:border-stone-500 disabled:bg-stone-100"
+            className="flex-1 rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base text-white outline-none placeholder:text-white/25 focus:border-blue-500/50 disabled:opacity-40"
           />
           <button
             type="submit"
             disabled={finished || !input.trim()}
-            className="rounded-xl bg-stone-900 text-white font-semibold px-6 py-3 hover:bg-stone-700 disabled:opacity-40 transition"
+            className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-6 py-3 hover:from-blue-500 hover:to-blue-600 disabled:opacity-30 transition active:scale-[0.97] shadow-lg shadow-blue-900/30"
           >
             ПРОВЕРИТЬ
           </button>
@@ -219,7 +219,7 @@ export function CareerGame() {
         {/* История догадок */}
         <ul className="mt-5 space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {guesses.length === 0 && (
-            <li className="text-sm text-stone-400">
+            <li className="text-sm text-white/25">
               Пока нет догадок. Сделайте первую попытку!
             </li>
           )}
@@ -228,10 +228,10 @@ export function CareerGame() {
               key={i}
               className={`flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium ${
                 g.status === "match"
-                  ? "bg-emerald-100 text-emerald-900"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                   : g.status === "close"
-                  ? "bg-amber-100 text-amber-900"
-                  : "bg-stone-100 text-stone-500"
+                  ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                  : "bg-white/3 text-white/40 border border-white/8"
               }`}
             >
               <span>{g.name}</span>
@@ -246,65 +246,71 @@ export function CareerGame() {
         {finished && (
           <div
             className={`mt-5 rounded-xl p-4 text-sm ${
-              didWin ? "bg-emerald-500 text-white" : "bg-stone-200 text-stone-700"
+              didWin
+                ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300"
+                : "bg-white/5 border border-white/10 text-white/50"
             }`}
           >
             {didWin ? (
               <>
-                🏆 <b>Победа!</b> Игрок — <b>{target.name_ru}</b>. Очки: <b>+{points}</b>
+                🏆 <b>Победа!</b> Игрок — <b>{target.name_ru}</b>. Очки: <b className="text-amber-400">+{points}</b>
               </>
             ) : (
               <>
-                😔 Не угадано. Это был <b>{target.name_ru}</b>.
+                😔 Не угадано. Это был <b className="text-white/70">{target.name_ru}</b>.
               </>
             )}
           </div>
         )}
       </div>
 
-      {/* Правая колонка: подсказки */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">
+      {/* Правая колонка: карьерный таймлайн */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
+        <small className="text-[11px] tracking-[0.2em] text-blue-400/70">
           КАРЬЕРА
         </small>
-        <h3 className="mt-2 text-xl font-bold">Клубы футболиста</h3>
-        <div className="mt-4 space-y-3">
-          {careerPath.slice(0, Math.max(1, revealedClues)).map((club, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white p-3"
-            >
-              <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm font-bold text-stone-500">
-                {i + 1}
-              </span>
-              <span className="font-medium text-stone-900">{club}</span>
-            </div>
-          ))}
-          {/* Скрытые подсказки */}
-          {Array.from({ length: maxClues - Math.max(1, revealedClues) }, (_, i) => (
-            <div
-              key={`hidden-${i}`}
-              className="flex items-center gap-3 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-3 opacity-60"
-            >
-              <span className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center text-sm font-bold text-stone-400">
-                ?
-              </span>
-              <span className="text-stone-400 text-sm">??? (ещё не раскрыто)</span>
-            </div>
-          ))}
+        <h3 className="mt-2 text-xl font-black text-white">Клубы футболиста</h3>
+        <div className="mt-4 relative pl-4">
+          {/* Вертикальная линия */}
+          <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gradient-to-b from-blue-500/50 via-white/10 to-transparent" />
+          <div className="space-y-3">
+            {careerPath.slice(0, Math.max(1, revealedClues)).map((club, i) => (
+              <div
+                key={i}
+                className="relative flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 pl-8 transition"
+              >
+                <span className="absolute left-0 w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-xs font-black text-blue-300 z-10">
+                  {i + 1}
+                </span>
+                <span className="font-semibold text-white">{club}</span>
+              </div>
+            ))}
+            {/* Скрытые подсказки */}
+            {Array.from({ length: maxClues - Math.max(1, revealedClues) }, (_, i) => (
+              <div
+                key={`hidden-${i}`}
+                className="relative flex items-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/2 p-3 pl-8 opacity-50"
+              >
+                <span className="absolute left-0 w-8 h-8 rounded-full bg-white/5 border border-dashed border-white/20 flex items-center justify-center text-sm font-bold text-white/30 z-10">
+                  ?
+                </span>
+                <span className="text-white/30 text-sm">??? (ещё не раскрыто)</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-6 flex gap-4 text-[11px] text-stone-500">
+        <div className="mt-6 flex gap-4 text-[11px] text-white/40">
           <span className="flex items-center gap-1.5">
             <i className="w-3 h-3 rounded bg-emerald-500 inline-block" />
             Совпало
           </span>
           <span className="flex items-center gap-1.5">
-            <i className="w-3 h-3 rounded bg-amber-300 inline-block" />
+            <i className="w-3 h-3 rounded bg-amber-400 inline-block" />
             Близко
           </span>
           <span className="flex items-center gap-1.5">
-            <i className="w-3 h-3 rounded bg-stone-300 inline-block" />
+            <i className="w-3 h-3 rounded bg-white/15 inline-block" />
             Не совпало
           </span>
         </div>

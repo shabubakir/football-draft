@@ -84,7 +84,7 @@ export default function RegisterPage() {
         <div className="rounded-3xl border border-stone-200 bg-white shadow-sm overflow-hidden">
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-6 text-center">
             <small className="text-[11px] tracking-[0.25em] text-emerald-200">
-              SHAHGAMES
+              FOOTBALL DRAFT
             </small>
             <h1 className="mt-2 text-2xl font-black">РЕГИСТРАЦИЯ</h1>
           </div>

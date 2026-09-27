@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LoginPage from "@/components/login-page";
 
 export const metadata: Metadata = {
-  title: "Вход | ShahGames",
+  title: "Вход | Football Draft",
 };
 
 export default function LoginRoute() {

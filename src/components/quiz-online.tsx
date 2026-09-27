@@ -657,27 +657,27 @@ export function QuizOnline() {
   // ======================= RENDER =======================
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <small className="text-[11px] tracking-[0.2em] text-stone-500">
+          <small className="text-[11px] tracking-[0.2em] text-cyan-400/70">
             ВИКТОРИНА · ДО 5 ИГРОКОВ
           </small>
           <h1 className="text-3xl font-black">
-            МАТЧ <em className="font-light italic text-stone-500">В РЕАЛЬНОМ ВРЕМЕНИ</em>
+            МАТЧ <em className="font-light italic text-cyan-400">В РЕАЛЬНОМ ВРЕМЕНИ</em>
           </h1>
         </div>
         {room && (
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-stone-500">Код:</span>
+            <span className="text-white/40">Код:</span>
             <button
               onClick={() => navigator.clipboard?.writeText(room.code)}
-              className="rounded-lg bg-stone-900 text-white font-mono font-bold px-3 py-1.5 hover:bg-stone-700"
+              className="rounded-lg bg-cyan-600 text-white font-mono font-bold px-3 py-1.5 hover:bg-cyan-500 transition active:scale-95"
               title="Скопировать код"
             >
               {room.code}
             </button>
-            <span className="text-xs px-2 py-1 rounded-full bg-stone-200 text-stone-600">
+            <span className="text-xs px-2 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
               {room.players.length}/5 игроков
             </span>
           </div>
@@ -703,32 +703,32 @@ export function QuizOnline() {
         <div className={`grid ${cameByLink ? "" : "md:grid-cols-2"} gap-4`}>
           {cameByLink ? (
             /* Пришёл по ссылке — вводит имя полностью и сам нажимает */
-            <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
-              <h3 className="font-bold text-lg">Присоединиться к игре</h3>
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
+              <h3 className="font-bold text-lg text-white">Присоединиться к игре</h3>
               {joinedByLink ? (
-                <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800">
+                <div className="mt-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-4 text-sm text-emerald-300">
                   ✅ Вы подключены! Комната загружается…
                 </div>
               ) : (
                 <>
-                  <p className="mt-1 text-sm text-stone-600">
-                    Введите <b>полное</b> имя — оно будет видно всем игрокам.
+                  <p className="mt-1 text-sm text-white/50">
+                    Введите <b className="text-white/70">полное</b> имя — оно будет видно всем игрокам.
                   </p>
                   <input
                     value={myName}
                     onChange={(e) => setMyName(e.target.value)}
                     placeholder="Ваше имя (например, Шах)"
-                    className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base outline-none focus:border-stone-500"
+                    className="mt-4 w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base text-white outline-none placeholder:text-white/25 focus:border-cyan-500/50"
                   />
-                  <div className="mt-3 flex items-center gap-2 text-sm text-stone-500">
+                  <div className="mt-3 flex items-center gap-2 text-sm text-white/40">
                     <span>Комната:</span>
-                    <span className="font-mono font-bold text-stone-900 bg-stone-100 rounded px-2 py-0.5">
+                    <span className="font-mono font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 rounded px-2 py-0.5">
                       {joinParam.toUpperCase()}
                     </span>
                   </div>
                   <button
                     onClick={() => joinRoom()}
-                    className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+                    className="mt-4 w-full rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-bold py-3 hover:from-cyan-500 hover:to-cyan-600 transition active:scale-[0.98]"
                   >
                     ПОДКЛЮЧИТЬСЯ
                   </button>
@@ -739,21 +739,21 @@ export function QuizOnline() {
             /* Хост уже в комнате — только приглашение и игроки */
             null
           ) : (
-            <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
-              <h3 className="font-bold text-lg">Создать комнату</h3>
-              <p className="mt-1 text-sm text-stone-600">
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
+              <h3 className="font-bold text-lg text-white">Создать комнату</h3>
+              <p className="mt-1 text-sm text-white/50">
                 Вы будете хостом. Друзья подключатся по ссылке.
               </p>
               <div className="mt-4">
-                <div className="text-sm font-semibold text-stone-700">Тема вопросов</div>
+                <div className="text-sm font-semibold text-white/60">Тема вопросов</div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setTopic("football")}
-                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition active:scale-[0.97] ${
                       topic === "football"
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                        : "border-stone-200 bg-white text-stone-600 hover:border-stone-400"
+                        ? "border-cyan-500 bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-500/30"
+                        : "border-white/10 bg-white/5 text-white/50 hover:border-white/25"
                     }`}
                   >
                     ⚽ Футбол
@@ -761,10 +761,10 @@ export function QuizOnline() {
                   <button
                     type="button"
                     onClick={() => setTopic("geo")}
-                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition active:scale-[0.97] ${
                       topic === "geo"
-                        ? "border-sky-500 bg-sky-50 text-sky-800"
-                        : "border-stone-200 bg-white text-stone-600 hover:border-stone-400"
+                        ? "border-emerald-500 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30"
+                        : "border-white/10 bg-white/5 text-white/50 hover:border-white/25"
                     }`}
                   >
                     🌍 География
@@ -775,11 +775,11 @@ export function QuizOnline() {
                 value={myName}
                 onChange={(e) => setMyName(e.target.value)}
                 placeholder="Ваше имя"
-                className="mt-4 w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-stone-500"
+                className="mt-4 w-full rounded-xl border border-white/15 bg-black/30 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-cyan-500/50"
               />
               <button
                 onClick={createRoom}
-                className="mt-4 w-full rounded-xl bg-stone-900 text-white font-semibold py-3 hover:bg-stone-700 transition"
+                className="mt-4 w-full rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-bold py-3 hover:from-cyan-500 hover:to-cyan-600 transition active:scale-[0.98]"
               >
                 СОЗДАТЬ КОМНАТУ
               </button>
@@ -787,13 +787,13 @@ export function QuizOnline() {
           )}
 
           {room && (
-            <div className="md:col-span-2 rounded-2xl border border-stone-200 bg-white/70 p-5">
-              <h3 className="font-bold">Игроки в комнате ({room.players.length}/5)</h3>
+            <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
+              <h3 className="font-bold text-white">Игроки в комнате ({room.players.length}/5)</h3>
 
               {/* Ссылка для приглашения */}
               {inviteLink && (
-                <div className="mt-4 rounded-xl bg-sky-50 border border-sky-200 p-4">
-                  <div className="text-xs font-semibold text-sky-700 tracking-wide">
+                <div className="mt-4 rounded-xl bg-cyan-500/10 border border-cyan-500/25 p-4">
+                  <div className="text-xs font-semibold text-cyan-300 tracking-wide">
                     🔗 ССЫЛКА ДЛЯ ПРИГЛАШЕНИЯ
                   </div>
                   <div className="mt-2 flex flex-col sm:flex-row gap-2">
@@ -801,19 +801,19 @@ export function QuizOnline() {
                       readOnly
                       value={inviteLink}
                       onClick={(e) => e.currentTarget.select()}
-                      className="flex-1 rounded-lg border border-sky-300 bg-white px-3 py-2 text-sm font-mono outline-none text-sky-900"
+                      className="flex-1 rounded-lg border border-cyan-500/30 bg-black/30 px-3 py-2 text-sm font-mono outline-none text-cyan-200"
                     />
                     <button
                       onClick={() => {
                         navigator.clipboard?.writeText(inviteLink);
                         setMsg("Ссылка скопирована! Отправь друзьям.");
                       }}
-                      className="rounded-lg bg-sky-600 text-white text-sm font-semibold px-4 py-2 hover:bg-sky-500 transition"
+                      className="rounded-lg bg-cyan-600 text-white text-sm font-semibold px-4 py-2 hover:bg-cyan-500 transition active:scale-95"
                     >
                       📋 Скопировать
                     </button>
                   </div>
-                  <p className="mt-2 text-xs text-sky-600">
+                  <p className="mt-2 text-xs text-cyan-400/70">
                     Отправь эту ссылку друзьям — они смогут подключиться в один клик
                   </p>
                 </div>
@@ -821,10 +821,10 @@ export function QuizOnline() {
 
               <ul className="mt-3 grid sm:grid-cols-2 gap-2">
                 {room.players.map((p) => (
-                  <li key={p.id} className="flex items-center gap-2 rounded-xl bg-stone-50 px-4 py-2.5 text-sm">
-                    <span className={`w-2 h-2 rounded-full ${p.isHost ? "bg-emerald-500" : "bg-sky-400"}`} />
+                  <li key={p.id} className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white/70">
+                    <span className={`w-2 h-2 rounded-full ${p.isHost ? "bg-emerald-400" : "bg-cyan-400"}`} />
                     <span className="font-medium">{p.name}</span>
-                    {p.isHost && <span className="text-[10px] text-stone-500">(хост)</span>}
+                    {p.isHost && <span className="text-[10px] text-white/30">(хост)</span>}
                   </li>
                 ))}
               </ul>
@@ -833,20 +833,20 @@ export function QuizOnline() {
                   <button
                     onClick={startGame}
                     disabled={room.players.length < 2}
-                    className="mt-5 w-full rounded-xl bg-emerald-600 text-white font-bold py-3 hover:bg-emerald-500 disabled:opacity-40 transition"
+                    className="mt-5 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-3 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-30 transition active:scale-[0.98]"
                   >
                     НАЧАТЬ ИГРУ ({TOTAL_QUESTIONS} вопросов)
                   </button>
                   <button
                     onClick={startSoloTest}
-                    className="mt-2 w-full rounded-xl bg-amber-500 text-white font-bold py-3 hover:bg-amber-400 transition"
+                    className="mt-2 w-full rounded-xl bg-amber-600/80 text-white font-bold py-3 hover:bg-amber-500/80 transition active:scale-[0.98]"
                   >
                     🧪 ТЕСТ (1 игрок) — прогнать самому
                   </button>
                 </>
               )}
               {!iAmHost && (
-                <div className="mt-5 rounded-xl bg-stone-100 p-4 text-sm text-stone-600 animate-pulse">
+                <div className="mt-5 rounded-xl bg-white/5 border border-white/10 p-4 text-sm text-white/40 animate-pulse">
                   Ждём старта от хоста…
                 </div>
               )}
@@ -859,41 +859,41 @@ export function QuizOnline() {
       {(phase === "playing" || phase === "reveal") && room && q && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-stone-500">
-              Вопрос <b className="text-stone-900">{room.current_q + 1}</b> из {TOTAL_QUESTIONS}
+            <span className="text-sm text-white/40">
+              Вопрос <b className="text-cyan-300">{room.current_q + 1}</b> из {TOTAL_QUESTIONS}
             </span>
             {phase === "playing" && (
-              <span className={`text-sm font-bold ${timeLeft <= 3 ? "text-red-600" : "text-stone-700"}`}>
+              <span className={`text-sm font-bold ${timeLeft <= 3 ? "text-red-400" : "text-white/60"}`}>
                 ⏱ {timeLeft}с{selected !== null && " · твой выбор можно поменять"}
               </span>
             )}
             {phase === "reveal" && (
-              <span className="text-sm font-bold text-stone-700">
+              <span className="text-sm font-bold text-white/50">
                 ⏱ {revealLeft}с до следующего
               </span>
             )}
           </div>
 
-          <div className="rounded-2xl border border-stone-200 bg-white/80 p-6">
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
             {q.image && !brokenImgs.has(q.image) && (
               <div className="mb-5 flex justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={q.image}
                   alt="Вопрос"
-                  className="max-h-64 w-auto rounded-xl object-cover border-2 border-stone-200"
+                  className="max-h-64 w-auto rounded-xl object-cover border-2 border-white/10"
                   onError={() => setBrokenImgs((prev) => new Set(prev).add(q.image!))}
                 />
               </div>
             )}
             {q.image && brokenImgs.has(q.image) && (
               <div className="mb-5 flex justify-center">
-                <div className="flex h-40 w-64 items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-100 text-stone-400 text-sm">
+                <div className="flex h-40 w-64 items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-black/20 text-white/30 text-sm">
                   📷 Картинка не загрузилась
                 </div>
               </div>
             )}
-            <h2 className="text-xl sm:text-2xl font-bold">{q.q}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">{q.q}</h2>
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
               {q.options.map((opt, i) => {
                 const isReveal = phase === "reveal";
@@ -904,17 +904,22 @@ export function QuizOnline() {
                     key={i}
                     disabled={phase !== "playing"}
                     onClick={() => lockAnswer(i)}
-                    className={`rounded-xl border-2 px-5 py-5 text-left text-base font-medium transition-all active:scale-95 hover:shadow-md ${
+                    className={`rounded-xl border-2 px-5 py-5 text-left text-base font-medium transition-all active:scale-[0.97] ${
                       isCorrect
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                        ? "border-emerald-500 bg-emerald-500/15 text-emerald-300"
                         : isMine && !isCorrect
-                        ? "border-red-400 bg-red-50 text-red-700"
+                        ? "border-red-500/60 bg-red-500/10 text-red-300"
                         : selected === i && phase === "playing"
-                        ? "border-stone-900 bg-stone-900 text-white shadow-lg"
-                        : "border-stone-200 bg-white hover:border-stone-400 hover:bg-stone-50"
-                    } disabled:opacity-70`}
+                        ? "border-cyan-500 bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/30"
+                        : "border-white/10 bg-white/3 text-white/70 hover:border-white/25 hover:bg-white/8"
+                    } disabled:opacity-60`}
                   >
-                    <span className="inline-block w-7 h-7 rounded-full bg-stone-100 text-stone-600 text-center leading-7 mr-3 text-sm font-bold">
+                    <span className={`inline-block w-7 h-7 rounded-full text-center leading-7 mr-3 text-sm font-bold ${
+                      isCorrect ? "bg-emerald-500/20 text-emerald-300" :
+                      isMine && !isCorrect ? "bg-red-500/20 text-red-300" :
+                      selected === i && phase === "playing" ? "bg-cyan-500/20 text-cyan-300" :
+                      "bg-white/8 text-white/40"
+                    }`}>
                       {String.fromCharCode(65 + i)}
                     </span>
                     {opt}
@@ -923,7 +928,7 @@ export function QuizOnline() {
                       const voters = room.players.filter((p) => answersForQ[p.id] === i);
                       if (voters.length === 0) return null;
                       return (
-                        <span className="block mt-1.5 text-[11px] text-stone-500">
+                        <span className="block mt-1.5 text-[11px] text-white/30">
                           👤 {voters.map((p) => p.name).join(", ")}
                         </span>
                       );
@@ -936,36 +941,36 @@ export function QuizOnline() {
 
           {/* Прогресс ответов */}
           {phase === "playing" && (
-            <div className="rounded-xl bg-white/60 border border-stone-200 px-4 py-3 flex items-center justify-between text-sm">
-              <span className="text-stone-600">
-                Ответили: <b className="text-stone-900">{answeredCount}</b> из {totalPlayers}
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 flex items-center justify-between text-sm">
+              <span className="text-white/50">
+                Ответили: <b className="text-cyan-300">{answeredCount}</b> из {totalPlayers}
               </span>
               {answeredCount === totalPlayers && totalPlayers > 0 && (
-                <span className="text-emerald-600 font-semibold">✓ Все ответили</span>
+                <span className="text-emerald-400 font-semibold">✓ Все ответили</span>
               )}
             </div>
           )}
           {phase === "reveal" && (
-            <div className="rounded-xl bg-white/60 border border-stone-200 px-4 py-3 text-sm text-stone-600">
-              Следующий вопрос через <b className="text-stone-900">{revealLeft}с</b>…
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/50">
+              Следующий вопрос через <b className="text-cyan-300">{revealLeft}с</b>…
             </div>
           )}
 
           {/* Очки */}
-          <div className="rounded-2xl border border-stone-200 bg-white/60 p-4">
-            <h3 className="text-xs tracking-wider text-stone-500">ТАБЛИЦА ЛИДЕРОВ</h3>
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+            <h3 className="text-xs tracking-wider text-cyan-400/70">ТАБЛИЦА ЛИДЕРОВ</h3>
             <ul className="mt-2 space-y-1.5">
               {sortedPlayers.map(({ id, score, player }, idx) => (
                 <li key={id} className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
                     <span className={`w-5 h-5 rounded-full text-center leading-5 text-[11px] font-bold ${
-                      idx === 0 ? "bg-amber-400 text-white" : idx === 1 ? "bg-stone-300 text-stone-700" : idx === 2 ? "bg-amber-700 text-white" : "bg-stone-100 text-stone-500"
+                      idx === 0 ? "bg-amber-400 text-black" : idx === 1 ? "bg-white/15 text-white/70" : idx === 2 ? "bg-amber-700 text-white" : "bg-white/8 text-white/40"
                     }`}>{idx + 1}</span>
-                    <span className={id === myId ? "font-bold text-stone-900" : "text-stone-600"}>
+                    <span className={id === myId ? "font-bold text-cyan-300" : "text-white/50"}>
                       {player?.name ?? id}
                     </span>
                   </span>
-                  <b>{score}</b>
+                  <b className="text-white/70">{score}</b>
                 </li>
               ))}
             </ul>
@@ -975,19 +980,19 @@ export function QuizOnline() {
 
       {/* Финал */}
       {phase === "end" && room && (
-        <div className="rounded-2xl border border-stone-200 bg-white/80 p-6 text-center">
-          <h2 className="text-3xl font-black">🏁 ФИНАЛ</h2>
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 text-center">
+          <h2 className="text-3xl font-black text-white">🏁 ФИНАЛ</h2>
           <div className="mt-6 space-y-2">
             {sortedPlayers.map(({ id, score, player }, idx) => (
               <div
                 key={id}
                 className={`rounded-xl px-4 py-3 flex items-center justify-between text-sm ${
-                  idx === 0 ? "bg-amber-100 border border-amber-300" : "bg-stone-50"
+                  idx === 0 ? "bg-amber-500/15 border border-amber-500/30 text-amber-300" : "bg-white/5 border border-white/10 text-white/60"
                 }`}
               >
                 <span className="flex items-center gap-2">
                   <span className="text-lg">{idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "🎯"}</span>
-                  <b className={id === myId ? "text-emerald-700" : ""}>{player?.name ?? id}</b>
+                  <b className={id === myId ? "text-cyan-300" : ""}>{player?.name ?? id}</b>
                 </span>
                 <b className="text-lg">{score}</b>
               </div>
@@ -998,7 +1003,7 @@ export function QuizOnline() {
             {!room.rematch_votes && (
               <button
                 onClick={proposeRematch}
-                className="w-full rounded-xl bg-emerald-600 text-white px-6 py-3 text-sm font-bold hover:bg-emerald-500 transition"
+                className="w-full rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-700 text-white px-6 py-3 text-sm font-bold hover:from-cyan-500 hover:to-cyan-600 transition active:scale-[0.98]"
               >
                 🔄 Предложить реванш (те же игроки)
               </button>

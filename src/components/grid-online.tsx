@@ -355,41 +355,31 @@ export function GridOnline() {
 
   return (
     <div className="space-y-6">
-      {/* Шапка игры */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <small className="text-[11px] tracking-[0.2em] text-stone-500">
-            СЕТКА 9 · ОНЛАЙН
-          </small>
-          <h1 className="text-3xl font-black">
-            МАТЧ <em className="font-light italic text-stone-500">В РЕАЛЬНОМ ВРЕМЕНИ</em>
-          </h1>
+      {/* Код комнаты (заголовок даёт GameShell) */}
+      {room && (
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-stone-500">Код комнаты:</span>
+          <button
+            onClick={() => navigator.clipboard?.writeText(room.code)}
+            className="rounded-lg bg-stone-900 text-white font-mono font-bold px-3 py-1.5 hover:bg-stone-700 transition active:scale-95"
+            title="Скопировать код"
+          >
+            {room.code}
+          </button>
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            room.status === "waiting" ? "bg-amber-100 text-amber-700" :
+            room.status === "playing" ? "bg-emerald-100 text-emerald-700" :
+            "bg-stone-200 text-stone-600"
+          }`}>
+            {(() => {
+              const count = (room.players ?? []).length;
+              if (room.status === "waiting") return count >= 2 ? "Соперник в комнате" : "Ждём соперника";
+              if (room.status === "playing") return "Идёт игра";
+              return "Завершено";
+            })()}
+          </span>
         </div>
-        {room && (
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-stone-500">Код комнаты:</span>
-            <button
-              onClick={() => navigator.clipboard?.writeText(room.code)}
-              className="rounded-lg bg-stone-900 text-white font-mono font-bold px-3 py-1.5 hover:bg-stone-700"
-              title="Скопировать код"
-            >
-              {room.code}
-            </button>
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              room.status === "waiting" ? "bg-amber-100 text-amber-700" :
-              room.status === "playing" ? "bg-emerald-100 text-emerald-700" :
-              "bg-stone-200 text-stone-600"
-            }`}>
-              {(() => {
-                const count = (room.players ?? []).length;
-                if (room.status === "waiting") return count >= 2 ? "Соперник в комнате" : "Ждём соперника";
-                if (room.status === "playing") return "Идёт игра";
-                return "Завершено";
-              })()}
-            </span>
-          </div>
-        )}
-      </div>
+      )}
 
       {error && <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>}
       {msg && !error && <div className="rounded-xl bg-sky-50 border border-sky-200 text-sky-700 text-sm px-4 py-3 whitespace-pre-line">{msg}</div>}

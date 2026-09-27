@@ -4,18 +4,28 @@
 // LOGIN PAGE
 // ============================================================
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "./auth-provider";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginWithGoogle, loading } = useAuth();
+  const { login, loginWithGoogle, loading, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Куда вернуть пользователя после входа (из ?returnTo= или ?redirect= в URL)
+  const returnTo = (() => {
+    if (typeof window === "undefined") return "/";
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get("returnTo") || params.get("redirect") || "/";
+    // Безопасность: только относительные пути
+    if (!target.startsWith("/") || target.startsWith("//")) return "/";
+    return target;
+  })();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +37,7 @@ export default function LoginPage() {
       if (error) {
         setError(error);
       } else {
-        router.push("/");
+        router.push(returnTo);
       }
     } finally {
       setSubmitting(false);
@@ -53,13 +63,28 @@ export default function LoginPage() {
     );
   }
 
+  // Уже авторизован (после OAuth-редиректа) → сразу уводим туда, куда просили
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(returnTo);
+    }
+  }, [loading, user, returnTo, router]);
+
+  if (!loading && user) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-stone-500 animate-pulse">Вход выполнен…</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="rounded-3xl border border-stone-200 bg-white shadow-sm overflow-hidden">
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-6 text-center">
             <small className="text-[11px] tracking-[0.25em] text-emerald-200">
-              SHAHGAMES
+              FOOTBALL DRAFT
             </small>
             <h1 className="mt-2 text-2xl font-black">ВОЙТИ</h1>
           </div>

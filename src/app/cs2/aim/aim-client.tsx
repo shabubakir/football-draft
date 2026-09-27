@@ -240,7 +240,7 @@ export function CS2AimClient() {
   return (
     <main className="min-h-screen bg-stone-950 text-white flex flex-col">
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-4">
-        <Nav />
+        <Nav dark />
       </div>
 
       <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pb-12">

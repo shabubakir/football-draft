@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import { GuessGame } from "@/components/guess-game";
 
 export const metadata = {
@@ -7,11 +7,16 @@ export const metadata = {
 
 export default function GuessPage() {
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-10">
-        <GuessGame />
-      </div>
-    </main>
+    <GameShell
+      theme="guess-player"
+      maxWidth="max-w-6xl"
+      header={{
+        badge: "FOOTBALL DETECTIVE",
+        title: "УГАДАЙ ИГРОКА",
+        subtitle: "Раскрой личность футболиста по подсказкам",
+      }}
+    >
+      <GuessGame />
+    </GameShell>
   );
 }

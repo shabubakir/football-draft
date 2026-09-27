@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import { GridOnline } from "@/components/grid-online";
 
 export const metadata = {
@@ -7,11 +7,16 @@ export const metadata = {
 
 export default function GridOnlinePage() {
   return (
-    <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-10">
-        <GridOnline />
-      </div>
-    </main>
+    <GameShell
+      theme="grid-9"
+      maxWidth="max-w-5xl"
+      header={{
+        badge: "ONLINE · PvP",
+        title: "СЕТКА 9 ОНЛАЙН",
+        subtitle: "Крестики-нолики по 9 пересечениям — с другом в реальном времени",
+      }}
+    >
+      <GridOnline />
+    </GameShell>
   );
 }

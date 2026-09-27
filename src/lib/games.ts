@@ -1,3 +1,5 @@
+import type { GameThemeId } from "./themes/types";
+
 export type GameCard = {
   href?: string;
   tag: string;
@@ -5,7 +7,7 @@ export type GameCard = {
   desc: string;
   footer: string;
   cta: string;
-  accent: string; // tailwind class
+  theme: GameThemeId; // determines the card's visual style
   disabled?: boolean;
 };
 
@@ -17,7 +19,7 @@ export const GAMES: GameCard[] = [
     desc: "Найдите загаданного футболиста за 10 попыток по подсказкам.",
     footer: "НОВЫЙ ИГРОК КАЖДЫЙ ДЕНЬ",
     cta: "ИГРАТЬ",
-    accent: "from-emerald-500/20 to-emerald-500/5",
+    theme: "guess-player",
   },
   {
     href: "/grid/day",
@@ -26,7 +28,7 @@ export const GAMES: GameCard[] = [
     desc: "Одна сетка на всех: заполните 9 пересечений, три ошибки — и провал. Результат попадает в общий рейтинг.",
     footer: "ОДНА ИГРА В ДЕНЬ",
     cta: "ИГРАТЬ",
-    accent: "from-sky-500/20 to-sky-500/5",
+    theme: "grid-9",
   },
   {
     href: "/grid/online",
@@ -35,7 +37,7 @@ export const GAMES: GameCard[] = [
     desc: "Найдите соперника и сыграйте в футбольные крестики-нолики по 9 пересечениям.",
     footer: "С ДРУГОМ · БЕЗ ЛИМИТОВ",
     cta: "СОЗДАТЬ КОМНАТУ",
-    accent: "from-sky-500/20 to-sky-500/5",
+    theme: "grid-9",
   },
   {
     href: "/quiz/online",
@@ -44,7 +46,7 @@ export const GAMES: GameCard[] = [
     desc: "Футбольные вопросы, 15 секунд на ответ, прямая таблица лидеров. Хост создаёт комнату, друзья подключаются по коду.",
     footer: "10 ВОПРОСОВ · РЕАЛЬНОЕ ВРЕМЯ",
     cta: "ИГРАТЬ В 5-ЕРКУ",
-    accent: "from-rose-500/20 to-rose-500/5",
+    theme: "quiz",
   },
   {
     href: "/draft",
@@ -53,7 +55,7 @@ export const GAMES: GameCard[] = [
     desc: "Соберите XI из исторических клубных составов (26 сезонов, 99 клубов) и проведите команду через турнир из 7 матчей.",
     footer: "11 ИГРОКОВ · 3 ПЕРЕБРОСА · 7 МАТЧЕЙ",
     cta: "ИГРАТЬ",
-    accent: "from-amber-500/20 to-amber-500/5",
+    theme: "football-draft",
   },
   {
     href: "/career",
@@ -62,7 +64,7 @@ export const GAMES: GameCard[] = [
     desc: "Угадайте футболиста по клубам его карьеры — чем раньше, тем больше очков.",
     footer: "ЕЖЕДНЕВНЫЙ МАРШРУТ",
     cta: "ИГРАТЬ",
-    accent: "from-violet-500/20 to-violet-500/5",
+    theme: "career",
   },
   {
     href: "/cs2",
@@ -71,7 +73,7 @@ export const GAMES: GameCard[] = [
     desc: "Открывай кейсы CS2 с реальными шансами Valve. 42 кейса, 657 скинов, 1851 нож и перчатки.",
     footer: "РЕАЛЬНЫЕ ШАНСЫ · АНИМАЦИЯ ПРОКРУТА",
     cta: "ПРОКРУТИТЬ",
-    accent: "from-yellow-500/20 to-yellow-500/5",
+    theme: "cs2-cases",
   },
   {
     href: "/cs2/aim",
@@ -80,7 +82,7 @@ export const GAMES: GameCard[] = [
     desc: "30 seconds of clicking targets. We measure your reaction speed, accuracy, and best score.",
     footer: "30 SEC · 4 TARGET SIZES",
     cta: "PLAY",
-    accent: "from-red-500/20 to-red-500/5",
+    theme: "cs2-aim",
   },
   {
     href: "/cs2/higher-lower",
@@ -89,7 +91,7 @@ export const GAMES: GameCard[] = [
     desc: "Two skins from the case database — guess which one is more expensive. 10 rounds, with streaks and bonuses.",
     footer: "10 ROUNDS · REAL PRICES",
     cta: "PLAY",
-    accent: "from-blue-500/20 to-blue-500/5",
+    theme: "cs2-higher-lower",
   },
   {
     href: "/akinator",
@@ -97,8 +99,8 @@ export const GAMES: GameCard[] = [
     title: "FOOTBALL AKINATOR",
     desc: "Загадай любого человека, клуб или объект из мира футбола. Я попробую угадать его за несколько вопросов.",
     footer: "БЕСКОНЕЧНЫЕ ВОПРОСЫ · ИСТИННАЯ ЛОГИКА",
-    cta: "ИГРАТЬ →",
-    accent: "from-purple-500/20 to-purple-500/5",
+    cta: "ИГРАТЬ",
+    theme: "akinator",
   },
   {
     href: "/geoguessr",
@@ -107,6 +109,6 @@ export const GAMES: GameCard[] = [
     desc: "Угадай место на карте по фотографии. 5 раундов. Чем ближе ты поставишь точку — тем больше очков получишь.",
     footer: "5 РАУНДОВ · ВСЕ КОНТИНЕНТЫ · КАЗАХСТАН",
     cta: "ИГРАТЬ",
-    accent: "from-emerald-500/20 to-emerald-500/5",
+    theme: "geoguessr",
   },
 ];

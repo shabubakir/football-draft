@@ -23,7 +23,7 @@ const NAV_ITEMS = [
   { href: "/leaderboard", label: "РЕЙТИНГ" },
 ] as const;
 
-export function Nav() {
+export function Nav({ dark = false }: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -37,8 +37,12 @@ export function Nav() {
   const linkCls = (active: boolean) =>
     `px-3 py-2 rounded-lg font-semibold transition ${
       active
-        ? "text-stone-900 bg-stone-200/60"
-        : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/40"
+        ? dark
+          ? "text-white bg-white/10"
+          : "text-stone-900 bg-stone-200/60"
+        : dark
+          ? "text-white/50 hover:text-white hover:bg-white/5"
+          : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/40"
     }`;
 
   // Список "ИГРЫ" (всё, кроме главной и рейтинга) для выпадающего меню
@@ -76,18 +80,18 @@ export function Nav() {
       >
         <button
           type="button"
-          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-stone-200/40 transition"
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition ${dark ? "hover:bg-white/10" : "hover:bg-stone-200/40"}`}
           aria-expanded={userMenuOpen}
           aria-haspopup="menu"
         >
           <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-black">
             {user.username[0].toUpperCase()}
           </div>
-          <span className="text-sm font-bold text-stone-900 max-w-[100px] truncate">
+          <span className={`text-sm font-bold max-w-[100px] truncate ${dark ? "text-white" : "text-stone-900"}`}>
             {user.username}
           </span>
           <svg
-            className={`w-3.5 h-3.5 text-stone-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+            className={`w-3.5 h-3.5 transition-transform ${dark ? "text-white/40" : "text-stone-500"} ${userMenuOpen ? "rotate-180" : ""}`}
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -104,15 +108,15 @@ export function Nav() {
             role="menu"
             className="absolute right-0 top-full pt-1 z-50 w-48"
           >
-            <div className="rounded-2xl border border-stone-200 bg-white p-2 shadow-lg">
-              <div className="px-4 py-2 border-b border-stone-100 mb-1">
-                <div className="font-bold text-stone-900">{user.username}</div>
+            <div className={`rounded-2xl p-2 shadow-lg ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
+              <div className={`px-4 py-2 border-b mb-1 ${dark ? "border-white/10" : "border-stone-100"}`}>
+                <div className={`font-bold ${dark ? "text-white" : "text-stone-900"}`}>{user.username}</div>
               </div>
               <Link
                 href="/profile"
                 role="menuitem"
                 onClick={() => setUserMenuOpen(false)}
-                className="block px-4 py-2 rounded-lg text-sm text-stone-600 hover:bg-stone-100 hover:text-stone-900 transition"
+                className={`block px-4 py-2 rounded-lg text-sm transition ${dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
               >
                 📊 Профиль
               </Link>
@@ -120,7 +124,7 @@ export function Nav() {
                 href="/settings"
                 role="menuitem"
                 onClick={() => setUserMenuOpen(false)}
-                className="block px-4 py-2 rounded-lg text-sm text-stone-600 hover:bg-stone-100 hover:text-stone-900 transition"
+                className={`block px-4 py-2 rounded-lg text-sm transition ${dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
               >
                 ⚙️ Настройки
               </Link>
@@ -128,7 +132,7 @@ export function Nav() {
                 href="/leaderboard"
                 role="menuitem"
                 onClick={() => setUserMenuOpen(false)}
-                className="block px-4 py-2 rounded-lg text-sm text-stone-600 hover:bg-stone-100 hover:text-stone-900 transition"
+                className={`block px-4 py-2 rounded-lg text-sm transition ${dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
               >
                 🏆 Лидерборд
               </Link>
@@ -139,7 +143,7 @@ export function Nav() {
                   logout();
                 }}
                 role="menuitem"
-                className="w-full text-left px-4 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50 transition"
+                className="w-full text-left px-4 py-2 rounded-lg text-sm text-rose-500 hover:bg-rose-500/10 transition"
               >
                 🚪 Выйти
               </button>
@@ -151,10 +155,10 @@ export function Nav() {
   };
 
   return (
-    <header className="flex items-center justify-between">
+    <header className={`flex items-center justify-between ${dark ? "text-white" : "text-stone-900"}`}>
       <Link
         href="/"
-        className="text-lg font-black tracking-tight text-stone-900 leading-none"
+        className={`text-lg font-black tracking-tight leading-none ${dark ? "text-white" : "text-stone-900"}`}
       >
         FOOTBALL
         <br />
@@ -180,8 +184,8 @@ export function Nav() {
             type="button"
             className={`px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1 ${
               gamesActive
-                ? "text-stone-900 bg-stone-200/60"
-                : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/40"
+                ? dark ? "text-white bg-white/10" : "text-stone-900 bg-stone-200/60"
+                : dark ? "text-white/50 hover:text-white hover:bg-white/5" : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/40"
             }`}
             aria-expanded={gamesOpen}
             aria-haspopup="menu"
@@ -204,7 +208,7 @@ export function Nav() {
               role="menu"
               className="absolute left-0 top-full pt-1 z-50 w-64"
             >
-              <div className="rounded-2xl border border-stone-200 bg-white p-2 shadow-lg">
+              <div className={`rounded-2xl p-2 shadow-lg ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
                 {gamesItems.map((item) => {
                   const active = (item as { match?: string }).match
                     ? pathname.startsWith((item as { match?: string }).match!)
@@ -217,8 +221,8 @@ export function Nav() {
                       onClick={() => setGamesOpen(false)}
                       className={`block px-4 py-3 rounded-lg transition ${
                         active
-                          ? "bg-stone-200/60 font-bold text-stone-900"
-                          : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                          ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
+                          : dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                       }`}
                     >
                       {item.label}
@@ -261,14 +265,14 @@ export function Nav() {
           className="sm:hidden flex flex-col gap-1 p-2"
           aria-label="Меню"
         >
-          <span className="block w-5 h-0.5 bg-stone-900" />
-          <span className="block w-5 h-0.5 bg-stone-900" />
-          <span className="block w-5 h-0.5 bg-stone-900" />
+          <span className={`block w-5 h-0.5 ${dark ? "bg-white" : "bg-stone-900"}`} />
+          <span className={`block w-5 h-0.5 ${dark ? "bg-white" : "bg-stone-900"}`} />
+          <span className={`block w-5 h-0.5 ${dark ? "bg-white" : "bg-stone-900"}`} />
         </button>
       </div>
 
       {open && (
-        <div className="sm:hidden absolute left-4 right-4 top-16 z-50 rounded-2xl border border-stone-200 bg-white p-2 shadow-lg max-h-[70vh] overflow-y-auto">
+        <div className={`sm:hidden absolute left-4 right-4 top-16 z-50 rounded-2xl p-2 shadow-lg max-h-[70vh] overflow-y-auto ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
           {NAV_ITEMS.map((item) => {
             const active = (item as { match?: string }).match
               ? pathname.startsWith((item as { match?: string }).match!)
@@ -280,8 +284,8 @@ export function Nav() {
                 onClick={() => setOpen(false)}
                 className={`block px-4 py-3 rounded-lg ${
                   active
-                    ? "bg-stone-200/60 font-bold text-stone-900"
-                    : "text-stone-600"
+                    ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
+                    : dark ? "text-white/50" : "text-stone-600"
                 }`}
               >
                 {item.label}
@@ -292,18 +296,18 @@ export function Nav() {
           {/* Mobile user menu */}
           {user && (
             <>
-              <div className="border-t border-stone-200 my-1" />
+              <div className={`border-t my-1 ${dark ? "border-white/10" : "border-stone-200"}`} />
               <Link
                 href="/profile"
                 onClick={() => setOpen(false)}
-                className="block px-4 py-3 rounded-lg text-stone-600"
+                className={`block px-4 py-3 rounded-lg ${dark ? "text-white/50" : "text-stone-600"}`}
               >
                 📊 Профиль
               </Link>
               <Link
                 href="/settings"
                 onClick={() => setOpen(false)}
-                className="block px-4 py-3 rounded-lg text-stone-600"
+                className={`block px-4 py-3 rounded-lg ${dark ? "text-white/50" : "text-stone-600"}`}
               >
                 ⚙️ Настройки
               </Link>
@@ -313,7 +317,7 @@ export function Nav() {
                   setOpen(false);
                   logout();
                 }}
-                className="w-full text-left px-4 py-3 rounded-lg text-rose-600"
+                className="w-full text-left px-4 py-3 rounded-lg text-rose-500"
               >
                 🚪 Выйти
               </button>
@@ -324,21 +328,21 @@ export function Nav() {
 
       {/* Mobile user dropdown (when not in burger) */}
       {user && userMenuOpen && !open && (
-        <div className="sm:hidden absolute right-4 top-16 z-50 rounded-2xl border border-stone-200 bg-white p-2 shadow-lg w-48">
-          <div className="px-4 py-2 border-b border-stone-100 mb-1">
-            <div className="font-bold text-stone-900">{user.username}</div>
+        <div className={`sm:hidden absolute right-4 top-16 z-50 rounded-2xl p-2 shadow-lg w-48 ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
+          <div className={`px-4 py-2 border-b mb-1 ${dark ? "border-white/10" : "border-stone-100"}`}>
+            <div className={`font-bold ${dark ? "text-white" : "text-stone-900"}`}>{user.username}</div>
           </div>
           <Link
             href="/profile"
             onClick={() => setUserMenuOpen(false)}
-            className="block px-4 py-2 rounded-lg text-sm text-stone-600 hover:bg-stone-100"
+            className={`block px-4 py-2 rounded-lg text-sm ${dark ? "text-white/50 hover:bg-white/5" : "text-stone-600 hover:bg-stone-100"}`}
           >
             📊 Профиль
           </Link>
           <Link
             href="/settings"
             onClick={() => setUserMenuOpen(false)}
-            className="block px-4 py-2 rounded-lg text-sm text-stone-600 hover:bg-stone-100"
+            className={`block px-4 py-2 rounded-lg text-sm ${dark ? "text-white/50 hover:bg-white/5" : "text-stone-600 hover:bg-stone-100"}`}
           >
             ⚙️ Настройки
           </Link>
@@ -348,7 +352,7 @@ export function Nav() {
               setUserMenuOpen(false);
               logout();
             }}
-            className="w-full text-left px-4 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50"
+            className="w-full text-left px-4 py-2 rounded-lg text-sm text-rose-500 hover:bg-rose-500/10"
           >
             🚪 Выйти
           </button>

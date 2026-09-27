@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import { CareerGame } from "@/components/career-game";
 
 export const metadata = {
@@ -7,11 +7,16 @@ export const metadata = {
 
 export default function CareerPage() {
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-10">
-        <CareerGame />
-      </div>
-    </main>
+    <GameShell
+      theme="career"
+      maxWidth="max-w-6xl"
+      header={{
+        badge: "CAREER JOURNEY",
+        title: "ПУТЬ ФУТБОЛИСТА",
+        subtitle: "Пересобери трансферную историю легенды",
+      }}
+    >
+      <CareerGame />
+    </GameShell>
   );
 }

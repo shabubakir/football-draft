@@ -90,6 +90,60 @@ export const RARITY_BG = [
   "from-[#ffd700]/20 to-[#ffd700]/5",
 ] as const;
 
+// ---------- Ножи и перчатки в нашей базе без префикса ★ ----------
+// В CS2 market hash name ножей/перчаток всегда начинается с "★ " (например
+// "★ Karambit | Fade", "★ Sport Gloves | Vice"). База cs2-cases.json хранит их
+// без звёздочки — для запроса цен в SkinCash нужно восстанавливать префикс.
+const KNIFE_BASES = new Set<string>([
+  "Bayonet", "Flip Knife", "Gut Knife", "Karambit", "M9 Bayonet",
+  "Bowie Knife", "Huntsman Knife", "Falchion Knife", "Shadow Daggers",
+  "Bonesaw", "Butterfly Knife", "Stiletto Knife", "Talon Knife",
+  "Ursus Knife", "Nomad Knife", "Classic Knife", "Skeleton Knife",
+  "Survival Knife", "Paracord Knife", "Navaja Knife", "Kukri Knife",
+  "Glide Knife",
+]);
+const GLOVE_BASES = new Set<string>([
+  "Driver Gloves", "Sport Gloves", "Specialist Gloves", "Hand Wraps",
+  "Moto Gloves", "Hydra Gloves", "Bloodhound Gloves", "Broken Fang Gloves",
+  "Modern Hands",
+]);
+
+export function isKnifeOrGloves(name: string): boolean {
+  const base = name.split(" | ")[0];
+  return KNIFE_BASES.has(base) || GLOVE_BASES.has(base);
+}
+
+/**
+ * Market hash name для запроса цен в SkinCash:
+ * нож/перчатки → "★ Name"; обычный скин → имя как есть.
+ */
+export function marketHashName(name: string): string {
+  return isKnifeOrGloves(name) ? "★ " + name : name;
+}
+
+/**
+ * SkinCash НЕ знает ножи с финишем: "★ Karambit | Doppler" → 404,
+ * а базовые "★ Karambit" → цена есть. Поэтому все финиши одного ножа
+ * получают цену базовой модели.
+ * Для перчаток SkinCash ничего не знает → возвращаем null.
+ */
+export function knifePriceQuery(name: string): string | null {
+  if (!isKnifeOrGloves(name)) return null;
+  const base = name.split(" | ")[0];
+  return GLOVE_BASES.has(base) ? null : "★ " + base;
+}
+
+/**
+ * Имя для запроса цены скина: StatTrak™ добавляется в начало.
+ * StatTrak-скины в наших данных приходят с префиксом "★ " (см. rollCase).
+ */
+export function skinPriceQuery(name: string): string {
+  if (isKnifeOrGloves(name)) return name;
+  const n = name.startsWith("★ ") ? name.slice(2) : name;
+  if (n.startsWith("StatTrak")) return n;
+  return "StatTrak™ " + n;
+}
+
 // ---------- Результат открытия ----------
 export type OpenResult = {
   tier: Tier | 4; // 4 = rare special

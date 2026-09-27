@@ -225,17 +225,11 @@ export function DraftGame() {
 
   // ---------- Рендер ----------
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">КЛУБНЫЕ ЛЕГЕНДЫ · 2000—2026</small>
+    <div className="text-white">
+      <div className="flex items-center justify-between mb-2">
+        <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">КЛУБНЫЕ ЛЕГЕНДЫ · 2000—2026 · SEED {seed}</small>
         <ProfileBadge />
       </div>
-      <small className="mt-4 block text-xs tracking-[0.2em] text-stone-500">
-        КЛУБНЫЕ ЛЕГЕНДЫ · 2000—2026 · SEED {seed}
-      </small>
-      <h1 className="mt-3 text-4xl sm:text-5xl font-black leading-tight">
-        СОБЕРИ СВОЮ <em className="font-light italic text-stone-500">КОМАНДУ ЭПОХ.</em>
-      </h1>
 
       {phase === "scheme" && (
         <SchemePhase
@@ -285,23 +279,23 @@ export function DraftGame() {
       )}
 
       {phase === "finished" && (
-        <div className="mt-8 rounded-2xl border border-stone-200 bg-white/70 p-6 text-center">
+        <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 text-center">
           {champion ? (
-            <p className="text-2xl font-black text-emerald-600">🏆 ЧЕМПИОН ТУРНИРА!</p>
+            <p className="text-2xl font-black text-emerald-400">🏆 ЧЕМПИОН ТУРНИРА!</p>
           ) : (
-            <p className="text-2xl font-black text-stone-700">ТУРНИР ЗАВЕРШЁН</p>
+            <p className="text-2xl font-black text-white/80">ТУРНИР ЗАВЕРШЁН</p>
           )}
           {finalResult && (
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-white/60">
               Финал: {finalResult.gf}:{finalResult.ga} против {finalOpp?.c}
             </p>
           )}
           {xpGained > 0 && (
-            <p className="mt-3 text-sm font-semibold text-stone-800">+{xpGained} XP</p>
+            <p className="mt-3 text-sm font-semibold text-amber-400">+{xpGained} XP</p>
           )}
           <button
             onClick={() => window.location.reload()}
-            className="mt-5 rounded-xl bg-stone-900 text-white font-semibold px-6 py-3 hover:bg-stone-700 transition"
+            className="mt-5 rounded-xl bg-emerald-600 text-white font-bold px-6 py-3 hover:bg-emerald-500 transition active:scale-95"
           >
             НОВЫЙ ДРАФТ
           </button>
@@ -328,36 +322,36 @@ function SchemePhase({
   const styleLabel = style === "def" ? "Оборона" : style === "atk" ? "Атака" : "Баланс";
   return (
     <div className="mt-8 grid lg:grid-cols-2 gap-6">
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">01 · ВЫБЕРИ СХЕМУ</small>
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
+        <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">01 · ВЫБЕРИ СХЕМУ</small>
         <div className="mt-4 grid grid-cols-2 gap-2">
           {FORMATIONS.map((f) => (
             <button
               key={f.id}
               onClick={() => setFormation(f)}
-              className={`rounded-xl border px-3 py-3 text-left transition ${
+              className={`rounded-xl border px-3 py-3 text-left transition active:scale-[0.97] ${
                 formation.id === f.id
-                  ? "border-stone-900 bg-stone-900 text-white"
-                  : "border-stone-200 bg-white hover:border-stone-400"
+                  ? "border-emerald-500 bg-emerald-600/20 text-white ring-1 ring-emerald-500/30"
+                  : "border-white/10 bg-white/5 text-white/70 hover:border-white/25 hover:bg-white/10"
               }`}
             >
               <b>{f.name}</b>
-              <div className={`text-[11px] ${formation.id === f.id ? "text-stone-300" : "text-stone-500"}`}>
+              <div className={`text-[11px] ${formation.id === f.id ? "text-emerald-300" : "text-white/40"}`}>
                 {f.lines} линии
               </div>
             </button>
           ))}
         </div>
-        <small className="mt-5 block text-[11px] tracking-[0.2em] text-stone-500">СТИЛЬ</small>
+        <small className="mt-5 block text-[11px] tracking-[0.2em] text-emerald-300/70">СТИЛЬ</small>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {(["def", "bal", "atk"] as Style[]).map((s) => (
             <button
               key={s}
               onClick={() => setStyle(s)}
-              className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+              className={`rounded-xl border px-3 py-3 text-sm font-semibold transition active:scale-[0.97] ${
                 style === s
-                  ? "border-stone-900 bg-stone-900 text-white"
-                  : "border-stone-200 bg-white hover:border-stone-400"
+                  ? "border-amber-500 bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30"
+                  : "border-white/10 bg-white/5 text-white/60 hover:border-white/25 hover:bg-white/10"
               }`}
             >
               {s === "def" ? "Оборона" : s === "atk" ? "Атака" : "Баланс"}
@@ -366,13 +360,13 @@ function SchemePhase({
         </div>
         <button
           onClick={onDone}
-          className="mt-6 w-full rounded-xl bg-stone-900 text-white font-bold px-6 py-4 hover:bg-stone-700 transition"
+          className="mt-6 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black px-6 py-4 hover:from-emerald-500 hover:to-emerald-600 transition active:scale-[0.98] shadow-lg shadow-emerald-900/30"
         >
           НАЧАТЬ ДРАФТ →
         </button>
       </div>
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">ТЕКУЩАЯ РАССТАНОВКА</small>
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
+        <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">ТЕКУЩАЯ РАССТАНОВКА</small>
         <Pitch
           formation={formation}
           players={formation.slots.map(() => null)}
@@ -380,7 +374,7 @@ function SchemePhase({
           onSlot={() => {}}
           styleLabel={styleLabel}
         />
-        <p className="mt-4 text-sm text-stone-600">
+        <p className="mt-4 text-sm text-white/50">
           Дальше выпадут исторические клубные составы. Из каждого можно забрать одного игрока.
           11 игроков · {MAX_REROLLS} переброса · 7 матчей.
         </p>
@@ -431,12 +425,12 @@ function DraftPhase({
   return (
     <div className="mt-8 grid lg:grid-cols-[1fr_1.2fr] gap-6">
       {/* Поле */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <small className="text-[11px] tracking-[0.2em] text-stone-500">
+          <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">
             02 · ТРАНСФЕРНЫЙ СТОЛ
           </small>
-          <span className="text-xs font-semibold text-stone-500">
+          <span className="text-xs font-semibold text-white/50">
             ВЫБРАНО {placedCount}/{formation.slots.length}
           </span>
         </div>
@@ -449,27 +443,27 @@ function DraftPhase({
           eligiblePos={selectedPlayer?.pos}
         />
         {placedCount === formation.slots.length && (
-          <div className="mt-4 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 px-4 py-3 text-sm font-semibold text-center">
+          <div className="mt-4 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-3 text-sm font-semibold text-center animate-pulse">
             ✓ СТАРТОВЫЕ 11 ГОТОВЫ — турнир стартует автоматически
           </div>
         )}
       </div>
       {/* Выпавший состав */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">ВЫПАЛ СОСТАВ</small>
-        <h3 className="mt-2 text-xl font-bold">{squad.c}</h3>
-        <p className="text-sm text-stone-500">{squad.s}</p>
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
+        <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">ВЫПАЛ СОСТАВ</small>
+        <h3 className="mt-2 text-xl font-black text-white">{squad.c}</h3>
+        <p className="text-sm text-white/40">{squad.s}</p>
         <div className="mt-3 flex gap-2">
           <button
             onClick={onRoll}
             disabled={rerolls <= 0}
-            className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-semibold hover:border-stone-500 disabled:opacity-40 transition"
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white/70 hover:border-white/30 hover:bg-white/10 disabled:opacity-30 transition active:scale-[0.97]"
           >
-            ДРУГОЙ КЛУБ
+            🔄 ДРУГОЙ КЛУБ
           </button>
-          <span className="text-xs text-stone-500 self-center">Осталось: {rerolls}</span>
+          <span className="text-xs text-white/40 self-center">Осталось: {rerolls}</span>
         </div>
-        <p className="mt-3 text-xs text-stone-500">
+        <p className="mt-3 text-xs text-white/40">
           Выбери футболиста, затем нажми на подсвеченное место на схеме.
         </p>
         <div className="mt-4 grid grid-cols-1 gap-1.5 max-h-[420px] overflow-y-auto pr-1">
@@ -479,20 +473,20 @@ function DraftPhase({
               <button
                 key={i}
                 onClick={() => setSelected(isSel ? null : i)}
-                className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+                className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition active:scale-[0.98] ${
                   isSel
-                    ? "border-stone-900 bg-stone-900 text-white"
-                    : "border-stone-200 bg-white hover:border-stone-400"
+                    ? "border-emerald-500 bg-emerald-600/20 text-white ring-1 ring-emerald-500/30"
+                    : "border-white/8 bg-white/4 text-white/70 hover:border-white/20 hover:bg-white/8"
                 }`}
               >
-                <span className="w-8 text-center text-sm font-black tabular-nums">{p.r}</span>
+                <span className={`w-8 text-center text-sm font-black tabular-nums ${isSel ? "text-emerald-400" : "text-amber-400"}`}>{p.r}</span>
                 <span className="flex-1">
                   <b className="block text-sm leading-tight">{p.n}</b>
-                  <small className={isSel ? "text-stone-300" : "text-stone-500"}>
+                  <small className={isSel ? "text-emerald-300" : "text-white/40"}>
                     {p.nat} · {p.pos.map((x) => POS_RU[x]).join(" / ")}
                   </small>
                 </span>
-                <span className="text-lg font-light">{isSel ? "×" : "+"}</span>
+                <span className={`text-lg font-light ${isSel ? "text-emerald-400" : "text-white/30"}`}>{isSel ? "✓" : "+"}</span>
               </button>
             );
           })}
@@ -631,12 +625,12 @@ function TournamentPhase({
 
   return (
     <div className="mt-8 grid lg:grid-cols-[1.2fr_1fr] gap-6">
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <small className="text-[11px] tracking-[0.2em] text-stone-500">
+          <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">
             03 · ИСТОРИЧЕСКИЙ ТУРНИР
           </small>
-          <span className="text-xs font-semibold text-stone-500">
+          <span className="text-xs font-semibold text-white/50">
             {inGroup ? `ГРУППА · ТУР ${matchDay + 1} / 6` : "ФИНАЛ"}
           </span>
         </div>
@@ -644,7 +638,7 @@ function TournamentPhase({
         {!matchLive && !matchResult && (
           <button
             onClick={inGroup ? onMatch : onFinal}
-            className="mt-4 w-full rounded-xl bg-stone-900 text-white font-bold px-6 py-4 hover:bg-stone-700 transition"
+            className="mt-4 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black px-6 py-4 hover:from-emerald-500 hover:to-emerald-600 transition active:scale-[0.98] shadow-lg shadow-emerald-900/30"
           >
             {inGroup ? "НАЧАТЬ МАТЧ ▶" : "ИГРАТЬ ФИНАЛ ▶"}
           </button>
@@ -652,30 +646,30 @@ function TournamentPhase({
 
         {matchLive && (
           <div className="mt-4">
-            <div className="flex items-center justify-between rounded-xl bg-stone-900 text-white px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl bg-black/40 border border-white/10 text-white px-4 py-3">
               <div className="text-center flex-1">
                 <b>Ваша команда</b>
-                <div className="text-[11px] text-stone-400">Рейтинг {myRating}</div>
+                <div className="text-[11px] text-emerald-400">Рейтинг {myRating}</div>
               </div>
-              <div className="text-3xl font-black tabular-nums px-3">
+              <div className="text-3xl font-black tabular-nums px-3 text-amber-400">
                 {matchLive.gf}:{matchLive.ga}
               </div>
               <div className="text-center flex-1">
                 <b>Соперник</b>
-                <div className="text-[11px] text-stone-400">● LIVE {matchLive.events.length} событий</div>
+                <div className="text-[11px] text-red-400">● LIVE {matchLive.events.length} событий</div>
               </div>
             </div>
             <ul className="mt-3 space-y-1 max-h-56 overflow-y-auto text-sm">
               {[...matchLive.events].reverse().map((e, i) => (
-                <li key={i} className="flex gap-2 text-stone-600">
-                  <span className="w-8 text-right tabular-nums text-stone-400">{e.min}'</span>
-                  <span className={e.type === "goal" ? "font-bold text-emerald-700" : ""}>{e.text}</span>
+                <li key={i} className="flex gap-2 text-white/60">
+                  <span className="w-8 text-right tabular-nums text-white/30">{e.min}'</span>
+                  <span className={e.type === "goal" ? "font-bold text-emerald-400" : ""}>{e.text}</span>
                 </li>
               ))}
             </ul>
             <button
               onClick={onSkip}
-              className="mt-3 w-full rounded-lg border border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 transition"
+              className="mt-3 w-full rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/50 hover:bg-white/10 transition"
             >
               ⏩ ЗАВЕРШИТЬ МАТЧ
             </button>
@@ -688,7 +682,7 @@ function TournamentPhase({
             {!groupDone && (
               <button
                 onClick={onNextMatch}
-                className="mt-4 w-full rounded-xl bg-stone-900 text-white font-bold px-6 py-4 hover:bg-stone-700 transition"
+                className="mt-4 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black px-6 py-4 hover:from-emerald-500 hover:to-emerald-600 transition active:scale-[0.98]"
               >
                 СЛЕДУЮЩИЙ МАТЧ ▶
               </button>
@@ -699,7 +693,7 @@ function TournamentPhase({
         {groupDone && !finalPlayed && (
           <button
             onClick={onFinal}
-            className="mt-4 w-full rounded-xl bg-amber-600 text-white font-bold px-6 py-4 hover:bg-amber-500 transition"
+            className="mt-4 w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black px-6 py-4 hover:from-amber-400 hover:to-orange-500 transition active:scale-[0.98] shadow-lg shadow-amber-900/30"
           >
             {myPlace === 1 ? "🏆 ФИНАЛ ТУРНИРА ▶" : "ФИНАЛ (место в группе: " + myPlace + ") ▶"}
           </button>
@@ -707,11 +701,11 @@ function TournamentPhase({
       </div>
 
       {/* Таблица группы */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">ТАБЛИЦА ГРУППЫ</small>
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 sm:p-6">
+        <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">ТАБЛИЦА ГРУППЫ</small>
         <table className="mt-3 w-full text-sm">
           <thead>
-            <tr className="text-[11px] text-stone-400 tracking-wider">
+            <tr className="text-[11px] text-white/30 tracking-wider">
               <th className="text-left font-semibold">КОМАНДА</th>
               <th className="text-center">И</th>
               <th className="text-center">В</th>
@@ -722,7 +716,7 @@ function TournamentPhase({
           </thead>
           <tbody>
             {table.map((t, i) => (
-              <tr key={t.name} className={t.name === "Ваша команда" ? "bg-stone-900 text-white rounded" : ""}>
+              <tr key={t.name} className={`text-white/70 ${t.name === "Ваша команда" ? "bg-emerald-600/20 text-emerald-300 font-bold" : ""}`}>
                 <td className="py-1.5 font-semibold">{i + 1}. {t.name}</td>
                 <td className="text-center tabular-nums">{t.w + t.d + t.l}</td>
                 <td className="text-center tabular-nums">{t.w}</td>
@@ -734,8 +728,8 @@ function TournamentPhase({
           </tbody>
         </table>
         {groupDone && (
-          <p className="mt-3 text-xs text-stone-500">
-            Место в группе: <b>{myPlace}</b>. {myPlace === 1 ? "Вышли в финал!" : "Финал доступен, но шансов мало."}
+          <p className="mt-3 text-xs text-white/40">
+            Место в группе: <b className="text-amber-400">{myPlace}</b>. {myPlace === 1 ? "Вышли в финал!" : "Финал доступен, но шансов мало."}
           </p>
         )}
       </div>
@@ -754,29 +748,29 @@ function MatchReport({
 }) {
   return (
     <div className="mt-4">
-      <div className="rounded-xl bg-stone-100 px-4 py-3">
+      <div className="rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold">Ваша команда · {formationName}</span>
-          <span className="text-2xl font-black tabular-nums">{result.gf}:{result.ga}</span>
-          <span className="font-semibold">Соперник</span>
+          <span className="font-semibold text-emerald-300">Ваша команда · {formationName}</span>
+          <span className="text-2xl font-black tabular-nums text-amber-400">{result.gf}:{result.ga}</span>
+          <span className="font-semibold text-white/60">Соперник</span>
         </div>
-        <div className="mt-1 flex justify-center gap-4 text-[11px] text-stone-500">
+        <div className="mt-1 flex justify-center gap-4 text-[11px] text-white/40">
           <span>Владение {result.poss}%</span>
           <span>xG {result.xg[0]} : {result.xg[1]}</span>
           <span>Удары {result.shots[0]} : {result.shots[1]}</span>
         </div>
         {result.manOfMatch && (
-          <div className="mt-2 text-center text-xs text-stone-600">
-            Игрок матча: <b>{result.manOfMatch.name}</b> ({result.manOfMatch.rating})
+          <div className="mt-2 text-center text-xs text-white/50">
+            ⭐ Игрок матча: <b className="text-amber-300">{result.manOfMatch.name}</b> ({result.manOfMatch.rating})
           </div>
         )}
       </div>
       {Object.keys(result.playerRatings).length > 0 && (
         <div className="mt-3 grid grid-cols-2 gap-1">
           {Object.entries(result.playerRatings).map(([n, r]) => (
-            <div key={n} className="flex justify-between text-xs text-stone-600">
+            <div key={n} className="flex justify-between text-xs text-white/50">
               <span className="truncate pr-2">{n}</span>
-              <b className="tabular-nums">{r.toFixed(1)}</b>
+              <b className={`tabular-nums ${r >= 7.5 ? "text-emerald-400" : r >= 6.5 ? "text-amber-400" : "text-white/40"}`}>{r.toFixed(1)}</b>
             </div>
           ))}
         </div>

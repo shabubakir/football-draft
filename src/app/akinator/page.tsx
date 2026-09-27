@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import { AkinatorGame } from "@/games/akinator/akinator";
 
 export const metadata = {
@@ -9,11 +9,16 @@ export const metadata = {
 
 export default function AkinatorPage() {
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-10">
-        <AkinatorGame />
-      </div>
-    </main>
+    <GameShell
+      theme="akinator"
+      maxWidth="max-w-6xl"
+      header={{
+        badge: "MYSTICAL PREDICTION",
+        title: "ФУТБОЛЬНЫЙ ДЖИНН",
+        subtitle: "Загадай игрока — дух угадает за несколько вопросов",
+      }}
+    >
+      <AkinatorGame />
+    </GameShell>
   );
 }

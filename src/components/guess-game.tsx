@@ -162,22 +162,22 @@ export function GuessGame() {
     : [];
 
   return (
-    <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
+    <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6 text-white">
       {/* Левая колонка: поле игры */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
+      <div className="rounded-2xl border border-amber-500/20 bg-white/5 backdrop-blur p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <small className="text-[11px] tracking-[0.2em] text-stone-500">
+          <small className="text-[11px] tracking-[0.2em] text-amber-400/70">
             {isToday ? "ЕЖЕДНЕВНАЯ ИГРА" : "АРХИВ НЕДЕЛИ"} · {dateLabel(selectedDate)}
           </small>
-          <span className="text-xs text-stone-500">
+          <span className="text-xs text-white/40">
             Попыток: {10 - guesses.length} из 10
           </span>
         </div>
 
         <h2 className="mt-3 text-3xl font-black">
-          УГАДАЙ <em className="font-light italic text-stone-500">ФУТБОЛИСТА</em>
+          УГАДАЙ <em className="font-light italic text-amber-400">ФУТБОЛИСТА</em>
         </h2>
-        <p className="mt-2 text-sm text-stone-600 max-w-md">
+        <p className="mt-2 text-sm text-white/50 max-w-md">
           Введите имя футболиста. Цвет покажет, насколько вы близки к ответу.
           Зелёный — совпадение, жёлтый — близкий (страна, позиция, возраст или
           клуб совпали), серый — мимо.
@@ -190,17 +190,13 @@ export function GuessGame() {
               key={i}
               type="button"
               onClick={() => setDayIdx(i)}
-              className={`shrink-0 w-12 rounded-xl border px-1 py-2 text-center transition ${
+              className={`shrink-0 w-12 rounded-xl border px-1 py-2 text-center transition active:scale-[0.95] ${
                 i === dayIdx
-                  ? "border-stone-900 bg-stone-900 text-white"
-                  : "border-stone-200 bg-white hover:border-stone-400"
+                  ? "border-amber-500 bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30"
+                  : "border-white/10 bg-white/5 text-white/50 hover:border-white/25"
               }`}
             >
-              <small
-                className={`block text-[9px] ${
-                  i === dayIdx ? "text-stone-400" : "text-stone-400"
-                }`}
-              >
+              <small className="block text-[9px] text-white/30">
                 {WEEKDAYS[d.getDay()]}
               </small>
               <b className="block text-xs">
@@ -211,7 +207,7 @@ export function GuessGame() {
           ))}
         </div>
         {!isToday && (
-          <p className="mt-2 text-[11px] text-stone-400">
+          <p className="mt-2 text-[11px] text-white/30">
             Игра за {dateLabel(selectedDate)} — повтор для практики, опыт не
             начисляется.
           </p>
@@ -223,32 +219,32 @@ export function GuessGame() {
             onChange={(e) => setInput(e.target.value)}
             disabled={finished}
             placeholder="Например: Лионель Месси"
-            className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-3 text-sm outline-none focus:border-stone-500 disabled:opacity-50"
+            className="flex-1 rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-amber-500/50 disabled:opacity-40"
           />
           <button
             type="submit"
             disabled={finished || !input.trim()}
-            className="rounded-xl bg-stone-900 text-white px-5 py-3 text-sm font-semibold hover:bg-stone-700 disabled:opacity-40 transition"
+            className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-black px-5 py-3 text-sm hover:from-amber-400 hover:to-amber-500 disabled:opacity-30 transition active:scale-[0.97] shadow-lg shadow-amber-900/20"
           >
-            ПРОВЕРИТЬ
+            УГАДАТЬ
           </button>
         </form>
 
         <ul className="mt-5 space-y-2 max-h-[360px] overflow-y-auto pr-1">
           {guesses.length === 0 && (
-            <li className="text-sm text-stone-400">
+            <li className="text-sm text-white/25">
               Пока нет догадок. Сделайте первую попытку!
             </li>
           )}
           {guesses.map((g, i) => (
             <li
               key={i}
-              className={`rounded-xl px-4 py-3 text-sm flex items-center justify-between border ${
+              className={`rounded-xl px-4 py-3 text-sm flex items-center justify-between border transition ${
                 g.status === "match"
-                  ? "bg-emerald-500 text-white border-emerald-500"
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
                   : g.status === "close"
-                  ? "bg-amber-200 border-amber-300"
-                  : "bg-stone-100 border-stone-200 text-stone-500"
+                  ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                  : "bg-white/3 text-white/40 border-white/8"
               }`}
             >
               <span className="font-medium">{g.name}</span>
@@ -262,7 +258,9 @@ export function GuessGame() {
         {finished && (
           <div
             className={`mt-5 rounded-xl p-4 text-sm ${
-              won ? "bg-emerald-500 text-white" : "bg-stone-200 text-stone-700"
+              won
+                ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300"
+                : "bg-white/5 border border-white/10 text-white/50"
             }`}
           >
             {won ? (
@@ -270,12 +268,12 @@ export function GuessGame() {
                 🏆 <b>Победа!</b> Игрок — <b>{target!.name_ru}</b>. Угадано за{" "}
                 {guesses.length} попыток.
                 {isToday && xpGained > 0 && (
-                  <span className="ml-2 font-bold">+{xpGained} XP</span>
+                  <span className="ml-2 font-bold text-amber-400">+{xpGained} XP</span>
                 )}
               </>
             ) : (
               <>
-                😔 Не угадано. Это был <b>{target!.name_ru}</b>.{" "}
+                😔 Не угадано. Это был <b className="text-white/70">{target!.name_ru}</b>.{" "}
                 {isToday ? "Попробуйте ещё раз завтра!" : "Зато теперь вы его знаете."}
               </>
             )}
@@ -284,35 +282,35 @@ export function GuessGame() {
       </div>
 
       {/* Правая колонка: подсказки */}
-      <div className="rounded-2xl border border-stone-200 bg-white/70 p-5 sm:p-6">
-        <small className="text-[11px] tracking-[0.2em] text-stone-500">
+      <div className="rounded-2xl border border-amber-500/20 bg-white/5 backdrop-blur p-5 sm:p-6">
+        <small className="text-[11px] tracking-[0.2em] text-amber-400/70">
           ПОДСКАЗКИ
         </small>
-        <h3 className="mt-2 text-xl font-bold">Шесть фактов об игроке</h3>
+        <h3 className="mt-2 text-xl font-black text-white">Шесть фактов об игроке</h3>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {hints.map((h) => (
             <div
               key={h.label}
-              className="rounded-xl border border-stone-200 bg-white p-3"
+              className="rounded-xl border border-white/10 bg-black/20 p-3"
             >
-              <small className="text-[10px] tracking-wider text-stone-500">
+              <small className="text-[10px] tracking-wider text-amber-400/60">
                 {h.label}
               </small>
-              <div className="mt-1 text-sm font-semibold text-stone-900">
+              <div className="mt-1 text-sm font-semibold text-white">
                 {h.value}
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-5 flex gap-4 text-[11px] text-stone-500">
+        <div className="mt-5 flex gap-4 text-[11px] text-white/40">
           <span className="flex items-center gap-1.5">
             <i className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Совпало
           </span>
           <span className="flex items-center gap-1.5">
-            <i className="w-3 h-3 rounded bg-amber-300 inline-block" /> Близко
+            <i className="w-3 h-3 rounded bg-amber-400 inline-block" /> Близко
           </span>
           <span className="flex items-center gap-1.5">
-            <i className="w-3 h-3 rounded bg-stone-300 inline-block" /> Не совпало
+            <i className="w-3 h-3 rounded bg-white/15 inline-block" /> Не совпало
           </span>
         </div>
       </div>

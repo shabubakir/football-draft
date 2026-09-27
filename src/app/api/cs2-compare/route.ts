@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
  * раунд просто пересобирается. Ответ < 10 сек.
  */
 
-import { CASES } from "@/lib/cs2";
+import { CASES, marketHashName, isKnifeOrGloves, knifePriceQuery, skinPriceQuery } from "@/lib/cs2";
 import { skincashPrices } from "@/lib/skincash";
 
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 дней
@@ -54,10 +54,6 @@ async function loadStatic(): Promise<void> {
   staticMap = m;
 }
 
-function isKnife(name: string): boolean {
-  return name.startsWith("\u2605") || name.startsWith("\u2606");
-}
-
 /** Все уникальные предметы всех кейсов (нужен img). */
 function buildAllItems(): Array<{ n: string; img: string }> {
   if (allItems && allItems.length > 0) return allItems;
@@ -91,26 +87,35 @@ function fromCache(key: string): number | null {
   return e.price;
 }
 
+// Точная цена скина берётся по Field-Tested (гладкий износ — основной рынок).
+// Если FT нет — первый доступный из остальных wears.
+const PRICE_WEAR_ORDER = ["Field-Tested", "Minimal Wear", "Factory New", "Well-Worn", "Battle-Scarred"];
+
 /**
- * Цена предмета: кэш → статика (ножи) → null.
- * Среднее по 5 wears для скинов, одиночная цена для ножей.
+ * Точная цена предмета: кэш → статика (ножи) → null.
+ * Скины — цена конкретного износа (FT-приоритет).
+ * Ножи — цена базовой модели ("★ Karambit"), SkinCash финиши не знает.
+ * Перчатки — только статика (SkinCash не знает перчатки).
  */
 function priceFromCache(name: string): number | null {
   const lower = name.toLowerCase();
-  if (isKnife(name)) {
-    const c = fromCache(lower);
-    if (c != null && c > 0) return c;
+  if (isKnifeOrGloves(name)) {
+    const q = knifePriceQuery(name);
+    if (q) {
+      const c = fromCache(q.toLowerCase());
+      if (c != null && c > 0) return c;
+    }
+    const c2 = fromCache(lower);
+    if (c2 != null && c2 > 0) return c2;
     const s = staticMap?.get(lower);
     if (s != null && s > 0) return s;
     return null;
   }
-  const prices: number[] = [];
-  for (const w of WEARS) {
-    const p = fromCache(`${lower} (${w})`.toLowerCase());
-    if (p != null && p > 0) prices.push(p);
-  }
-  if (prices.length > 0) {
-    return prices.reduce((a, b) => a + b, 0) / prices.length;
+  const q = skinPriceQuery(name); // "StatTrak™ AK-47 | Fire Serpent" | name
+  const base = q.toLowerCase();
+  for (const w of PRICE_WEAR_ORDER) {
+    const p = fromCache(`${base} (${w})`);
+    if (p != null && p > 0) return p;
   }
   return null;
 }
@@ -135,13 +140,19 @@ async function fetchLiveSubset(
   }
   const take = candidates.slice(0, count);
 
-  // Запросы: скин → 5 wears, нож → 1
+  // Запросы: скин → 5 wears (StatTrak → "StatTrak™ Name");
+  // нож → 1 базовое имя ("★ Karambit"); перчатки → полное имя (404 → miss).
   const targets: Array<{ name: string; mhn: string[] }> = [];
   for (const it of take) {
-    const mhn = isKnife(it.n) ? [it.n] : WEARS.map((w) => `${it.n} (${w})`);
+    const kq = knifePriceQuery(it.n);
+    const mhn = kq
+      ? [kq]
+      : isKnifeOrGloves(it.n)
+        ? [marketHashName(it.n)]
+        : WEARS.map((w) => `${skinPriceQuery(it.n)} (${w})`);
     targets.push({ name: it.n, mhn });
   }
-  const flat = targets.flatMap((t) => t.mhn);
+  const flat = [...new Set(targets.flatMap((t) => t.mhn))];
 
   // Отфильтруем то, что уже в кэше / помечено как "нет"
   const toFetch = flat.filter((m) => {

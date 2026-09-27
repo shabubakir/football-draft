@@ -25,7 +25,7 @@ export function CS2PageClient() {
 
   return (
     <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
+      <Nav dark />
       {battleOn ? (
         <div className="mt-10">
           <CaseBattle

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Nav } from "@/components/nav";
 import { getSupabaseBrowser } from "@/lib/supabase";
 import { GRID_THEMES, type GridTheme, type GridClue } from "@/lib/grid";
 import { PLAYERS } from "@/lib/players";
@@ -198,21 +197,8 @@ export function GridDay() {
   ).padStart(2, "0")}`;
 
   return (
-    <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-      <Nav />
-
-      <small className="mt-10 block text-xs tracking-[0.2em] text-stone-500">
-        СЕТКА 9 · ЕЖЕДНЕВНАЯ ИГРА · РЕЙТИНГ
-      </small>
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-4xl sm:text-5xl font-black leading-tight">
-          СЕТКА <em className="font-light italic text-stone-500">ДНЯ</em>
-        </h1>
-        <span className="text-sm text-stone-500">
-          Сетка {dateLabel} · один игрок, {MAX_MISTAKES} ошибки — и провал
-        </span>
-      </div>
-      <p className="mt-3 max-w-lg text-sm text-stone-600">
+    <div>
+      <p className="max-w-lg text-sm text-stone-600">
         Один футболист на каждое пересечение. Повторять нельзя. Одинаковая
         сетка у всех — результат попадает в общий рейтинг. Одна игра в день.
       </p>
@@ -395,7 +381,7 @@ export function GridDay() {
           Сыграть с другом онлайн →
         </Link>
       </div>
-    </main>
+    </div>
   );
 }
 

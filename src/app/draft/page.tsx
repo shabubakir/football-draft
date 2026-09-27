@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import { DraftGame } from "@/components/draft-game";
 
 export const metadata = {
@@ -7,11 +7,16 @@ export const metadata = {
 
 export default function DraftPage() {
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-10">
-        <DraftGame />
-      </div>
-    </main>
+    <GameShell
+      theme="football-draft"
+      maxWidth="max-w-6xl"
+      header={{
+        badge: "TACTICAL MODE",
+        title: "СОБЕРИ СВОЮ КОМАНДУ",
+        subtitle: "Выбери схему, проведи драфт, выйди в финал",
+      }}
+    >
+      <DraftGame />
+    </GameShell>
   );
 }

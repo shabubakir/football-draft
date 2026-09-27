@@ -1,67 +1,89 @@
 /**
  * Клиент SkinCash API (https://api.skincash.gg).
  *
- * Сетевой слой: на этой машине прямые HTTPS-соединения из Node не работают,
- * а единственный доступный выход — корпоративный прокси. Node-совместимый
- * способ: TCP → CONNECT hostname:443 через прокси → TLS поверх сокета → HTTP.
+ * Сетевой слой: на рабочей машине прямые HTTPS-соединения из Node
+ * не проходят — единственный доступный выход, который работает,
+ * это TCP-прокси. Node-совместимый способ:
+ *   TCP → CONNECT hostname:443 через прокси → TLS поверх сокета → HTTP GET.
  *
- * Прокси берётся из env (SKINCASH_PROXY) или из стандартных http(s)_proxy.
- * Если прокси нет/недоступен — возвращаем null (caller фоллит на статику).
+ * На деплое (Vercel) прокси нет — используется обычный fetch.
+ * Режим определяется: если SKINCASH_PROXY / http(s)_proxy заданы — прокси,
+ * иначе — прямой fetch.
  */
 
 import net from "net";
 import tls from "tls";
 import { URL } from "url";
 
-const PROXY_HOST =
-  process.env.SKINCASH_PROXY_HOST || "192.168.8.2";
-const PROXY_PORT = Number(
-  process.env.SKINCASH_PROXY_PORT ||
-    process.env.HTTPS_PROXY?.split(":").pop()?.replace(/^.*:/, "") ||
-    3128
-);
-
-export interface SkincashPrice {
-  status: number;
-  price: number | null;
-  ms: number;
-}
-
-function getProxy(): { host: string; port: number } {
-  // SKINCASH_PROXY="host:port" (перекрывает всё)
+function getProxy(): { host: string; port: number } | null {
   if (process.env.SKINCASH_PROXY) {
     const [host, port] = process.env.SKINCASH_PROXY.split(":");
     if (host && port) return { host, port: Number(port) };
   }
-  const lower = process.env.http_proxy || process.env.HTTP_PROXY;
-  if (lower) {
-    const u = new URL(lower);
-    if (u.hostname && u.port) return { host: u.hostname, port: Number(u.port) };
+  for (const key of ["http_proxy", "HTTP_PROXY", "https_proxy", "HTTPS_PROXY"]) {
+    const v = process.env[key];
+    if (v) {
+      try {
+        const u = new URL(v);
+        if (u.hostname && u.port) return { host: u.hostname, port: Number(u.port) };
+      } catch {
+        // игнорируем
+      }
+    }
   }
-  const upper = process.env.https_proxy || process.env.HTTPS_PROXY;
-  if (upper) {
-    const u = new URL(upper);
-    if (u.hostname && u.port) return { host: u.hostname, port: Number(u.port) };
-  }
-  return { host: PROXY_HOST, port: PROXY_PORT };
+  return null;
 }
 
+// Лёгкий sanity-check: если задан прокси, но к нему не подключиться
+// (например, Vercel видит env от локальной машины) — отключаем его.
+let proxyBroken = false;
+
 /**
- * GET https-запрос через прокси-CONNECT с жёстким таймаутом.
- * Возвращает { status, body } — бросает исключение только при таймауте/ошибке сокета.
+ * GET https-запрос. Сначала пробуем прокси (если задан), при его смерти — прямой fetch.
+ * Жёсткий таймаут — не вешает caller.
  */
-export function proxiedGet(
+async function rawGet(
   targetUrl: string,
   timeoutMs: number
 ): Promise<{ status: number; body: string; ms: number }> {
+  const started = Date.now();
+  const proxy = proxyBroken ? null : getProxy();
+
+  if (proxy) {
+    try {
+      const r = await proxiedGet(targetUrl, proxy, timeoutMs);
+      return { ...r, ms: Date.now() - started };
+    } catch {
+      proxyBroken = true; // дальше только прямой fetch
+    }
+  }
+
+  // Прямой fetch (prod / без прокси)
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const res = await fetch(targetUrl, {
+      headers: { Accept: "application/json" },
+      signal: ctl.signal,
+    });
+    const body = await res.text();
+    return { status: res.status, body, ms: Date.now() - started };
+  } finally {
+    clearTimeout(to);
+  }
+}
+
+function proxiedGet(
+  targetUrl: string,
+  proxy: { host: string; port: number },
+  timeoutMs: number
+): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
     const u = new URL(targetUrl);
     if (!u.hostname) {
       reject(new Error("bad url"));
       return;
     }
-    const proxy = getProxy();
-    const started = Date.now();
     let done = false;
 
     const finish = (fn: () => void) => {
@@ -105,7 +127,11 @@ export function proxiedGet(
           return;
         }
         connected = true;
-        const t = tls.connect({ socket: sock, servername: u.hostname, host: u.hostname });
+        const t = tls.connect({
+          socket: sock,
+          servername: u.hostname,
+          host: u.hostname,
+        });
         let body = "";
         t.on("data", (c: Buffer) => (body += c.toString()));
         t.on("end", () => {
@@ -114,7 +140,6 @@ export function proxiedGet(
             resolve({
               status: m ? parseInt(m[1], 10) : 0,
               body: body.split("\r\n\r\n").pop() || "",
-              ms: Date.now() - started,
             });
           });
         });
@@ -142,26 +167,30 @@ export function proxiedGet(
 }
 
 /**
- * Цена предмета на SkinCash. 404 / ошибки → null.
+ * Цена предмета на SkinCash. 404 / ошибки → price: null.
+ * НЕ бросает исключений.
  */
 export async function skincashPrice(
   marketHashName: string,
   timeoutMs = 8000
-): Promise<SkincashPrice> {
+): Promise<{ status: number; price: number | null; ms: number }> {
   const url = `https://api.skincash.gg/v1/prices/${encodeURIComponent(marketHashName)}`;
   const t0 = Date.now();
   try {
-    const r = await proxiedGet(url, timeoutMs);
+    const r = await rawGet(url, timeoutMs);
     const ms = Date.now() - t0;
-    if (r.status === 404) return { status: r.status, price: null, ms };
-    if (r.status === 429 || r.status >= 400) return { status: r.status, price: null, ms };
-    try {
-      const json = JSON.parse(r.body);
-      if (typeof json.price === "number") {
-        return { status: r.status, price: json.price, ms };
+    if (process.env.SKINCASH_DEBUG) {
+      console.log(`[skincash] ${marketHashName} → ${r.status} ${ms}ms`);
+    }
+    if (r.status === 200) {
+      try {
+        const json = JSON.parse(r.body);
+        if (typeof json.price === "number") {
+          return { status: r.status, price: json.price, ms };
+        }
+      } catch {
+        // не JSON
       }
-    } catch {
-      // не JSON
     }
     return { status: r.status, price: null, ms };
   } catch {
@@ -170,8 +199,8 @@ export async function skincashPrice(
 }
 
 /**
- * Пакет цен (параллельно через отдельные сокет/прокси-CONNECT).
- * Не бросает исключения — провалившиеся позиции в result имеют price: null.
+ * Пакет цен (батчи по 20, параллельно внутри батча).
+ * Промахи → просто не попадают в Map.
  */
 export async function skincashPrices(
   marketHashNames: string[],
@@ -181,11 +210,14 @@ export async function skincashPrices(
   const totalMs = opts.totalMs ?? 20000;
   const result = new Map<string, number>();
 
+  // Дедупликация (одинаковые market hash names не запрашиваем дважды)
+  const unique = [...new Set(marketHashNames)];
+
   const BATCH = 20;
   const startedAt = Date.now();
-  for (let i = 0; i < marketHashNames.length; i += BATCH) {
+  for (let i = 0; i < unique.length; i += BATCH) {
     if (Date.now() - startedAt > totalMs) break;
-    const batch = marketHashNames.slice(i, i + BATCH);
+    const batch = unique.slice(i, i + BATCH);
     const results = await Promise.all(
       batch.map((name) => skincashPrice(name, per))
     );

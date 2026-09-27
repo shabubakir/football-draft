@@ -1,3 +1,4 @@
+import GameShell from "@/components/game-shell";
 import { GridDay } from "@/components/grid-day";
 
 export const metadata = {
@@ -7,5 +8,17 @@ export const metadata = {
 };
 
 export default function GridDayPage() {
-  return <GridDay />;
+  return (
+    <GameShell
+      theme="grid-9"
+      maxWidth="max-w-5xl"
+      header={{
+        badge: "DAILY CHALLENGE",
+        title: "СЕТКА ДНЯ",
+        subtitle: "Один футболист на каждое пересечение. Три ошибки — провал.",
+      }}
+    >
+      <GridDay />
+    </GameShell>
+  );
 }

@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import GeoGuessrLoader from "./geoguessr-client";
 
 export const metadata = {
@@ -7,11 +7,16 @@ export const metadata = {
 
 export default function GeoGuessrPage() {
   return (
-    <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-8 sm:mt-10">
-        <GeoGuessrLoader />
-      </div>
-    </main>
+    <GameShell
+      theme="geoguessr"
+      maxWidth="max-w-5xl"
+      header={{
+        badge: "WORLD TOUR",
+        title: "GEO GUESSR LITE",
+        subtitle: "Угадай, где ты находишься, — 5 раундов, один мир",
+      }}
+    >
+      <GeoGuessrLoader />
+    </GameShell>
   );
 }

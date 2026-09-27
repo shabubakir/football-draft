@@ -12,7 +12,7 @@ export function CS2BattleClient() {
 
   return (
     <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
+      <Nav dark />
       <div className="mt-10">
         <CaseBattle
           initialPhase="join"

@@ -53,6 +53,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadAuthState();
   }, []);
 
+  // Возвращает профиль: если нет — создаёт (важно для Google OAuth:
+  // профиль должен появиться автоматически, без ручной регистрации)
+  const ensureProfile = async (
+    supabase: NonNullable<ReturnType<typeof getSupabaseBrowser>>,
+    authUser: { id: string; email?: string | null; user_metadata?: { name?: string; full_name?: string } }
+  ): Promise<UserProfile> => {
+    const { data: existing } = await supabase
+      .from("user_profiles")
+      .select()
+      .eq("id", authUser.id)
+      .maybeSingle();
+
+    if (existing) return existing as UserProfile;
+
+    // Генерируем username из email/имени, гарантируя уникальность
+    const base =
+      (authUser.user_metadata?.name ?? authUser.user_metadata?.full_name ?? authUser.email ?? "user")
+        .split("@")[0]
+        .replace(/[^a-zA-Z0-9_]/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 16) || "user";
+
+    const { data: profile, error } = await supabase
+      .from("user_profiles")
+      .insert({ id: authUser.id, username: base })
+      .select()
+      .single();
+
+    if (!error && profile) return profile as UserProfile;
+
+    // Имя занято — пробуем с суффиксом
+    const { data: retry, error: retryErr } = await supabase
+      .from("user_profiles")
+      .insert({ id: authUser.id, username: `${base.slice(0, 12)}_${authUser.id.slice(0, 4)}` })
+      .select()
+      .single();
+
+    if (retryErr) throw new Error(retryErr.message);
+    return retry as UserProfile;
+  };
+
   const loadAuthState = async () => {
     try {
       const supabase = getSupabaseBrowser();
@@ -66,16 +107,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } = await supabase.auth.getSession();
 
       if (session?.user?.id) {
-        // Fetch profile
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select()
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (profile) {
-          setUser(profile as UserProfile);
-        }
+        const profile = await ensureProfile(supabase, session.user).catch((e) => {
+          console.error("Profile ensure error:", e);
+          return null;
+        });
+        if (profile) setUser(profile);
       }
     } catch (e) {
       console.error("Auth load error:", e);
@@ -95,14 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) return { error: "Неверный email или пароль" };
 
-    // Fetch profile
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select()
-      .eq("id", data.user.id)
-      .maybeSingle();
-
-    setUser(profile as UserProfile);
+    const profile = await ensureProfile(supabase, data.user);
+    setUser(profile);
     return { error: null };
   }, []);
 
@@ -151,9 +181,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabaseBrowser();
     if (!supabase) return { error: "Supabase не настроен" };
 
+    // Запоминаем, куда вернуться после OAuth (текущий URL),
+    // и просим Supabase редиректить на /login?redirect=... — там подхватим и перенаправим
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: `${window.location.origin}/login?returnTo=${returnTo}`,
+      },
     });
 
     if (error) return { error: error.message };
@@ -177,13 +212,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = await supabase.auth.getSession();
 
     if (session?.user) {
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select()
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      setUser(profile as UserProfile);
+      const profile = await ensureProfile(supabase, session.user).catch(() => null);
+      setUser(profile);
     } else {
       setUser(null);
     }

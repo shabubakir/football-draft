@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LeaderboardClient from "./leaderboard-client";
 
 export const metadata: Metadata = {
-  title: "Лидерборд | ShahGames",
+  title: "Лидерборд | Football Draft",
 };
 
 export default function LeaderboardRoute() {
