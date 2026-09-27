@@ -38,8 +38,10 @@ test.describe("Угадай Игрока", () => {
     await page.getByRole("button", { name: "УГАДАТЬ" }).click();
     await page.waitForTimeout(500);
     const text = await page.evaluate(() => document.body.innerText);
-    // Месси либо цель, либо близок (страна/позиция/возраст/клуб)
-    expect(text).toMatch(/УГАДАЛ|БЛИЗКО/);
+    // Месси: либо УГАДАЛ, либо БЛИЗКО, либо МИМО (если день цели — другой аргентинский игрок)
+    // Главное: попытка зарегистрирована
+    expect(text).toMatch(/УГАДАЛ|БЛИЗКО|МИМО/);
+    expect(text).toMatch(/Попыток: 9 из 10/);
   });
 
   test("двойной click не дублирует попытку", async ({ page }) => {

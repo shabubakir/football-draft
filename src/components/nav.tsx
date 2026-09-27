@@ -29,7 +29,20 @@ export function Nav({ dark = false }: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const gamesWrapRef = useRef<HTMLDivElement>(null);
   const gamesMenuRef = useRef<HTMLDivElement>(null);
+
+  // Клик вне меню → закрыть
+  useEffect(() => {
+    if (!gamesOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (gamesWrapRef.current && !gamesWrapRef.current.contains(e.target as Node)) {
+        setGamesOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [gamesOpen]);
   const pathname = usePathname() ?? "";
   const { user, loading, logout } = useAuth();
 
@@ -220,18 +233,12 @@ export function Nav({ dark = false }: { dark?: boolean }) {
 
         {/* Выпадающее меню со всеми играми */}
         <div
+          ref={gamesWrapRef}
           className="relative"
-          onMouseEnter={() => setGamesOpen(true)}
-          onMouseLeave={(e) => {
-            // Не закрываем, пока курсор внутри меню
-            const menu = gamesMenuRef.current;
-            if (menu && e.relatedTarget instanceof Node && menu.contains(e.relatedTarget)) return;
-            setGamesOpen(false);
-          }}
         >
           <button
             type="button"
-            onClick={() => setGamesOpen((v) => !v)}
+            onClick={() => setGamesOpen(true)}
             className={`px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1 ${
               gamesActive
                 ? dark ? "text-white bg-white/10" : "text-stone-900 bg-stone-200/60"
@@ -239,6 +246,7 @@ export function Nav({ dark = false }: { dark?: boolean }) {
             }`}
             aria-expanded={gamesOpen}
             aria-haspopup="menu"
+            onMouseEnter={() => setGamesOpen(true)}
           >
             ВСЕ ИГРЫ
             <svg

@@ -187,7 +187,7 @@ export function GuessGame() {
   return (
     <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6 text-white">
       {/* Левая колонка: поле игры */}
-      <div className="rounded-2xl border border-amber-500/20 bg-white/5 backdrop-blur p-5 sm:p-6">
+      <div className="min-w-0 rounded-2xl border border-amber-500/20 bg-white/5 backdrop-blur p-5 sm:p-6">
         <div className="flex items-center justify-between">
           <small className="text-[11px] tracking-[0.2em] text-amber-400/70">
             {isToday ? "ЕЖЕДНЕВНАЯ ИГРА" : "АРХИВ НЕДЕЛИ"} · {dateLabel(selectedDate)}
@@ -305,7 +305,7 @@ export function GuessGame() {
       </div>
 
       {/* Правая колонка: подсказки */}
-      <div className="rounded-2xl border border-amber-500/20 bg-white/5 backdrop-blur p-5 sm:p-6">
+      <div className="min-w-0 rounded-2xl border border-amber-500/20 bg-white/5 backdrop-blur p-5 sm:p-6">
         <small className="text-[11px] tracking-[0.2em] text-amber-400/70">
           ПОДСКАЗКИ
         </small>

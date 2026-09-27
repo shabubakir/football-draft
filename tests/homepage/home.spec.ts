@@ -27,7 +27,7 @@ test.describe("Главная страница", () => {
     // карточка УГАДАЙ ИГРОКА
     const card = page.getByRole("link", { name: /УГАДАЙ ИГРОКА/ }).first();
     await card.click();
-    await expect(page).toHaveURL("**/guess");
+    await page.waitForURL("**/guess", { timeout: 10000 });
   });
 
   test("refresh главной не ломает страницу", async ({ page }) => {

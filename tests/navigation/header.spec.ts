@@ -16,7 +16,6 @@ const NAV_LINKS: Array<[string, string]> = [
 
 async function openDropdown(page: Page) {
   const nav = page.locator("header").locator("nav").first();
-  // Клик — надёжнее hover в headless (и это нормальный UX-путь)
   await nav.getByRole("button", { name: /ВСЕ ИГРЫ/ }).click();
   await page.waitForTimeout(300);
   return nav;
@@ -29,11 +28,13 @@ test.describe("Header / Navigation", () => {
     await expect(nav.getByRole("link", { name: "ИГРЫ", exact: true })).toHaveAttribute("href", "/");
     await expect(nav.getByRole("link", { name: "РЕЙТИНГ" })).toHaveAttribute("href", "/leaderboard");
 
+    // Открываем dropdown один раз
+    await openDropdown(page);
     for (const [label, href] of NAV_LINKS) {
-      const nav2 = await openDropdown(page);
-      const link = nav2.getByRole("link", { name: label });
-      await expect(link, label).toBeVisible({ timeout: 5000 });
-      await expect(link, "href для " + label).toHaveAttribute("href", href);
+      // Ссылки в dropdown имеют role="menuitem"
+      const item = nav.getByRole("menuitem", { name: label });
+      await expect(item, label).toBeVisible({ timeout: 5000 });
+      await expect(item, "href для " + label).toHaveAttribute("href", href);
     }
   });
 
@@ -64,12 +65,16 @@ test.describe("Header / Navigation", () => {
   test("back/forward работает без потери состояния навигации", async ({ page }) => {
     await page.goto("/");
     await page.waitForTimeout(500);
-    await page.locator("header nav").getByRole("link", { name: "ДРАФТ" }).click();
-    await expect(page).toHaveURL("**/draft");
+    // Открываем dropdown и кликаем на ДРАФТ
+    const nav = page.locator("header").locator("nav").first();
+    await nav.getByRole("button", { name: /ВСЕ ИГРЫ/ }).click();
+    await page.waitForTimeout(300);
+    await nav.getByRole("menuitem", { name: "ДРАФТ" }).click();
+    await page.waitForURL("http://localhost:3000/draft", { timeout: 10000 });
     await page.goBack();
     await expect(page).toHaveURL("http://localhost:3000/", { timeout: 10000 });
     await page.goForward();
-    await expect(page).toHaveURL("**/draft");
+    await expect(page).toHaveURL("http://localhost:3000/draft", { timeout: 10000 });
   });
 });
 
