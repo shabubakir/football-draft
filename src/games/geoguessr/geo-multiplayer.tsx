@@ -334,10 +334,11 @@ export function GeoMultiplayer({
   // Если первый раунд пустой — игра только началась.
   const currentRoundIdx = useMemo(() => {
     if (!room) return 0;
+    let last = -1;
     for (let i = 0; i < room.rounds_data.length; i++) {
-      if (room.rounds_data[i].guesses.length > 0) return i;
+      if (room.rounds_data[i].guesses.length > 0) last = i;
     }
-    return 0;
+    return last < 0 ? 0 : last;
   }, [room]);
   const currentRoundData: GeoRoomRound | null =
     room && room.rounds_data.length > 0 ? room.rounds_data[currentRoundIdx] : null;
@@ -492,6 +493,8 @@ export function GeoMultiplayer({
     try {
       const d = await api("next", { code: room.code });
       setRoom(d.room);
+      // Сбрасываем локальное состояние НЕМЕДЛЕННО — realtime может быть
+      // медленным, и без этого UI "залипает" на старом раунде.
       setGuess(null);
       setMyAnswered(false);
       setTimeLeft(null);
@@ -499,10 +502,6 @@ export function GeoMultiplayer({
       if (d.room.status === "finished") {
         setPhase("end");
       }
-      // ДАЛЬШЕ НЕТ АВТО-ПЕРХОДА: следующий раунд показывается,
-      // когда currentRoundIdx сдвинулся (все ответили → кнопка «next» уже
-      // применила новый раунд). Игрок сам жмёт «СЛЕДУЮЩИЙ РАУНД» повторно
-      // не нужно — кнопка уже ведёт в новый раунд после этого вызова.
     } catch (e) {
       // Если «ещё не все ответили» — молча показываем статус ожидания
       setError((e as Error).message);
@@ -1091,8 +1090,9 @@ export function GeoMultiplayer({
               </div>
 
               <div className="mt-4">
+                {error && <p className="mb-2 text-xs text-rose-600">{error}</p>}
                 <PrimaryButton onClick={doNext} disabled={busy} variant="dark">
-                  {busy ? "…" : isLastRound ? "ИТОГИ ИГРЫ" : "СЛЕДУЮЩИЙ РАУНД"}
+                  {busy ? "Переход…" : isLastRound ? "ИТОГИ ИГРЫ" : "СЛЕДУЮЩИЙ РАУНД"}
                 </PrimaryButton>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { Nav } from "@/components/nav";
+import GameShell from "@/components/game-shell";
 import GeoMultiplayerLoader from "../geoguessr-mp-client";
 
 export const metadata = {
@@ -12,13 +12,16 @@ export default function GeoMultiplayerRoomPage({
   params: Promise<{ roomCode: string }>;
 }) {
   return (
-    <main className="min-h-screen w-full bg-stone-100">
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <Nav />
-        <div className="mt-8 sm:mt-10">
-          <GeoMultiplayerLoader params={params} />
-        </div>
-      </div>
-    </main>
+    <GameShell
+      theme="geoguessr"
+      maxWidth="max-w-5xl"
+      header={{
+        badge: "WORLD TOUR",
+        title: "GEO GUESSR LITE",
+        subtitle: "Угадай, где ты находишься, — 5 раундов, один мир",
+      }}
+    >
+      <GeoMultiplayerLoader params={params} />
+    </GameShell>
   );
 }
