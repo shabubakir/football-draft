@@ -17,6 +17,7 @@ import {
 import { getAllGames } from "@/lib/progression/game-registry";
 import { getDailyMissions, getWeeklyMissions } from "@/lib/progression/mission-service";
 import { Nav } from "./nav";
+import { TitleSelector } from "./title-selector";
 
 type GameStatRow = {
   game_id: string;
@@ -53,6 +54,7 @@ export default function ProfilePage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [recentResults, setRecentResults] = useState<RecentResult[]>([]);
   const [achCount, setAchCount] = useState(0);
+  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -276,6 +278,11 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+
+          {/* === Титулы === */}
+          <div className="rounded-3xl border border-stone-200 bg-white shadow-sm p-6">
+            <TitleSelector />
+          </div>
 
           {/* === Статистика по играм === */}
           <div className="rounded-3xl border border-stone-200 bg-white shadow-sm p-6">
