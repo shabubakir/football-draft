@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ru"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#f5f1e8] text-stone-900">
+      <body className="min-h-full flex flex-col bg-stone-950 text-stone-100">
         <AuthProvider>
           {children}
           <MigrationPrompt />

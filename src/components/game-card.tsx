@@ -12,6 +12,7 @@ const DARK_THEMES = new Set([
   "cs2-higher-lower",
   "akinator",
   "geoguessr",
+  "grid-9",
 ]);
 
 export function GameCard({ game }: { game: GameCardType }) {

@@ -50,7 +50,7 @@ export function ProfileBadge() {
   const progress = xp != null ? levelProgress(xp) : 0;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white/70 px-3 py-2">
+    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
       {editing ? (
         <span className="flex items-center gap-2">
           <input
@@ -59,12 +59,12 @@ export function ProfileBadge() {
             onKeyDown={(e) => e.key === "Enter" && save()}
             autoFocus
             placeholder="Ваше имя"
-            className="w-36 rounded-lg border border-stone-300 px-2 py-1 text-sm outline-none focus:border-stone-500"
+            className="w-36 rounded-lg border border-white/20 bg-white/5 px-2 py-1 text-sm text-white outline-none focus:border-emerald-400/60"
           />
           <button
             type="button"
             onClick={save}
-            className="rounded-lg bg-stone-900 text-white text-xs font-bold px-2.5 py-1.5"
+            className="rounded-lg bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 hover:bg-emerald-500"
           >
             ОК
           </button>
@@ -79,14 +79,14 @@ export function ProfileBadge() {
           className="text-left group"
           title="Изменить имя"
         >
-          <span className="block text-sm font-bold text-stone-900">
+          <span className="block text-sm font-bold text-white">
             {name || "Игрок"}{" "}
-            <span className="text-[10px] text-stone-400 group-hover:text-stone-600">
+            <span className="text-[10px] text-stone-500 group-hover:text-stone-300">
               ✎
             </span>
           </span>
           {rank && (
-            <span className="block text-[10px] text-stone-500">
+            <span className="block text-[10px] text-stone-400">
               ур. {lvl} · {rank}
             </span>
           )}
@@ -94,13 +94,13 @@ export function ProfileBadge() {
       )}
       {xp != null && (
         <span className="w-16">
-          <span className="block h-1.5 rounded-full bg-stone-200 overflow-hidden">
+          <span className="block h-1.5 rounded-full bg-white/10 overflow-hidden">
             <span
               className="block h-full bg-emerald-500"
               style={{ width: `${progress}%` }}
             />
           </span>
-          <small className="text-[9px] text-stone-400">{xp} XP</small>
+          <small className="text-[9px] text-stone-500">{xp} XP</small>
         </span>
       )}
     </div>
