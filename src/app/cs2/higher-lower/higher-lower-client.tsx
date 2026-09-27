@@ -292,7 +292,7 @@ export function CS2CompareClient() {
         <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              CS2 <span className="text-[#ffd700]">HIGHER / LOWER</span>
+              CS2 <span className="text-[#ffd700]">СКИН ВЫШЕ/НИЖЕ</span>
             </h1>
             <p className="text-sm text-stone-400 mt-1">
               Какая цена выше? {TOTAL_ROUNDS} раундов · реальные цены скинов
@@ -325,7 +325,7 @@ export function CS2CompareClient() {
         {/* Статистика (localStorage) */}
         <div className="mt-4 grid grid-cols-4 gap-2 max-w-xl">
           <Stat label="Игр" value={String(stats.gamesPlayed)} />
-          <Stat label="Лучший streak" value={String(stats.bestStreak)} accent="#ffd700" />
+          <Stat label="Лучшая серия" value={String(stats.bestStreak)} accent="#ffd700" />
           <Stat label="Верно (всего)" value={String(stats.totalCorrect)} accent="#4ade80" />
           <Stat label="Ошибок (всего)" value={String(stats.totalWrong)} accent="#ef4444" />
         </div>
@@ -356,12 +356,12 @@ export function CS2CompareClient() {
             {/* Прогресс + счёт */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm font-bold text-stone-400">
-                ROUND <span className="text-white">{roundIdx + 1}</span> / {rounds.length}
+                РАУНД <span className="text-white">{roundIdx + 1}</span> / {rounds.length}
               </div>
               <div className="flex items-center gap-2">
                 <Stat label="Счёт" value={String(score)} accent="#ffd700" />
-                <Stat label="Streak" value={String(streak)} accent="#4ade80" />
-                <Stat label="Best" value={String(bestStreakRun)} accent="#8847ff" />
+                <Stat label="Серия" value={String(streak)} accent="#4ade80" />
+                <Stat label="Лучшая" value={String(bestStreakRun)} accent="#8847ff" />
               </div>
             </div>
 
@@ -412,20 +412,20 @@ export function CS2CompareClient() {
             {phase === "ask" && (
               <>
                 <p className="text-center text-sm font-bold text-stone-400 uppercase tracking-widest">
-                  WHICH IS MORE EXPENSIVE?
+                  какой скин дороже?
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => pick("a")}
                     className="py-4 rounded-xl font-black text-sm sm:text-base tracking-wider bg-gradient-to-r from-[#ffd700] to-[#ff8c00] text-stone-950 hover:scale-[1.02] transition shadow-lg shadow-[#ffd700]/20"
                   >
-                    ← LEFT / A ДОРОЖЕ
+                    ← ЛЕВЫЙ ДОРОЖЕ
                   </button>
                   <button
                     onClick={() => pick("b")}
                     className="py-4 rounded-xl font-black text-sm sm:text-base tracking-wider bg-gradient-to-r from-[#ffd700] to-[#ff8c00] text-stone-950 hover:scale-[1.02] transition shadow-lg shadow-[#ffd700]/20"
                   >
-                    RIGHT / B ДОРОЖЕ →
+                    ПРАВЫЙ ДОРОЖЕ →
                   </button>
                 </div>
                 {isClose && (
@@ -451,7 +451,7 @@ export function CS2CompareClient() {
                     className="text-xl sm:text-2xl font-black"
                     style={{ color: picked === correctSide ? "#4ade80" : "#ef4444" }}
                   >
-                    {picked === correctSide ? "✓ CORRECT" : "✗ WRONG"}
+                    {picked === correctSide ? "✓ ВЕРНО" : "✗ ОШИБКА"}
                   </div>
                   <div className="text-xs text-stone-400 mt-1">
                     {picked === correctSide
@@ -469,7 +469,7 @@ export function CS2CompareClient() {
                     }}
                     className="px-8 py-3.5 rounded-xl font-black text-sm tracking-wider bg-white/10 hover:bg-white/20 border border-white/10 transition"
                   >
-                    {roundIdx + 1 >= rounds.length ? "ИТОГИ →" : "NEXT ROUND →"}
+                    {roundIdx + 1 >= rounds.length ? "ИТОГИ →" : "СЛЕДУЮЩИЙ РАУНД →"}
                   </button>
                 </div>
               </div>
@@ -488,7 +488,7 @@ export function CS2CompareClient() {
               <span className="text-2xl text-stone-500"> / {rounds.length}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
-              <Stat label="Streak" value={String(bestStreakRun)} accent="#4ade80" />
+              <Stat label="Серия" value={String(bestStreakRun)} accent="#4ade80" />
               <Stat label="Лучший" value={String(Math.max(stats.bestStreak, bestStreakRun))} accent="#ffd700" />
               <Stat label="Игр сыграно" value={String(stats.gamesPlayed)} />
             </div>
@@ -510,7 +510,7 @@ export function CS2CompareClient() {
               onClick={restart}
               className="px-10 py-4 rounded-xl font-black text-lg tracking-wider bg-gradient-to-r from-[#ffd700] to-[#ff8c00] text-stone-950 hover:scale-105 transition shadow-lg shadow-[#ffd700]/20"
             >
-              PLAY AGAIN
+              ИГРАТЬ ЕЩЁ РАЗ
             </button>
           </div>
         )}
