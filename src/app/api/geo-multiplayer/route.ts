@@ -280,12 +280,39 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return err("Вы не игрок в этой комнате");
 
-      // Текущий раунд = первый с пустыми guesses (все раунды инициализируются при start)
-      const roundIdx = room.rounds_data.findIndex((r) => r.guesses.length === 0);
-      if (roundIdx < 0) return err("Все раунды завершены");
-      if (roundIdx >= room.rounds) return err("Неверный раунд");
+      // Читаем актуальное rounds_data из БД
+      const { data: cur, error: curErr } = await sb
+        .from("geo_rooms")
+        .select("rounds_data")
+        .eq("id", room.id)
+        .maybeSingle();
+      if (curErr || !cur) return err("Не удалось прочитать комнату", 500);
 
-      const locationId = room.round_location_ids[roundIdx] ?? room.rounds_data[roundIdx]?.location_id;
+      const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
+
+      // Текущий раунд = первый, в котором есть хотя бы один ответ,
+      // НО ещё не все онлайн-игроки ответили.
+      // Если раунд пустой (0 ответов) и это первый такой — это текущий раунд.
+      const onlinePlayers = room.players.filter((p) => p.online);
+      let roundIdx = -1;
+      for (let i = 0; i < rounds.length; i++) {
+        const r = rounds[i];
+        if (r.guesses.length === 0) {
+          // Первый пустой раунд = текущий (ещё никто не ответил)
+          roundIdx = i;
+          break;
+        }
+        const answeredIds = new Set(r.guesses.map((g) => g.playerId));
+        const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
+        if (pendingHere.length > 0) {
+          roundIdx = i;
+          break;
+        }
+        // все ответили — раунд завершён
+      }
+      if (roundIdx < 0) return err("Все раунды завершены");
+
+      const locationId = room.round_location_ids[roundIdx] ?? rounds[roundIdx]?.location_id;
       if (!locationId) return err("Локация раунда не выбрана", 500);
       const location = getLocationById(locationId);
       if (!location) return err("Локация не найдена в базе", 500);
@@ -299,15 +326,6 @@ export async function POST(req: NextRequest) {
       // СЕРВЕР считает расстояние и очки
       const entry = scoreRoundGuess(location, deviceId, lat, lng);
 
-      // Читаем актуальное rounds_data из БД
-      const { data: cur, error: curErr } = await sb
-        .from("geo_rooms")
-        .select("rounds_data")
-        .eq("id", room.id)
-        .maybeSingle();
-      if (curErr || !cur) return err("Не удалось прочитать комнату", 500);
-
-      const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
       const rnd = rounds[roundIdx];
       if (!rnd) return err("Раунд не найден", 500);
 
@@ -390,10 +408,23 @@ export async function POST(req: NextRequest) {
       if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
       const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
 
-      // Текущий раунд = первый с НЕ-пустыми guesses (раунд в который отвечают)
-      // Если все раунды пустые — игра не началась
-      const roundIdx = freshRounds.findIndex((r) => r.guesses.length > 0);
-      if (roundIdx < 0) return err("Ещё нет ответов");
+      // Текущий раунд = первый, в котором есть хотя бы один ответ,
+      // НО ещё не все онлайн-игроки ответили.
+      // Если в раунде уже ответили все — он завершён, ищем следующий.
+      const onlinePlayers = room.players.filter((p) => p.online);
+      let roundIdx = -1;
+      for (let i = 0; i < freshRounds.length; i++) {
+        const r = freshRounds[i];
+        if (r.guesses.length === 0) continue; // раунд ещё не начался
+        const answeredIds = new Set(r.guesses.map((g) => g.playerId));
+        const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
+        if (pendingHere.length > 0) {
+          roundIdx = i;
+          break;
+        }
+        // все ответили в этом раунде — он завершён, идём дальше
+      }
+      if (roundIdx < 0) return err("Все раунды завершены");
       const rnd = freshRounds[roundIdx];
       if (!rnd) return err("Неверный раунд");
 
