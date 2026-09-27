@@ -110,8 +110,6 @@ export async function POST(req: NextRequest) {
       if (curErr || !cur) return err("read failed: " + (curErr?.message ?? "?"), 500);
 
       const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
-      console.log("[debug-write] current rounds_data length:", rounds.length);
-      console.log("[debug-write] room.id:", room.id);
 
       // Модифицируем round 0
       const newRounds = [...rounds];
@@ -122,11 +120,10 @@ export async function POST(req: NextRequest) {
         };
       }
 
-      const { error: upE } = await sb
+      const { error: upE, count: upCount } = await sb
         .from("geo_rooms")
         .update({ rounds_data: newRounds })
         .eq("id", room.id);
-      console.log("[debug-write] update error:", upE?.message ?? "none");
 
       // Перечитываем
       const { data: after, error: afterErr } = await sb
@@ -134,14 +131,22 @@ export async function POST(req: NextRequest) {
         .select("rounds_data")
         .eq("id", room.id)
         .maybeSingle();
-      if (afterErr) return err("verify read failed: " + afterErr.message, 500);
 
-      const afterRounds = (after as { rounds_data: GeoRoomRound[] }).rounds_data;
+      const afterRounds = after ? (after as { rounds_data: GeoRoomRound[] }).rounds_data : null;
+
       return ok({
-        before: rounds[0]?.guesses?.length ?? 0,
-        after: afterRounds[0]?.guesses?.length ?? 0,
-        afterGuesses: afterRounds[0]?.guesses,
         roomId: room.id,
+        code: room.code,
+        roundsLength: rounds.length,
+        beforeGuesses: rounds[0]?.guesses?.length,
+        beforeLocationId: rounds[0]?.location_id,
+        updateError: upE?.message ?? null,
+        updateErrorName: upE?.name ?? null,
+        updateCount: upCount,
+        afterReadError: afterErr?.message ?? null,
+        afterGuesses: afterRounds?.[0]?.guesses?.length,
+        afterLocationId: afterRounds?.[0]?.location_id,
+        afterFull: afterRounds?.[0],
       });
     }
 
