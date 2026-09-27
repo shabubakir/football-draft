@@ -94,6 +94,57 @@ export async function POST(req: NextRequest) {
   if (!sb) return err("Backend not configured", 503);
 
   switch (action) {
+    // ================= DEBUG: тест записи rounds_data =================
+    case "debug-write": {
+      if (!code) return err("code required");
+      const found = await fetchRoom(code);
+      if ("error" in found) return err(found.error, found.status);
+      const room = found.room;
+
+      // Читаем текущее rounds_data
+      const { data: cur, error: curErr } = await sb
+        .from("geo_rooms")
+        .select("rounds_data")
+        .eq("id", room.id)
+        .maybeSingle();
+      if (curErr || !cur) return err("read failed: " + (curErr?.message ?? "?"), 500);
+
+      const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
+      console.log("[debug-write] current rounds_data length:", rounds.length);
+      console.log("[debug-write] room.id:", room.id);
+
+      // Модифицируем round 0
+      const newRounds = [...rounds];
+      if (newRounds[0]) {
+        newRounds[0] = {
+          ...newRounds[0],
+          guesses: [...newRounds[0].guesses, { playerId: "debug", lat: 0, lng: 0, distanceKm: 1, points: 100 }],
+        };
+      }
+
+      const { error: upE } = await sb
+        .from("geo_rooms")
+        .update({ rounds_data: newRounds })
+        .eq("id", room.id);
+      console.log("[debug-write] update error:", upE?.message ?? "none");
+
+      // Перечитываем
+      const { data: after, error: afterErr } = await sb
+        .from("geo_rooms")
+        .select("rounds_data")
+        .eq("id", room.id)
+        .maybeSingle();
+      if (afterErr) return err("verify read failed: " + afterErr.message, 500);
+
+      const afterRounds = (after as { rounds_data: GeoRoomRound[] }).rounds_data;
+      return ok({
+        before: rounds[0]?.guesses?.length ?? 0,
+        after: afterRounds[0]?.guesses?.length ?? 0,
+        afterGuesses: afterRounds[0]?.guesses,
+        roomId: room.id,
+      });
+    }
+
     // ================= create =================
     case "create": {
       const rounds = Number(body.rounds);
