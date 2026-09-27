@@ -203,8 +203,10 @@ export async function POST(req: NextRequest) {
         room.round_location_ids.length === room.rounds
           ? room.round_location_ids
           : pickRoundLocationIds(room.rounds);
+      // Активируем ТОЛЬКО первый раунд (location_id ставится).
+      // Остальные — location_id: null, пока next не дойдёт до них.
       const roundsData: GeoRoomRound[] = Array.from({ length: room.rounds }, (_, i) => ({
-        location_id: roundLocationIds[i] ?? null,
+        location_id: i === 0 ? (roundLocationIds[0] ?? null) : null,
         guesses: [],
       }));
       const { error: upE } = await sb
@@ -243,32 +245,12 @@ export async function POST(req: NextRequest) {
 
       const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
 
-      // Текущий раунд = первый, в котором есть хотя бы один ответ,
-      // НО ещё не все онлайн-игроки ответили.
-      // Если раунд пустой (0 ответов) и это первый такой — это текущий раунд.
-      const onlinePlayers = room.players.filter((p) => p.online);
+      // Текущий раунд = последний с location_id (активированный)
       let roundIdx = -1;
       for (let i = 0; i < rounds.length; i++) {
-        const r = rounds[i];
-        if (r.guesses.length === 0) {
-          // Пустой раунд: если location_id уже назначен (next прошёл)
-          // — это текущий раунд, ждём ответов. Если location_id null —
-          // раунд ещё не начат (next не вызывался).
-          if (r.location_id) {
-            roundIdx = i;
-            break;
-          }
-          break; // ещё не начат — не идём дальше
-        }
-        const answeredIds = new Set(r.guesses.map((g) => g.playerId));
-        const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
-        if (pendingHere.length > 0) {
-          roundIdx = i;
-          break;
-        }
-        // все ответили — раунд завершён
+        if (rounds[i].location_id) roundIdx = i;
       }
-      if (roundIdx < 0) return err("Все раунды завершены");
+      if (roundIdx < 0) return err("Нет активного раунда");
 
       const locationId = room.round_location_ids[roundIdx] ?? rounds[roundIdx]?.location_id;
       if (!locationId) return err("Локация раунда не выбрана", 500);
@@ -366,31 +348,27 @@ export async function POST(req: NextRequest) {
       if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
       const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
 
-      // Находим первый раунд с ответами, где ещё НЕ все ответили — это текущий раунд.
+      // Текущий раунд = последний с location_id (активированный).
       const allPlayers = room.players;
       let activeIdx = -1;
       for (let i = 0; i < freshRounds.length; i++) {
-        const r = freshRounds[i];
-        if (r.guesses.length === 0) break; // этот раунд ещё не начался
-        const answeredIds = new Set(r.guesses.map((g) => g.playerId));
-        const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
-        if (pendingHere.length > 0) {
-          activeIdx = i;
-          break;
-        }
+        if (freshRounds[i].location_id) activeIdx = i;
       }
-      if (activeIdx >= 0) {
-        const r = freshRounds[activeIdx];
-        const answeredIds = new Set(r.guesses.map((g) => g.playerId));
-        const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
+      if (activeIdx < 0) return err("Нет активного раунда");
+
+      // Проверка: все ли ответили в активном раунде?
+      const activeRound = freshRounds[activeIdx];
+      const answeredIds = new Set(activeRound.guesses.map((g) => g.playerId));
+      const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
+      if (pendingHere.length > 0) {
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
       }
-      // Все раунды до первого пустого завершены — переходим к следующему.
-      // Если пустых раундов нет — все раунды сыграны → финал.
-      let roundIdx = -1;
+
+      // Все ответили → ищем следующий неактивированный раунд.
+      let nextIdx = -1;
       for (let i = 0; i < freshRounds.length; i++) {
-        if (freshRounds[i].guesses.length === 0) {
-          roundIdx = i;
+        if (!freshRounds[i].location_id) {
+          nextIdx = i;
           break;
         }
       }
@@ -403,19 +381,15 @@ export async function POST(req: NextRequest) {
       let winnerId: string | null = null;
       let finishedAt: string | null = room.finished_at;
 
-      if (roundIdx < 0) {
-        // Все раунды заполнены → финал
+      if (nextIdx < 0) {
+        // Все раунды сыграны → финал
         status = "finished";
         winnerId = computeWinner(scores);
         finishedAt = new Date().toISOString();
       } else {
-        // НО: раунд с 0 ответов — это ЕЩЁ НЕ НАЧАВШИЙСЯ раунд.
-        // guess-логика ищет "первый раунд с ответами" как текущий,
-        // поэтому без маркера игроки продолжат отвечать в старом раунде.
-        // Ставим location_id — раунд считается "начавшимся",
-        // но без guesses (все ещё должны ответить).
-        roundsData[roundIdx] = {
-          location_id: room.round_location_ids[roundIdx] ?? null,
+        // Активируем следующий раунд
+        roundsData[nextIdx] = {
+          location_id: room.round_location_ids[nextIdx] ?? null,
           guesses: [],
         };
       }

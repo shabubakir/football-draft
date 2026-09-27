@@ -359,6 +359,8 @@ export function GeoMultiplayer({
 
   // ---------- Таймер раунда (30 сек на ответ) ----------
   const ROUND_TIME = 30;
+  const guessRef = useRef<[number, number] | null>(null);
+  guessRef.current = guess;
   useEffect(() => {
     if (phase !== "play" || myAnswered) {
       setTimeLeft(null);
@@ -371,7 +373,12 @@ export function GeoMultiplayer({
         if (t === null) return null;
         if (t <= 1) {
           clearInterval(iv);
-          doGuessRef.current?.();
+          // Таймер истёк: если точка уже стоит — отправляем, если нет — показываем подсказку
+          if (guessRef.current) {
+            doGuessRef.current?.();
+          } else {
+            setError("⏰ Время вышло — поставь точку на карте и нажми «Подтвердить»");
+          }
           return 0;
         }
         return t - 1;
