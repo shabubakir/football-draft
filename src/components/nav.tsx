@@ -185,6 +185,7 @@ export function Nav({ dark = false }: { dark?: boolean }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const gamesWrapRef = useRef<HTMLDivElement>(null);
+  const gamesCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Клик вне меню → закрыть
   useEffect(() => {
@@ -383,6 +384,18 @@ export function Nav({ dark = false }: { dark?: boolean }) {
         <div
           ref={gamesWrapRef}
           className="relative"
+          onMouseLeave={() => {
+            if (gamesCloseTimer.current) clearTimeout(gamesCloseTimer.current);
+            gamesCloseTimer.current = setTimeout(() => {
+              setGamesOpen(false);
+              setActiveCategory(
+                NAV_CATEGORIES.find((c) => activeCategoryOf(c))?.title ?? null
+              );
+            }, 150);
+          }}
+          onMouseEnter={() => {
+            if (gamesCloseTimer.current) clearTimeout(gamesCloseTimer.current);
+          }}
         >
           <button
             type="button"
@@ -441,7 +454,6 @@ export function Nav({ dark = false }: { dark?: boolean }) {
                       type="button"
                       role="menuitem"
                       onClick={() => setActiveCategory(cat.title)}
-                      onMouseEnter={() => setActiveCategory(cat.title)}
                       className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl mb-1 text-left transition ${
                         isActiveCat
                           ? dark
