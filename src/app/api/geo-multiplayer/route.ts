@@ -380,7 +380,8 @@ export async function POST(req: NextRequest) {
         const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
       }
-      // Все раунды до первого пустого завершены — переходим к следующему
+      // Все раунды до первого пустого завершены — переходим к следующему.
+      // Если пустых раундов нет — все раунды сыграны → финал.
       let roundIdx = -1;
       for (let i = 0; i < freshRounds.length; i++) {
         if (freshRounds[i].guesses.length === 0) {
@@ -388,9 +389,8 @@ export async function POST(req: NextRequest) {
           break;
         }
       }
-      if (roundIdx < 0) return err("Все раунды завершены");
 
-      // --- расчёт очков и переход ---
+      // --- расчёт очков ---
       const roundsData = [...freshRounds];
       const scores = computeScores(room.players, roundsData);
 
@@ -398,13 +398,12 @@ export async function POST(req: NextRequest) {
       let winnerId: string | null = null;
       let finishedAt: string | null = room.finished_at;
 
-      if (roundIdx + 1 >= room.rounds) {
-        // последний раунд → финал
+      if (roundIdx < 0) {
+        // Все раунды заполнены → финал
         status = "finished";
         winnerId = computeWinner(scores);
         finishedAt = new Date().toISOString();
       }
-      // Следующий раунд уже инициализирован при start — просто переходим
 
       const { error: upE } = await sb
         .from("geo_rooms")
