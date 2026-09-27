@@ -24,6 +24,7 @@ import {
 } from "./geo-engine";
 import { LOCATIONS, geoImageUrl } from "./locations";
 import { GeoMap } from "./geo-map";
+import { OptimizedImage } from "@/components/optimized-image";
 
 type Phase = "playing" | "revealed" | "done";
 
@@ -174,7 +175,7 @@ export function GeoGuessrGame() {
             </div>
           )}
           {!imgFailed && (
-            <img
+            <OptimizedImage
               key={current.id}
               src={geoImageUrl(current.image)}
               referrerPolicy="no-referrer"

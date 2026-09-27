@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { shuffleQuestions, type QuizTopic } from "@/lib/quiz";
+import { OptimizedImage } from "@/components/optimized-image";
 
 type QuizPhase = "lobby" | "playing" | "reveal" | "end";
 type Role = "host" | "guest";
@@ -877,8 +878,7 @@ export function QuizOnline() {
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
             {q.image && !brokenImgs.has(q.image) && (
               <div className="mb-5 flex justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <OptimizedImage
                   src={q.image}
                   alt="Вопрос"
                   className="max-h-64 w-auto rounded-xl object-cover border-2 border-white/10"
