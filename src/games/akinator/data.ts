@@ -1,4 +1,5 @@
 import type { Category, Entity, Question } from "./types";
+import { parseExtraPlayers, EXTRA_PLAYERS_RAW } from "./players-extra";
 
 // ============================================================
 // FOOTBALL AKINATOR — данные
@@ -84,7 +85,8 @@ const CONT: Record<string, string> = {
   brazil: "sa", argentina: "sa", colombia: "sa", uruguay: "sa", chile: "sa",
   peru: "sa", ecuador: "sa", paraguay: "sa", venezuela: "sa",
   cote_divoire: "af", egypt: "af", senegal: "af", nigeria: "af", ghana: "af",
-  cameroon: "af", algeria: "af", morocco: "af", togo: "af",
+  cameroon: "af", algeria: "af", morocco: "af", togo: "af", liberia: "af",
+  armenia: "eu",
   mexico: "na", usa: "na", belize: "na",
   japan: "asia", south_korea: "asia", iran: "asia", iraq: "asia",
   saudi: "asia", kazakhstan: "asia",
@@ -549,6 +551,37 @@ const PLAYERS: Entity[] = [
 ];
 
 // ============================================================
+// ДОПОЛНИТЕЛЬНЫЕ ИГРОКИ (из players-extra.ts)
+// ============================================================
+const EXTRA_PLAYERS: Entity[] = parseExtraPlayers(EXTRA_PLAYERS_RAW).map((p) => {
+  const cont = CONT[p.nation] ?? "eu";
+  const props: Record<string, any> = {
+    isPerson: true, isPlayer: true,
+    isActive: p.active,
+    nationality: p.nation, era: p.era,
+    position: p.pos,
+    isGoalkeeper: p.pos === "gk", isDefender: p.pos === "df",
+    isMidfielder: p.pos === "mf", isForward: p.pos === "fw",
+    leftFooted: p.lf,
+    currentClub: p.cur, famousClubs: p.clubs,
+    wonWorldCup: p.wc, wonBallonDor: p.bd,
+    wonChampionsLeague: p.ucl, wonEuros: p.eu,
+    goalsPerGame: p.gpg, heightCm: p.h, birthYear: p.by,
+    isEuropean: cont === "eu", isSouthAmerican: cont === "sa",
+    isAfrican: cont === "af", isNorthAmerican: cont === "na",
+    isAsian: cont === "asia", isOceania: cont === "oce",
+    isLegendary: p.leg, isIcon: p.ic, isRival: p.riv,
+    jerseyNumber: 10,
+  };
+  const id = "x_" + p.nameEn.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return {
+    id, name: p.name, nameEn: p.nameEn, category: "player" as const,
+    blurb: p.nameEn, color: "#457b9d", props: P(props),
+    keywords: [p.nameEn.toLowerCase().replace(/[^a-z]+/g, " ")],
+  };
+});
+
+// ============================================================
 // НЕФУТБОЛИСТЫ (клубы, сборные, стадионы, турниры, лиги,
 // судьи, позиции, термины, награды, события)
 // ============================================================
@@ -648,6 +681,7 @@ const EVENTS: Entity[] = [
 
 export const ALL_ENTITIES: Entity[] = [
   ...PLAYERS,
+  ...EXTRA_PLAYERS,
   ...COACHES,
   ...CLUBS,
   ...NATIONAL_TEAMS,
