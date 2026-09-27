@@ -8,40 +8,183 @@ import { getSupabaseBrowser } from "@/lib/auth";
 import { levelFromXp } from "@/lib/xp";
 
 // ---------- Конфиг пунктов меню ----------
-// Футбольные игры идут первыми (основной контент сайта),
-// затем другие мини-игры и рейтинги.
 // `match` — префикс пути для подсветки активного пункта.
-const NAV_ITEMS = [
-  { href: "/", label: "ИГРЫ", desc: "Все игры" },
-  { href: "/grid/online", label: "СЕТКА 9 ОНЛАЙН", match: "/grid" },
-  { href: "/draft", label: "ДРАФТ", match: "/draft" },
-  { href: "/guess", label: "УГАДАЙ ИГРОКА", match: "/guess" },
-  { href: "/career", label: "ПУТЬ ФУТБОЛИСТА", match: "/career" },
-  { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz" },
+// `icon` — SVG-иконка для мега-меню.
+type NavGame = {
+  href: string;
+  label: string;
+  match?: string;
+  desc?: string;
+  icon: string;
+};
+
+const NAV_GAMES: NavGame[] = [
+  { href: "/grid/online", label: "СЕТКА 9 ОНЛАЙН", match: "/grid", icon: "grid", desc: "Крестики-нолики с другом" },
+  { href: "/draft", label: "ДРАФТ", match: "/draft", icon: "clipboard", desc: "Исторический турнир" },
+  { href: "/guess", label: "УГАДАЙ ИГРОКА", match: "/guess", icon: "question", desc: "Ежедневная игра" },
+  { href: "/career", label: "ПУТЬ ФУТБОЛИСТА", match: "/career", icon: "route", desc: "Угадай по карьере" },
+  { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz", icon: "trophy", desc: "До 5 игроков онлайн" },
   // CS2 КЕЙСЫ: без match — активен только на самом /cs2,
   // чтобы /cs2/aim и /cs2/higher-lower подсвечивали только себя.
-  { href: "/cs2", label: "CS2 КЕЙСЫ" },
-  { href: "/cs2/aim", label: "CS2 AIM", match: "/cs2/aim" },
-  { href: "/cs2/higher-lower", label: "CS2 HIGHER/LOWER", match: "/cs2/higher-lower" },
-  { href: "/akinator", label: "AKINATOR", match: "/akinator" },
-  { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr" },
-  { href: "/leaderboard", label: "РЕЙТИНГ", match: "/leaderboard" },
-] as const;
-
-// ---------- Группы для выпадающего меню «ВСЕ ИГРЫ» ----------
-const GAME_GROUPS: { icon: string; title: string; hrefs: string[] }[] = [
-  { icon: "⚽", title: "Футбол", hrefs: ["/grid", "/draft", "/guess", "/career", "/quiz"] },
-  { icon: "🔫", title: "CS2", hrefs: ["/cs2"] },
-  { icon: "🌍", title: "География", hrefs: ["/geoguessr"] },
-  { icon: "🎭", title: "Акинатор", hrefs: ["/akinator"] },
+  { href: "/cs2", label: "CS2 КЕЙСЫ", icon: "grid", desc: "Симулятор кейсов" },
+  { href: "/cs2/aim", label: "CS2 AIM", match: "/cs2/aim", icon: "crosshair", desc: "Тренировка реакции" },
+  { href: "/cs2/higher-lower", label: "CS2 ВЫШЕ/НИЖЕ", match: "/cs2/higher-lower", icon: "swap", desc: "Угадай, что дороже" },
+  { href: "/akinator", label: "AKINATOR", match: "/akinator", icon: "ghost", desc: "Футбольный джинн" },
+  { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
 ];
+
+// ---------- Категории для мега-меню «ВСЕ ИГРЫ» ----------
+type NavCategory = {
+  title: string;
+  icon: string;
+  hrefs: string[];
+  /** Специальная карточка внизу панели категории (например, Akinator). */
+  featured?: { label: string; desc: string; href: string };
+};
+
+const NAV_CATEGORIES: NavCategory[] = [
+  {
+    title: "ФУТБОЛ",
+    icon: "globe",
+    hrefs: ["/grid/online", "/draft", "/guess", "/career", "/quiz/online"],
+  },
+  {
+    title: "КИБЕРСПОРТ",
+    icon: "gamepad",
+    hrefs: ["/cs2", "/cs2/aim", "/cs2/higher-lower", "/geoguessr"],
+    featured: {
+      label: "ФУТБОЛЬНЫЙ ДЖИНН",
+      desc: "Akinator",
+      href: "/akinator",
+    },
+  },
+];
+
+// ---------- SVG-иконки для мега-меню (Lucide, stroke) ----------
+function GameIcon({ name, className = "w-5 h-5" }: { name: string; className?: string }) {
+  const common = {
+    className,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  switch (name) {
+    case "globe":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+          <path d="M2 12h20" />
+        </svg>
+      );
+    case "gamepad":
+      return (
+        <svg {...common}>
+          <line x1="6" x2="10" y1="11" y2="11" />
+          <line x1="8" x2="8" y1="9" y2="13" />
+          <line x1="15" x2="15.01" y1="12" y2="12" />
+          <line x1="18" x2="18.01" y1="10" y2="10" />
+          <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+        </svg>
+      );
+    case "grid":
+      return (
+        <svg {...common}>
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M3 15h18" />
+          <path d="M9 3v18" />
+          <path d="M15 3v18" />
+        </svg>
+      );
+    case "clipboard":
+      return (
+        <svg {...common}>
+          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <path d="M9 12h6" />
+          <path d="M9 16h6" />
+        </svg>
+      );
+    case "question":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
+        </svg>
+      );
+    case "route":
+      return (
+        <svg {...common}>
+          <circle cx="6" cy="19" r="3" />
+          <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+          <circle cx="18" cy="5" r="3" />
+        </svg>
+      );
+    case "trophy":
+      return (
+        <svg {...common}>
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+      );
+    case "crosshair":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="22" x2="18" y1="12" y2="12" />
+          <line x1="6" x2="2" y1="12" y2="12" />
+          <line x1="12" x2="12" y1="6" y2="2" />
+          <line x1="12" x2="12" y1="22" y2="18" />
+        </svg>
+      );
+    case "swap":
+      return (
+        <svg {...common}>
+          <path d="m3 16 4 4 4-4" />
+          <path d="M7 20V4" />
+          <path d="m21 8-4-4-4 4" />
+          <path d="M17 4v16" />
+        </svg>
+      );
+    case "pin":
+      return (
+        <svg {...common}>
+          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      );
+    case "ghost":
+      return (
+        <svg {...common}>
+          <path d="M9 10h.01" />
+          <path d="M15 10h.01" />
+          <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      );
+  }
+}
 
 export function Nav({ dark = false }: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const gamesWrapRef = useRef<HTMLDivElement>(null);
-  const gamesMenuRef = useRef<HTMLDivElement>(null);
 
   // Клик вне меню → закрыть
   useEffect(() => {
@@ -49,6 +192,7 @@ export function Nav({ dark = false }: { dark?: boolean }) {
     const handler = (e: MouseEvent) => {
       if (gamesWrapRef.current && !gamesWrapRef.current.contains(e.target as Node)) {
         setGamesOpen(false);
+        setActiveCategory(null);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -95,17 +239,18 @@ export function Nav({ dark = false }: { dark?: boolean }) {
           : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/40"
     }`;
 
-  // Список "ИГРЫ" (всё, кроме главной и рейтинга) для выпадающего меню
-  const gamesItems = NAV_ITEMS.filter(
-    (i) => i.href !== "/" && i.href !== "/leaderboard"
+  // Активен пункт "ВСЕ ИГРЫ" в дровере, если пользователь на любой из игровых страниц
+  const gamesActive = NAV_GAMES.some((i) =>
+    i.match ? pathname.startsWith(i.match) : isActive(i.href)
   );
 
-  // Активен пункт "ВСЕ ИГРЫ" в дровере, если пользователь на любой из игровых страниц
-  const gamesActive = gamesItems.some((i) =>
-    (i as { match?: string }).match
-      ? pathname.startsWith((i as { match?: string }).match!)
-      : isActive(i.href)
-  );
+  // Категория, содержащая текущую страницу (для подсветки + авто-открытия панели)
+  const activeCategoryOf = (cat: NavCategory) =>
+    NAV_GAMES.find(
+      (g) =>
+        cat.hrefs.includes(g.href) &&
+        (g.match ? pathname.startsWith(g.match) : isActive(g.href))
+    );
 
   // ---------- User button (desktop) ----------
   const userButton = () => {
@@ -249,7 +394,17 @@ export function Nav({ dark = false }: { dark?: boolean }) {
         >
           <button
             type="button"
-            onClick={() => setGamesOpen(true)}
+            onClick={() => {
+              if (gamesOpen) {
+                setGamesOpen(false);
+                setActiveCategory(null);
+              } else {
+                setGamesOpen(true);
+                setActiveCategory(
+                  NAV_CATEGORIES.find((c) => activeCategoryOf(c))?.title ?? null
+                );
+              }
+            }}
             className={`px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1 ${
               gamesActive
                 ? dark ? "text-white bg-white/10" : "text-stone-900 bg-stone-200/60"
@@ -272,51 +427,164 @@ export function Nav({ dark = false }: { dark?: boolean }) {
               />
             </svg>
           </button>
+
+          {/* ---------- МЕГА-МЕНЮ ---------- */}
           {gamesOpen && (
             <div
-              ref={gamesMenuRef}
               role="menu"
-              className="absolute left-0 top-full pt-1 z-50 w-64"
+              className="absolute left-1/2 -translate-x-1/2 top-full pt-2 z-50 flex items-stretch"
             >
-              <div className={`rounded-2xl p-2 shadow-lg ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
-                {GAME_GROUPS.map((group) => {
-                  const groupItems = gamesItems.filter((i) =>
-                    group.hrefs.includes(i.href)
-                  );
-                  if (groupItems.length === 0) return null;
+              {/* Левая панель: категории */}
+              <div
+                className={`w-56 rounded-2xl p-2 shadow-xl ${
+                  dark ? "bg-stone-900 border border-white/10" : "bg-white border border-stone-200"
+                }`}
+              >
+                {NAV_CATEGORIES.map((cat) => {
+                  const isActiveCat = activeCategory === cat.title;
+                  const hasCurrent = !!activeCategoryOf(cat);
                   return (
-                    <div key={group.title} className="mb-1 last:mb-0">
-                      <div
-                        className={`px-4 pt-1 pb-0.5 text-[10px] font-black tracking-[0.15em] uppercase ${
-                          dark ? "text-white/35" : "text-stone-400"
-                        }`}
+                    <button
+                      key={cat.title}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => setActiveCategory(cat.title)}
+                      onMouseEnter={() => setActiveCategory(cat.title)}
+                      className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl mb-1 text-left transition ${
+                        isActiveCat
+                          ? dark
+                            ? "bg-emerald-500/15 text-emerald-300"
+                            : "bg-emerald-50 text-emerald-700"
+                          : dark
+                            ? "text-white/60 hover:bg-white/5 hover:text-white"
+                            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <GameIcon name={cat.icon} className="w-5 h-5" />
+                        <span className="text-sm font-bold">{cat.title}</span>
+                      </span>
+                      <svg
+                        className={`w-4 h-4 ${isActiveCat ? "" : dark ? "text-white/30" : "text-stone-300"}`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
                       >
-                        {group.icon} {group.title}
-                      </div>
-                      {groupItems.map((item) => {
-                        const active = (item as { match?: string }).match
-                          ? pathname.startsWith((item as { match?: string }).match!)
-                          : isActive(item.href);
+                        <path
+                          fillRule="evenodd"
+                          d="M7.21 14.77a.75.75 0 01.02-1.06L11.17 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {hasCurrent && !isActiveCat && (
+                        <span className={`w-1.5 h-1.5 rounded-full ${dark ? "bg-emerald-400" : "bg-emerald-500"}`} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Правая панель: игры активной категории */}
+              {(() => {
+                const cat = NAV_CATEGORIES.find((c) => c.title === activeCategory);
+                if (!cat) return null;
+                const catGames = NAV_GAMES.filter((g) => cat.hrefs.includes(g.href));
+                return (
+                  <div
+                    className={`w-80 rounded-2xl p-3 shadow-xl ${
+                      dark ? "bg-stone-900 border border-white/10" : "bg-white border border-stone-200"
+                    }`}
+                  >
+                    <div className="grid gap-1">
+                      {catGames.map((g) => {
+                        const active = g.match
+                          ? pathname.startsWith(g.match)
+                          : isActive(g.href);
                         return (
                           <Link
-                            key={item.href}
-                            href={item.href}
+                            key={g.href}
+                            href={g.href}
                             role="menuitem"
-                            onClick={() => setGamesOpen(false)}
-                            className={`block px-4 py-2.5 rounded-lg text-sm transition ${
+                            onClick={() => {
+                              setGamesOpen(false);
+                              setActiveCategory(null);
+                            }}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${
                               active
-                                ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
-                                : dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                                ? dark
+                                  ? "bg-white/10 text-white font-bold"
+                                  : "bg-stone-100 text-stone-900 font-bold"
+                                : dark
+                                  ? "text-white/60 hover:bg-white/5 hover:text-white"
+                                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                             }`}
                           >
-                            {item.label}
+                            <span
+                              className={`shrink-0 ${
+                                active
+                                  ? dark ? "text-emerald-300" : "text-emerald-600"
+                                  : dark ? "text-white/40" : "text-stone-400"
+                              }`}
+                            >
+                              <GameIcon name={g.icon} />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-sm font-semibold truncate">{g.label}</span>
+                              {g.desc && (
+                                <span
+                                  className={`block text-[11px] truncate ${
+                                    dark ? "text-white/40" : "text-stone-500"
+                                  }`}
+                                >
+                                  {g.desc}
+                                </span>
+                              )}
+                            </span>
                           </Link>
                         );
                       })}
                     </div>
-                  );
-                })}
-              </div>
+
+                    {/* Featured-карточка (Akinator) */}
+                    {cat.featured && (
+                      <Link
+                        href={cat.featured.href}
+                        role="menuitem"
+                        onClick={() => {
+                          setGamesOpen(false);
+                          setActiveCategory(null);
+                        }}
+                        className={`mt-2 flex items-center gap-3 px-3 py-3 rounded-xl border transition ${
+                          dark
+                            ? "border-emerald-400/30 bg-emerald-500/10 hover:bg-emerald-500/20"
+                            : "border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                        }`}
+                      >
+                        <span
+                          className={`shrink-0 ${dark ? "text-emerald-300" : "text-emerald-600"}`}
+                        >
+                          <GameIcon name="ghost" />
+                        </span>
+                        <span className="min-w-0">
+                          <span
+                            className={`block text-sm font-bold truncate ${
+                              dark ? "text-emerald-200" : "text-emerald-800"
+                            }`}
+                          >
+                            {cat.featured.label}
+                          </span>
+                          <span
+                            className={`block text-[11px] truncate ${
+                              dark ? "text-white/50" : "text-stone-500"
+                            }`}
+                          >
+                            {cat.featured.desc}
+                          </span>
+                        </span>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
@@ -360,35 +628,50 @@ export function Nav({ dark = false }: { dark?: boolean }) {
 
       {open && (
         <div className={`sm:hidden absolute left-4 right-4 top-16 z-50 rounded-2xl p-2 shadow-lg max-h-[70vh] overflow-y-auto ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
-          {GAME_GROUPS.map((group) => {
-            const groupItems = NAV_ITEMS.filter(
-              (i) => i.href !== "/" && i.href !== "/leaderboard" && group.hrefs.includes(i.href)
-            );
-            if (groupItems.length === 0) return null;
+          {NAV_CATEGORIES.map((cat) => {
+            const catGames = NAV_GAMES.filter((g) => cat.hrefs.includes(g.href));
+            if (catGames.length === 0) return null;
             return (
-              <div key={group.title}>
-                <div className={`px-4 pt-2 pb-0.5 text-[10px] font-black tracking-[0.15em] uppercase ${dark ? "text-white/35" : "text-stone-400"}`}>
-                  {group.icon} {group.title}
+              <div key={cat.title}>
+                <div className={`flex items-center gap-2 px-4 pt-2 pb-0.5 text-[10px] font-black tracking-[0.15em] uppercase ${dark ? "text-white/35" : "text-stone-400"}`}>
+                  <GameIcon name={cat.icon} className="w-3.5 h-3.5" />
+                  {cat.title}
                 </div>
-                {groupItems.map((item) => {
-                  const active = (item as { match?: string }).match
-                    ? pathname.startsWith((item as { match?: string }).match!)
+                {catGames.map((item) => {
+                  const active = item.match
+                    ? pathname.startsWith(item.match)
                     : isActive(item.href);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className={`block px-4 py-3 rounded-lg ${
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ${
                         active
                           ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
                           : dark ? "text-white/50" : "text-stone-600"
                       }`}
                     >
+                      <GameIcon
+                        name={item.icon}
+                        className={`w-4 h-4 shrink-0 ${active ? "" : dark ? "text-white/30" : "text-stone-400"}`}
+                      />
                       {item.label}
                     </Link>
                   );
                 })}
+                {cat.featured && (
+                  <Link
+                    href={cat.featured.href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg"
+                  >
+                    <GameIcon name="ghost" className={`w-4 h-4 shrink-0 ${dark ? "text-emerald-300" : "text-emerald-600"}`} />
+                    <span className={dark ? "text-emerald-200" : "text-emerald-700"}>
+                      {cat.featured.label}
+                    </span>
+                  </Link>
+                )}
               </div>
             );
           })}
