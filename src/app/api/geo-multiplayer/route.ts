@@ -356,10 +356,12 @@ export async function POST(req: NextRequest) {
       }
       if (activeIdx < 0) return err("Нет активного раунда");
 
-      // Проверка: все ли ответили в активном раунде?
+      // Проверка: все ли ОНЛАЙН игроки ответили в активном раунде?
+      // Офлайн-игроки не блокируют переход (могли закрыть вкладку).
       const activeRound = freshRounds[activeIdx];
       const answeredIds = new Set(activeRound.guesses.map((g) => g.playerId));
-      const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
+      const onlinePlayers = allPlayers.filter((p) => p.online);
+      const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
       if (pendingHere.length > 0) {
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
       }

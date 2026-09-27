@@ -863,7 +863,10 @@ export function GeoMultiplayer({
   if (phase === "play" && room && room.status === "playing" && currentLocation) {
     const rnd = currentRoundData!;
     const answeredCount = new Set(rnd.guesses.map((g) => g.playerId)).size;
-    const allAnswered = room.players.length > 0 && answeredCount >= room.players.length;
+    // Все ОНЛАЙН игроки ответили → можно переходить (офлайн не блокируют)
+    const onlineCount = room.players.filter((p) => p.online).length;
+    const onlineAnswered = room.players.filter((p) => p.online && rnd.guesses.some((g) => g.playerId === p.id)).length;
+    const allAnswered = onlineCount > 0 && onlineAnswered >= onlineCount;
     const isLastRound = currentRoundIdx >= room.rounds - 1;
     const myGuessEntry = rnd.guesses.find((g) => g.playerId === myId);
 
@@ -1032,7 +1035,7 @@ export function GeoMultiplayer({
             <div className="rounded-2xl border border-stone-200 bg-white p-5 text-center">
               <div className="text-lg font-black text-stone-900">ОТВЕТ ПРИНЯТ ✓</div>
               <p className="mt-1 text-sm text-stone-500">
-                Ждём остальных игроков… {answeredCount} / {room.players.length} ответили
+                Ждём остальных… {answeredCount} / {onlineCount} онлайн ответили
               </p>
               {/* компактный счётчик ответивших */}
               <div className="mt-3 flex items-center justify-center gap-2">
