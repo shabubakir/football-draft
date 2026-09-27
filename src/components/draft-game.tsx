@@ -22,6 +22,7 @@ import {
 } from "@/lib/draft";
 import { addXp, ensureProfile, getDeviceId, getDeviceName, XP_KEYS } from "@/lib/profile";
 import { ProfileBadge } from "@/components/profile-badge";
+import { useProgression } from "@/lib/progression/use-progression";
 
 const MAX_REROLLS = 3;
 const TOTAL_MATCHES = 7;
@@ -37,6 +38,7 @@ export function DraftGame() {
   const [style, setStyle] = useState<Style>("bal");
   const [seed] = useState(() => draftSeedForDate(new Date()));
   const [xpGained, setXpGained] = useState(0);
+  const { reportResult } = useProgression();
 
   // ---------- Фаза драфта ----------
   const [squadIdx, setSquadIdx] = useState(0);
@@ -221,6 +223,12 @@ export function DraftGame() {
     setXpGained(xp);
     ensureProfile(deviceId, cleanName).then(() => addXp(deviceId, xp, cleanName));
     setPhase("finished");
+    // Report to progression system
+    void reportResult({
+      gameId: "football-draft",
+      won,
+      score: won ? 150 : 50,
+    });
   };
 
   // ---------- Рендер ----------

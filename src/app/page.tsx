@@ -4,6 +4,7 @@ import { GameCard } from "@/components/game-card";
 import { Nav } from "@/components/nav";
 import { ReportBugButton } from "@/components/report-bug";
 import { ProfileBadge } from "@/components/profile-badge";
+import { ProgressCard } from "@/components/progress-card";
 
 export default function Home() {
   return (
@@ -61,6 +62,11 @@ export default function Home() {
             РЕЙТИНГ →
           </Link>
         </div>
+      </div>
+
+      {/* Compact progress card for authed users */}
+      <div className="mt-6 max-w-md">
+        <ProgressCard />
       </div>
 
       <section className="mt-4 grid sm:grid-cols-2 gap-4">

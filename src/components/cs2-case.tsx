@@ -24,6 +24,7 @@ import {
   isMuted,
   preloadSounds,
 } from "@/lib/audio";
+import { useProgression } from "@/lib/progression/use-progression";
 
 // Look up case price by name
 function getCasePrice(name: string): number {
@@ -169,6 +170,7 @@ export function CS2CaseSimulator() {
   >({});
   const [soundOn, setSoundOn] = useState(true);
 
+  const { reportResult } = useProgression();
   const [offset, setOffset] = useState(0);
   const [hasOpened, setHasOpened] = useState(false);
   const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -270,6 +272,13 @@ export function CS2CaseSimulator() {
         setResultIdx(targetIndex);
         setHistory((h) => [res, ...h].slice(0, 20));
         playFullReveal(res.tier);
+        // Report to progression system (each case open counts)
+        void reportResult({
+          gameId: "cs2-cases",
+          won: res.tier >= 3,
+          score: res.tier,
+          metadata: { casesOpened: 1 },
+        });
       };
 
       // Use setInterval (16ms) instead of rAF — rAF pauses when tab is backgrounded

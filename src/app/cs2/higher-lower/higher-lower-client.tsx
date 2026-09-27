@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { RARITY_COLORS } from "@/lib/cs2";
 import { playClick, playReveal, preloadSounds, setMuted, isMuted } from "@/lib/audio";
+import { useProgression } from "@/lib/progression/use-progression";
 
 // ---------- Данные из API ----------
 type PricedItem = { n: string; img: string; price: number };
@@ -154,6 +155,8 @@ export function CS2CompareClient() {
   const [stats, setStats] = useState<HLStats>(emptyHL());
   const loadedStatsRef = useRef(false);
 
+  const { reportResult } = useProgression();
+
   useEffect(() => {
     preloadSounds();
     const s = loadHL();
@@ -215,6 +218,17 @@ export function CS2CompareClient() {
     };
     setStats(next);
     saveHL(next);
+    // Report to progression system
+    void reportResult({
+      gameId: "cs2-hl",
+      won: finalBest >= 8,
+      score: finalScore,
+      metadata: {
+        correct: finalHistory.filter(Boolean).length,
+        wrong: finalHistory.filter((x) => !x).length,
+        streak: finalBest,
+      },
+    });
   };
 
   const pick = (side: "a" | "b") => {

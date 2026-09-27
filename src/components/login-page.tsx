@@ -17,6 +17,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Уже авторизован (после OAuth-редиректа) → сразу уводим туда, куда просили.
+  // ВАЖНО: useEffect ДО всех условных return, иначе hooks называются
+  // в разное число раз между рендерами → React crash.
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(returnTo);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user]);
+
   // Куда вернуть пользователя после входа (из ?returnTo= или ?redirect= в URL)
   const returnTo = (() => {
     if (typeof window === "undefined") return "/";
@@ -62,13 +72,6 @@ export default function LoginPage() {
       </div>
     );
   }
-
-  // Уже авторизован (после OAuth-редиректа) → сразу уводим туда, куда просили
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace(returnTo);
-    }
-  }, [loading, user, returnTo, router]);
 
   if (!loading && user) {
     return (

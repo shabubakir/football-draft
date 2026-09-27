@@ -13,6 +13,7 @@ import {
   setDeviceName,
   XP_KEYS,
 } from "@/lib/profile";
+import { useProgression } from "@/lib/progression/use-progression";
 
 // Общий для всех сид сетки на дату (локальное время)
 export function daySeed(date: Date = new Date()): number {
@@ -50,6 +51,7 @@ export function GridDay() {
   const [picker, setPicker] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [xpGained, setXpGained] = useState(0);
+  const { reportResult } = useProgression();
 
   const seed = daySeed();
   const theme = themeOf(seed);
@@ -113,8 +115,16 @@ export function GridDay() {
           setXpGained(p ? XP_KEYS.grid_day_win : 0)
         );
       }
+      // Report to progression system
+      void reportResult({
+        gameId: "grid-day",
+        won,
+        score: correct,
+        metadata: { mistakes: mistakesCount },
+        isDaily: true,
+      });
     },
-    [deviceId, dateStr, seed, name]
+    [deviceId, dateStr, seed, name, reportResult]
   );
 
   // Проверка: игрок подходит к клетке, если его факты совпадают

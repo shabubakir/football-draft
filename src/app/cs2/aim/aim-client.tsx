@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { playClick, preloadSounds, setMuted } from "@/lib/audio";
+import { useProgression } from "@/lib/progression/use-progression";
 
 // ---------- Константы ----------
 const ROUND_SECONDS = 30;
@@ -74,6 +75,8 @@ export function CS2AimClient() {
   const [result, setResult] = useState<Result | null>(null);
   const [stats, setStats] = useState<AimStats>(emptyAim());
   const [soundOn, setSoundOn] = useState(true);
+
+  const { reportResult } = useProgression();
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cdRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -197,6 +200,17 @@ export function CS2AimClient() {
             };
             setStats(next);
             saveAim(next);
+
+            // Report to progression system
+            void reportResult({
+              gameId: "cs2-aim",
+              won: sN >= 800,
+              score: sN,
+              metadata: {
+                reaction: best > 0 ? Math.round(best) : 0,
+                accuracy: Math.round(accuracy),
+              },
+            });
           } else {
             setTimeLeft(left);
           }

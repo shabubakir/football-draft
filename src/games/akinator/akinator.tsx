@@ -26,6 +26,7 @@ import type { GenieMood } from "./genn";
 import { loadStats, recordGame, resetStats, EMPTY_STATS } from "./stats";
 import { getEntityPhoto } from "./avatars";
 import type { AkinatorStats } from "./types";
+import { useProgression } from "@/lib/progression/use-progression";
 
 // ---------- вспомогательные ----------
 
@@ -50,6 +51,7 @@ function categoryEmoji(cat: string): string {
 // ---------- основной компонент ----------
 
 export function AkinatorGame() {
+  const { reportResult } = useProgression();
   const [state, setState] = useState<EngineState | null>(null);
   const [stats, setStats] = useState<AkinatorStats>(EMPTY_STATS);
   const [transitioning, setTransitioning] = useState(false);
@@ -90,7 +92,13 @@ export function AkinatorGame() {
     setState(next);
     recordGame(true, state.questionNum);
     setStats(loadStats());
-  }, [state]);
+    void reportResult({
+      gameId: "akinator",
+      won: true,
+      score: state.questionNum,
+      metadata: { questions: state.questionNum },
+    });
+  }, [state, reportResult]);
 
   const handleReject = useCallback(() => {
     if (!state) return;
@@ -109,8 +117,14 @@ export function AkinatorGame() {
       setStats(loadStats());
       setShowCorrectInput(false);
       setCorrectQuery("");
+      void reportResult({
+        gameId: "akinator",
+        won: false,
+        score: 0,
+        metadata: { questions: state.questionNum },
+      });
     },
-    [state]
+    [state, reportResult]
   );
 
   const handleNewGame = useCallback(() => {

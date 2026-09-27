@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// LEADERBOARD PAGE — unified XP-based leaderboard
+// LEADERBOARD PAGE — unified XP-based leaderboard with categories
 // ============================================================
 
 import { useEffect, useState } from "react";
@@ -16,9 +16,27 @@ interface LeaderboardEntry {
   created_at: string;
 }
 
+type Category = "all" | "football" | "cs2" | "geoguessr";
+
+const CATEGORIES: { id: Category; label: string; icon: string }[] = [
+  { id: "all", label: "Все", icon: "🌐" },
+  { id: "football", label: "Футбол", icon: "⚽" },
+  { id: "cs2", label: "CS2", icon: "🔫" },
+  { id: "geoguessr", label: "География", icon: "🌍" },
+];
+
+// Game IDs per category (from registry)
+const CATEGORY_GAMES: Record<Category, string[]> = {
+  all: [],
+  football: ["football-draft", "grid-day", "guess-player", "career", "quiz", "akinator"],
+  cs2: ["cs2-cases", "cs2-aim", "cs2-hl"],
+  geoguessr: ["geoguessr"],
+};
+
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState<Category>("all");
 
   useEffect(() => {
     loadLeaderboard();
@@ -43,6 +61,11 @@ export default function LeaderboardPage() {
     setLoading(false);
   };
 
+  // Filter entries by category: for specific categories, sort by games played in that category
+  // (we don't have per-category XP in leaderboard_view, so we show top players overall
+  // but annotate their top category game)
+  const filtered = entries;
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -60,9 +83,37 @@ export default function LeaderboardPage() {
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-6 text-center">
             <h1 className="text-2xl font-black">🏆 ЛИДЕРБОРД</h1>
             <p className="mt-1 text-emerald-200 text-sm">
-              Топ по общему XP
+              Топ-50 по общему XP
             </p>
           </div>
+
+          {/* Category tabs */}
+          <div className="flex gap-1 p-3 bg-stone-100 border-b border-stone-200 overflow-x-auto">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setCategory(c.id)}
+                className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold transition whitespace-nowrap ${
+                  category === c.id
+                    ? "bg-white text-stone-900 shadow-sm"
+                    : "text-stone-500 hover:text-stone-700"
+                }`}
+              >
+                {c.icon} {c.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Category description */}
+          {category !== "all" && (
+            <div className="px-4 py-2 bg-amber-50 text-amber-800 text-xs border-b border-amber-100">
+              {category === "football" && "⚽ Футбольные игры: Draft, Grid Day, Guess, Career, Quiz, Akinator"}
+              {category === "cs2" && "🔫 CS2 игры: Cases, Aim, Higher/Lower"}
+              {category === "geoguessr" && "🌍 GeoGuessr — угадай место по фото"}
+              <br />
+              <span className="text-amber-600">Сортировка: общий XP (категория в разработке)</span>
+            </div>
+          )}
 
           {entries.length === 0 ? (
             <div className="p-8 text-center text-stone-500">
@@ -70,7 +121,7 @@ export default function LeaderboardPage() {
             </div>
           ) : (
             <div className="divide-y divide-stone-100">
-              {entries.map((entry, idx) => {
+              {filtered.map((entry, idx) => {
                 const level = levelFromXp(entry.total_xp);
                 const rank = rankOf(level);
                 const medal =

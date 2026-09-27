@@ -25,10 +25,12 @@ import {
 import { LOCATIONS, geoImageUrl } from "./locations";
 import { GeoMap } from "./geo-map";
 import { OptimizedImage } from "@/components/optimized-image";
+import { useProgression } from "@/lib/progression/use-progression";
 
 type Phase = "playing" | "revealed" | "done";
 
 export function GeoGuessrGame() {
+  const { reportResult } = useProgression();
   const [round, setRound] = useState(1);
   const [phase, setPhase] = useState<Phase>("playing");
   const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
@@ -71,6 +73,13 @@ export function GeoGuessrGame() {
       setFinalResult(result);
       setStats(stats);
       setPhase("done");
+      // Report to progression system
+      const totalScore = history.reduce((s, r) => s + r.points, 0);
+      void reportResult({
+        gameId: "geoguessr",
+        won: totalScore >= 3000,
+        score: totalScore,
+      });
       return;
     }
     const next = pickClassicRound(LOCATIONS, usedIds);
@@ -82,7 +91,7 @@ export function GeoGuessrGame() {
     setImgLoaded(false);
     setImgFailed(false);
     setPhase("playing");
-  }, [round, history, usedIds, current]);
+  }, [round, history, usedIds, current, reportResult]);
 
   const restart = useCallback(() => {
     setRound(1);

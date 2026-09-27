@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./auth-provider";
+import { getSupabaseBrowser } from "@/lib/auth";
+import { levelFromXp } from "@/lib/xp";
 
 // ---------- Конфиг пунктов меню ----------
 // Футбольные игры идут первыми (основной контент сайта),
@@ -27,8 +29,32 @@ export function Nav({ dark = false }: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const gamesMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() ?? "";
   const { user, loading, logout } = useAuth();
+
+  // Progress data for authenticated users
+  const [totalXp, setTotalXp] = useState(0);
+  const [streakDays, setStreakDays] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const sb = getSupabaseBrowser();
+    if (!sb) return;
+    let cancelled = false;
+
+    (async () => {
+      const [{ data: xpEvents }, { data: streakRow }] = await Promise.all([
+        sb.from("xp_events").select("amount").eq("user_id", user.id),
+        sb.from("user_streaks").select("current_streak").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      setTotalXp((xpEvents ?? []).reduce((s, e) => s + (e.amount ?? 0), 0));
+      setStreakDays(streakRow?.current_streak ?? 0);
+    })();
+
+    return () => { cancelled = true; };
+  }, [user]);
 
   // Активный раздел по текущему URL
   const isActive = (prefix: string) =>
@@ -72,6 +98,8 @@ export function Nav({ dark = false }: { dark?: boolean }) {
       );
     }
 
+    const level = levelFromXp(totalXp);
+
     return (
       <div
         className="relative ml-2"
@@ -87,9 +115,17 @@ export function Nav({ dark = false }: { dark?: boolean }) {
           <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-black">
             {user.username[0].toUpperCase()}
           </div>
-          <span className={`text-sm font-bold max-w-[100px] truncate ${dark ? "text-white" : "text-stone-900"}`}>
-            {user.username}
-          </span>
+          <div className="text-left leading-tight">
+            <span className={`block text-sm font-bold max-w-[90px] truncate ${dark ? "text-white" : "text-stone-900"}`}>
+              {user.username}
+            </span>
+            <span className={`block text-[10px] font-bold ${dark ? "text-white/50" : "text-stone-500"}`}>
+              Lvl {level}
+              {streakDays > 0 && (
+                <span className="text-amber-500"> · 🔥{streakDays}</span>
+              )}
+            </span>
+          </div>
           <svg
             className={`w-3.5 h-3.5 transition-transform ${dark ? "text-white/40" : "text-stone-500"} ${userMenuOpen ? "rotate-180" : ""}`}
             viewBox="0 0 20 20"
@@ -119,6 +155,14 @@ export function Nav({ dark = false }: { dark?: boolean }) {
                 className={`block px-4 py-2 rounded-lg text-sm transition ${dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
               >
                 📊 Профиль
+              </Link>
+              <Link
+                href="/achievements"
+                role="menuitem"
+                onClick={() => setUserMenuOpen(false)}
+                className={`block px-4 py-2 rounded-lg text-sm transition ${dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
+              >
+                🏆 Достижения
               </Link>
               <Link
                 href="/settings"
@@ -178,10 +222,16 @@ export function Nav({ dark = false }: { dark?: boolean }) {
         <div
           className="relative"
           onMouseEnter={() => setGamesOpen(true)}
-          onMouseLeave={() => setGamesOpen(false)}
+          onMouseLeave={(e) => {
+            // Не закрываем, пока курсор внутри меню
+            const menu = gamesMenuRef.current;
+            if (menu && e.relatedTarget instanceof Node && menu.contains(e.relatedTarget)) return;
+            setGamesOpen(false);
+          }}
         >
           <button
             type="button"
+            onClick={() => setGamesOpen((v) => !v)}
             className={`px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1 ${
               gamesActive
                 ? dark ? "text-white bg-white/10" : "text-stone-900 bg-stone-200/60"
@@ -205,6 +255,7 @@ export function Nav({ dark = false }: { dark?: boolean }) {
           </button>
           {gamesOpen && (
             <div
+              ref={gamesMenuRef}
               role="menu"
               className="absolute left-0 top-full pt-1 z-50 w-64"
             >
@@ -305,6 +356,13 @@ export function Nav({ dark = false }: { dark?: boolean }) {
                 📊 Профиль
               </Link>
               <Link
+                href="/achievements"
+                onClick={() => setOpen(false)}
+                className={`block px-4 py-3 rounded-lg ${dark ? "text-white/50" : "text-stone-600"}`}
+              >
+                🏆 Достижения
+              </Link>
+              <Link
                 href="/settings"
                 onClick={() => setOpen(false)}
                 className={`block px-4 py-3 rounded-lg ${dark ? "text-white/50" : "text-stone-600"}`}
@@ -338,6 +396,13 @@ export function Nav({ dark = false }: { dark?: boolean }) {
             className={`block px-4 py-2 rounded-lg text-sm ${dark ? "text-white/50 hover:bg-white/5" : "text-stone-600 hover:bg-stone-100"}`}
           >
             📊 Профиль
+          </Link>
+          <Link
+            href="/achievements"
+            onClick={() => setUserMenuOpen(false)}
+            className={`block px-4 py-2 rounded-lg text-sm ${dark ? "text-white/50 hover:bg-white/5" : "text-stone-600 hover:bg-stone-100"}`}
+          >
+            🏆 Достижения
           </Link>
           <Link
             href="/settings"

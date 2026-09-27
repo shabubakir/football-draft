@@ -11,6 +11,7 @@ import {
   setDeviceName,
   XP_KEYS,
 } from "@/lib/profile";
+import { useProgression } from "@/lib/progression/use-progression";
 
 type Status = "match" | "close" | "no";
 type Guess = { name: string; status: Status };
@@ -64,6 +65,8 @@ export function GuessGame() {
   const [finished, setFinished] = useState(false);
   const [xpGained, setXpGained] = useState(0);
   const deviceId = useRef(getDeviceId());
+  const { reportResult } = useProgression();
+  const reportedRef = useRef(false);
 
   useEffect(() => {
     setTarget(targetForDate(days[dayIdx]));
@@ -131,6 +134,16 @@ export function GuessGame() {
             attempts: next.length,
           });
         }
+        if (!reportedRef.current) {
+          reportedRef.current = true;
+          void reportResult({
+            gameId: "guess-player",
+            won: true,
+            score: next.length === 1 ? 100 : 60,
+            metadata: { attempts: next.length },
+            isDaily: true,
+          });
+        }
       } else if (fin && dayIdx === todayIdx) {
         // Проигрыш тоже засчитываем (активность)
         const sb = getSupabaseBrowser();
@@ -141,9 +154,19 @@ export function GuessGame() {
             attempts: next.length,
           });
         }
+        if (!reportedRef.current) {
+          reportedRef.current = true;
+          void reportResult({
+            gameId: "guess-player",
+            won: false,
+            score: 0,
+            metadata: { attempts: next.length },
+            isDaily: true,
+          });
+        }
       }
     },
-    [input, target, guesses, finished, dayIdx, todayIdx, saveToday]
+    [input, target, guesses, finished, dayIdx, todayIdx, saveToday, reportResult]
   );
 
   const won = finished && guesses[guesses.length - 1]?.status === "match";

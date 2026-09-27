@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PLAYERS, type Player } from "@/lib/players";
 import { getSupabaseBrowser } from "@/lib/supabase";
 import {
@@ -10,6 +10,7 @@ import {
   getDeviceName,
   setDeviceName,
 } from "@/lib/profile";
+import { useProgression } from "@/lib/progression/use-progression";
 
 // Клубы карьеры для каждого игрока (в хронологическом порядке)
 const CAREER_PATHS: Record<number, string[]> = {
@@ -91,6 +92,9 @@ export function CareerGame() {
   const [didWin, setDidWin] = useState(false);
   const [points, setPoints] = useState(0);
   const [alreadyPlayed, setAlreadyPlayed] = useState(false);
+
+  const { reportResult } = useProgression();
+  const reportedRef = useRef(false);
 
   const today = useMemo(() => new Date(), []);
   const target = useMemo(() => targetForDate(today), [today]);
@@ -186,6 +190,15 @@ export function CareerGame() {
         addXp(deviceId, pts, cleanName)
       );
       saveGame(next, true, true, pts);
+      if (!reportedRef.current) {
+        reportedRef.current = true;
+        void reportResult({
+          gameId: "career",
+          won: true,
+          score: pts,
+          metadata: { cluesUsed: revealedClues },
+        });
+      }
     } else {
       const newRevealed = revealedClues + 1;
       setRevealedClues(newRevealed);
@@ -196,9 +209,18 @@ export function CareerGame() {
         setDidWin(false);
         setPoints(0);
         saveGame(next, true, false, 0);
+        if (!reportedRef.current) {
+          reportedRef.current = true;
+          void reportResult({
+            gameId: "career",
+            won: false,
+            score: 0,
+            metadata: { cluesUsed: newRevealed },
+          });
+        }
       }
     }
-  }, [input, finished, revealedClues, maxClues, evaluate, guesses, name, deviceId, saveGame]);
+  }, [input, finished, revealedClues, maxClues, evaluate, guesses, name, deviceId, saveGame, reportResult]);
 
   const isToday = true;
 

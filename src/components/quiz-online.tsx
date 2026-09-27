@@ -6,6 +6,7 @@ import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { shuffleQuestions, type QuizTopic } from "@/lib/quiz";
 import { OptimizedImage } from "@/components/optimized-image";
+import { useProgression } from "@/lib/progression/use-progression";
 
 type QuizPhase = "lobby" | "playing" | "reveal" | "end";
 type Role = "host" | "guest";
@@ -90,6 +91,8 @@ export function QuizOnline() {
   roomRef.current = room;
   const questionsRef = useRef(questions);
   questionsRef.current = questions;
+  const { reportResult } = useProgression();
+  const reportedRef = useRef(false);
 
   const initSb = useCallback(() => {
     const c = getSupabaseBrowser();
@@ -462,10 +465,28 @@ export function QuizOnline() {
   // Синхронизация фазы из комнаты (на случай, если событие потеряно)
   useEffect(() => {
     if (!room) return;
-    if (room.status === "finished") setPhase("end");
-    else if (room.status === "playing") setPhase(room.q_state === "reveal" ? "reveal" : "playing");
+    if (room.status === "finished") {
+      setPhase("end");
+      // Report quiz result to progression (once)
+      if (!reportedRef.current && room.scores && myId) {
+        reportedRef.current = true;
+        const myScore = room.scores[myId] ?? 0;
+        const maxScore = Math.max(...Object.values(room.scores), 1);
+        const won = myScore === maxScore && Object.keys(room.scores).length > 1;
+        const correctCount = Math.round(myScore / 10);
+        void reportResult({
+          gameId: "quiz",
+          won,
+          score: myScore,
+          metadata: {
+            correctAnswers: correctCount,
+            wrongAnswers: Math.max(0, 10 - correctCount),
+          },
+        });
+      }
+    } else if (room.status === "playing") setPhase(room.q_state === "reveal" ? "reveal" : "playing");
     else setPhase("lobby");
-  }, [room?.status, room?.q_state, room?.current_q, room?.id]);
+  }, [room?.status, room?.q_state, room?.current_q, room?.id, room, myId, reportResult]);
 
   // КРИТИЧНО: при каждом изменении seed/темы — пере-вычисляем вопросы
   // Это гарантирует, что ВСЕ игроки видят ОДИН И ТОТ ЖЕ порядок
