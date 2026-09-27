@@ -280,8 +280,10 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return err("Вы не игрок в этой комнате");
 
-      const roundIdx = room.rounds_data.length - 1;
-      if (roundIdx < 0 || roundIdx >= room.rounds) return err("Неверный раунд");
+      // Текущий раунд = первый с пустыми guesses (все раунды инициализируются при start)
+      const roundIdx = room.rounds_data.findIndex((r) => r.guesses.length === 0);
+      if (roundIdx < 0) return err("Все раунды завершены");
+      if (roundIdx >= room.rounds) return err("Неверный раунд");
 
       const locationId = room.round_location_ids[roundIdx] ?? room.rounds_data[roundIdx]?.location_id;
       if (!locationId) return err("Локация раунда не выбрана", 500);
@@ -325,19 +327,18 @@ export async function POST(req: NextRequest) {
         guesses: [...rnd.guesses, entry],
       };
 
-      // Используем raw fetch к PostgREST напрямую (обходим потенциальные
-      // проблемы с supabase-js client'ом на сервере).
+      // Записываем через raw fetch к PostgREST
       const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
       const restRes = await fetch(
-        `${sbUrl}/rest/v1/geo_rooms?id=eq.${room.id}`,
+        sbUrl + "/rest/v1/geo_rooms?id=eq." + room.id,
         {
           method: "PATCH",
           headers: {
-            apikey: sbKey,
-            Authorization: `Bearer ${sbKey}`,
+            "apikey": sbKey,
+            "Authorization": "Bearer " + sbKey,
             "Content-Type": "application/json",
-            Prefer: "return=representation",
+            "Prefer": "return=representation",
           },
           body: JSON.stringify({ code: room.code, rounds_data: newRounds }),
         }
@@ -380,7 +381,9 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return err("Вы не игрок в этой комнате");
 
-      const roundIdx = room.rounds_data.length - 1;
+      // Текущий раунд = первый с пустыми guesses
+      const roundIdx = room.rounds_data.findIndex((r) => r.guesses.length === 0);
+      if (roundIdx < 0) return err("Все раунды завершены");
       const rnd = room.rounds_data[roundIdx];
       if (!rnd) return err("Неверный раунд");
 
@@ -403,13 +406,8 @@ export async function POST(req: NextRequest) {
         status = "finished";
         winnerId = computeWinner(scores);
         finishedAt = new Date().toISOString();
-      } else {
-        roundsData.push(freshRound());
-        const locationId = room.round_location_ids[roundIdx + 1];
-        if (locationId) {
-          roundsData[roundsData.length - 1] = { location_id: locationId, guesses: [] };
-        }
       }
+      // Следующий раунд уже инициализирован при start — просто переходим
 
       const { error: upE } = await sb
         .from("geo_rooms")
