@@ -245,6 +245,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: "Прогресс уже был импортирован" };
     }
 
+    // Fetch guest profile XP
+    const { data: guestProfile } = await supabase
+      .from("players_profile")
+      .select("xp")
+      .eq("device_id", deviceId)
+      .maybeSingle();
+
+    const guestXp = guestProfile?.xp ?? 0;
+
     // Mark as migrated
     const { error } = await supabase
       .from("user_profiles")
@@ -252,6 +261,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("id", authUser.id);
 
     if (error) return { success: false, error: error.message };
+
+    // Migrate XP to account (if any)
+    if (guestXp > 0) {
+      await supabase.from("xp_events").insert({
+        user_id: authUser.id,
+        amount: guestXp,
+        reason: "guest_migration",
+      });
+    }
 
     // Refresh user
     await refreshUser();

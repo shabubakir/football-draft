@@ -297,7 +297,45 @@ export async function POST(req: Request) {
       }
     }
 
-    // 7. Send notification for level up / achievements
+    // 7. Calculate level and check for level up
+    const { data: xpEvents } = await supabase
+      .from("xp_events")
+      .select("amount")
+      .eq("user_id", userId);
+    const totalXp = (xpEvents ?? []).reduce((s: number, e: { amount?: number }) => s + (e.amount ?? 0), 0);
+
+    // Simple level formula (triangular numbers: level N requires 100*(N-1)*N/2 total XP)
+    const levelFromXp = (xp: number): number => {
+      if (xp < 100) return 1;
+      let level = 1;
+      let cumulative = 0;
+      while (true) {
+        const nextLevelXp = 100 * level * (level + 1) / 2;
+        if (cumulative + nextLevelXp > xp) break;
+        cumulative += nextLevelXp;
+        level++;
+        if (level > 1000) break;
+      }
+      return level;
+    };
+
+    const level = levelFromXp(totalXp);
+
+    // Check if leveled up (compare with level before this XP award)
+    const prevTotalXp = totalXp - xpAmount;
+    const prevLevel = levelFromXp(prevTotalXp);
+    const leveledUp = level > prevLevel;
+
+    // Send notification for level up / achievements
+    if (leveledUp) {
+      await supabase.from("user_notifications").insert({
+        user_id: userId,
+        type: "levelup",
+        title: `Уровень ${level}!`,
+        message: `Вы достигли уровня ${level}`,
+      });
+    }
+
     if (newAchievements.length > 0) {
       await supabase.from("user_notifications").insert({
         user_id: userId,
@@ -307,11 +345,35 @@ export async function POST(req: Request) {
       });
     }
 
+    // Check streak milestone
+    const streakMilestones = [3, 7, 14, 30];
+    const streakMilestone = streakMilestones.includes(newStreak);
+
+    // Get achievement names for the response
+    const achievementNames: Record<string, string> = {
+      first_game: "Первая игра",
+      winner: "Победитель",
+      aim_master: "Мастер прицела",
+      explorer: "Исследователь",
+      quiz_master: "Мастер викторин",
+      on_fire: "В огне",
+    };
+
+    const newAchievementsWithNames = newAchievements.map((id) => ({
+      id,
+      name: achievementNames[id] ?? id,
+    }));
+
     return NextResponse.json({
       success: true,
       xpAwarded: xpAmount,
-      newAchievements,
+      totalXp,
+      level,
+      leveledUp,
+      newAchievements: newAchievementsWithNames,
       streakDays: newStreak,
+      streakMilestone,
+      missionsCompleted: [],
     });
   } catch (e) {
     console.error("Progression report error:", e);

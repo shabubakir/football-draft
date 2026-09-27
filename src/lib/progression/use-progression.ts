@@ -13,6 +13,7 @@
 
 import { useCallback, useState } from "react";
 import { getSupabaseBrowser } from "../supabase";
+import { showToast } from "@/components/toast-container";
 import type { ProgressionResult } from "./types";
 
 export interface ReportResultInput {
@@ -71,13 +72,43 @@ export function useProgression() {
         const data = await res.json();
         const result: ProgressionResult = {
           xpAwarded: data.xpAwarded ?? 0,
-          totalXp: 0, // would need a separate fetch
-          level: 0,
-          leveledUp: false,
+          totalXp: data.totalXp ?? 0,
+          level: data.level ?? 1,
+          leveledUp: data.leveledUp ?? false,
           newAchievements: data.newAchievements ?? [],
           streakDays: data.streakDays ?? 0,
-          missionsCompleted: [],
+          streakMilestone: data.streakMilestone ?? false,
+          missionsCompleted: data.missionsCompleted ?? [],
         };
+
+        // Show toasts for important events
+        if (result.leveledUp) {
+          showToast({
+            type: "levelup",
+            title: `Уровень ${result.level}!`,
+            message: `Вы достигли уровня ${result.level}`,
+            icon: "⬆️",
+          });
+        }
+
+        if (result.newAchievements.length > 0) {
+          const ach = result.newAchievements[0];
+          showToast({
+            type: "achievement",
+            title: "Достижение!",
+            message: ach.name ?? "Новое достижение",
+            icon: "🏆",
+          });
+        }
+
+        if (result.streakMilestone && result.streakDays > 0) {
+          showToast({
+            type: "streak",
+            title: `Серия: ${result.streakDays} дн.!`,
+            message: "Отличная серия игр!",
+            icon: "🔥",
+          });
+        }
 
         setLastResult(result);
         return result;
@@ -102,6 +133,7 @@ function emptyResult(): ProgressionResult {
     leveledUp: false,
     newAchievements: [],
     streakDays: 0,
+    streakMilestone: false,
     missionsCompleted: [],
   };
 }

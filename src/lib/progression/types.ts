@@ -34,10 +34,12 @@ export interface ProgressionResult {
   level: number;
   /** Whether the user leveled up from this result */
   leveledUp: boolean;
-  /** Achievement IDs unlocked by this result */
-  newAchievements: string[];
+  /** Achievement objects unlocked by this result */
+  newAchievements: { id: string; name: string }[];
   /** Current daily streak in days */
   streakDays: number;
+  /** Whether a streak milestone was reached */
+  streakMilestone: boolean;
   /** Mission IDs completed by this result */
   missionsCompleted: string[];
 }

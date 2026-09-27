@@ -37,6 +37,7 @@ export async function reportGameResult(
     leveledUp: false,
     newAchievements: [],
     streakDays: 0,
+    streakMilestone: false,
     missionsCompleted: [],
   };
 
@@ -73,14 +74,32 @@ export async function reportGameResult(
   await updateGameStats(supabase, userId, result);
 
   // 4. Check and unlock achievements
-  const newAchievements = await checkAndUnlockAchievements(
+  const newAchievementIds = await checkAndUnlockAchievements(
     supabase,
     userId,
     result
   );
 
+  // Map achievement IDs to objects with names
+  const achievementNames: Record<string, string> = {
+    first_game: "Первая игра",
+    winner: "Победитель",
+    aim_master: "Мастер прицела",
+    explorer: "Исследователь",
+    quiz_master: "Мастер викторин",
+    on_fire: "В огне",
+  };
+  const newAchievements = newAchievementIds.map((id) => ({
+    id,
+    name: achievementNames[id] ?? id,
+  }));
+
   // 5. Update daily streak
   const streakDays = await updateStreak(supabase, userId, result);
+
+  // Check streak milestone
+  const streakMilestones = [3, 7, 14, 30];
+  const streakMilestone = streakMilestones.includes(streakDays);
 
   // 6. Check daily/weekly missions
   const missionsCompleted = await checkMissions(supabase, userId, result);
@@ -109,6 +128,7 @@ export async function reportGameResult(
     leveledUp,
     newAchievements,
     streakDays,
+    streakMilestone,
     missionsCompleted,
   };
 }
