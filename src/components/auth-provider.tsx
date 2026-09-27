@@ -176,17 +176,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabaseBrowser();
     if (!supabase) return { error: "Supabase не настроен" };
 
-    // Запоминаем, куда вернуться после OAuth (текущий URL),
-    // и просим Supabase редиректить на /login?redirect=... — там подхватим и перенаправим
+    // Open Google OAuth in a popup window
+    const popup = window.open(
+      "",
+      "_blank",
+      "width=500,height=600,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes"
+    );
+
+    if (!popup) {
+      return { error: "Браузер заблокировал popup-окно. Разрешите popups для этого сайта." };
+    }
+
+    // Запоминаем, куда вернуться после OAuth (текущий URL)
     const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/login?returnTo=${returnTo}`,
+        redirectTo: `${window.location.origin}/auth/callback?returnTo=${returnTo}`,
       },
     });
 
-    if (error) return { error: error.message };
+    if (error) {
+      popup.close();
+      return { error: error.message };
+    }
+
+    // Navigate popup to the OAuth URL
+    if (data?.url) {
+      popup.location.href = data.url;
+    }
+
     return { error: null };
   }, []);
 
