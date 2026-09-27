@@ -334,9 +334,18 @@ export function GeoMultiplayer({
   // Если первый раунд пустой — игра только началась.
   const currentRoundIdx = useMemo(() => {
     if (!room) return 0;
+    // Текущий раунд = последний, у которого есть location_id (начат),
+    // независимо от того, есть ли уже ответы.
     let last = -1;
     for (let i = 0; i < room.rounds_data.length; i++) {
-      if (room.rounds_data[i].guesses.length > 0) last = i;
+      if (room.rounds_data[i].location_id) last = i;
+    }
+    // Если ни один раунд не начался (всё location_id=null) — показываем 0
+    if (last < 0) {
+      // Может быть, первый раунд уже имеет ответы (edge case)
+      for (let i = 0; i < room.rounds_data.length; i++) {
+        if (room.rounds_data[i].guesses.length > 0) { last = i; break; }
+      }
     }
     return last < 0 ? 0 : last;
   }, [room]);

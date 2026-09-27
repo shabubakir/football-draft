@@ -251,9 +251,14 @@ export async function POST(req: NextRequest) {
       for (let i = 0; i < rounds.length; i++) {
         const r = rounds[i];
         if (r.guesses.length === 0) {
-          // Первый пустой раунд = текущий (ещё никто не ответил)
-          roundIdx = i;
-          break;
+          // Пустой раунд: если location_id уже назначен (next прошёл)
+          // — это текущий раунд, ждём ответов. Если location_id null —
+          // раунд ещё не начат (next не вызывался).
+          if (r.location_id) {
+            roundIdx = i;
+            break;
+          }
+          break; // ещё не начат — не идём дальше
         }
         const answeredIds = new Set(r.guesses.map((g) => g.playerId));
         const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
@@ -403,6 +408,16 @@ export async function POST(req: NextRequest) {
         status = "finished";
         winnerId = computeWinner(scores);
         finishedAt = new Date().toISOString();
+      } else {
+        // НО: раунд с 0 ответов — это ЕЩЁ НЕ НАЧАВШИЙСЯ раунд.
+        // guess-логика ищет "первый раунд с ответами" как текущий,
+        // поэтому без маркера игроки продолжат отвечать в старом раунде.
+        // Ставим location_id — раунд считается "начавшимся",
+        // но без guesses (все ещё должны ответить).
+        roundsData[roundIdx] = {
+          location_id: room.round_location_ids[roundIdx] ?? null,
+          guesses: [],
+        };
       }
 
       const { error: upE } = await sb
