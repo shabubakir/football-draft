@@ -193,6 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?returnTo=${returnTo}`,
+        skipBrowserRedirect: true, // НЕ делать редирект текущей страницы
       },
     });
 
