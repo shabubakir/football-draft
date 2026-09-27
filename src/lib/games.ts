@@ -82,4 +82,13 @@ export const GAMES: GameCard[] = [
     cta: "ИГРАТЬ →",
     accent: "from-purple-500/20 to-purple-500/5",
   },
+  {
+    href: "/geoguessr",
+    tag: "МИНИ-ИГРА · МИР",
+    title: "GEOGUESSR LITE",
+    desc: "Угадай место на карте по фотографии. 5 раундов. Чем ближе ты поставишь точку — тем больше очков получишь.",
+    footer: "5 РАУНДОВ · ВСЕ КОНТИНЕНТЫ · КАЗАХСТАН",
+    cta: "ИГРАТЬ",
+    accent: "from-emerald-500/20 to-emerald-500/5",
+  },
 ];
