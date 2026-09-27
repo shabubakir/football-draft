@@ -325,30 +325,19 @@ export async function POST(req: NextRequest) {
         guesses: [...rnd.guesses, entry],
       };
 
-      console.log("[guess] roundIdx:", roundIdx, "roomId:", room.id, "deviceId:", deviceId);
-      console.log("[guess] entry:", JSON.stringify(entry));
-      console.log("[guess] newRounds[roundIdx]:", JSON.stringify(newRounds[roundIdx]));
-
-      const { error: upE } = await sb
+      // Используем upsert с onConflict по id — это гарантирует запись
+      const { data: upserted, error: upE } = await sb
         .from("geo_rooms")
-        .update({ rounds_data: newRounds })
-        .eq("id", room.id);
-      console.log("[guess] update error:", upE?.message ?? "none");
+        .upsert({ id: room.id, rounds_data: newRounds }, { onConflict: "id" })
+        .select("rounds_data")
+        .maybeSingle();
       if (upE) return err("Не удалось сохранить ответ: " + upE.message, 500);
 
-      // Верификация: перечитываем
-      const { data: after, error: afterErr } = await sb
-        .from("geo_rooms")
-        .select("rounds_data")
-        .eq("id", room.id)
-        .maybeSingle();
-      if (afterErr || !after) return err("Ответ не подтверждён БД", 500);
+      const afterRounds = upserted ? (upserted as { rounds_data: GeoRoomRound[] }).rounds_data : null;
+      if (!afterRounds) return err("Ответ не подтверждён БД", 500);
 
-      const afterRounds = (after as { rounds_data: GeoRoomRound[] }).rounds_data;
-      console.log("[guess] afterRounds[roundIdx]:", JSON.stringify(afterRounds[roundIdx]));
       const persistedGuess = afterRounds[roundIdx]?.guesses?.find((g) => g.playerId === deviceId);
       if (!persistedGuess) {
-        console.log("[guess] VERIFY FAILED - guess not in DB");
         return err("Ответ не записан в БД (внутренняя ошибка)", 500);
       }
 
