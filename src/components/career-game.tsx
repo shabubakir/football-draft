@@ -129,11 +129,34 @@ export function CareerGame() {
   }, [deviceId, dateKey]);
 
   const evaluate = useCallback((name: string): "match" | "close" | "no" => {
-    const p = PLAYERS.find(
+    const query = name.trim().toLowerCase();
+    
+    // 1. Точное совпадение (полное имя)
+    let p = PLAYERS.find(
       (x) =>
-        x.name_ru.toLowerCase() === name.trim().toLowerCase() ||
-        x.name_en.toLowerCase() === name.trim().toLowerCase()
+        x.name_ru.toLowerCase() === query ||
+        x.name_en.toLowerCase() === query
     );
+    
+    // 2. Если нет точного — ищем по фамилии (последнее слово)
+    if (!p) {
+      const lastWord = query.split(" ").pop() || query;
+      p = PLAYERS.find(
+        (x) =>
+          x.name_ru.toLowerCase().endsWith(lastWord) ||
+          x.name_en.toLowerCase().endsWith(lastWord)
+      );
+    }
+    
+    // 3. Если всё ещё нет — ищем по подстроке
+    if (!p) {
+      p = PLAYERS.find(
+        (x) =>
+          x.name_ru.toLowerCase().includes(query) ||
+          x.name_en.toLowerCase().includes(query)
+      );
+    }
+    
     if (!p) return "no";
     if (p.id === target.id) return "match";
     const close =
