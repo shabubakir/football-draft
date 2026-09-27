@@ -100,8 +100,24 @@ export async function POST(req: NextRequest) {
       const found = await fetchRoom(code);
       if ("error" in found) return err(found.error, found.status);
       const room = found.room;
+      if (room.status !== "playing") return err("Игра не идёт");
 
-      // Читаем текущее rounds_data
+      const me = room.players.find((p) => p.id === deviceId);
+      if (!me) return err("Вы не игрок в этой комнате");
+
+      const roundIdx = room.rounds_data.length - 1;
+      if (roundIdx < 0 || roundIdx >= room.rounds) return err("Неверный раунд");
+
+      const locationId = room.round_location_ids[roundIdx] ?? room.rounds_data[roundIdx]?.location_id;
+      if (!locationId) return err("Локация раунда не выбрана", 500);
+      const location = getLocationById(locationId);
+      if (!location) return err("Локация не найдена в базе", 500);
+
+      const lat = Number(body.lat ?? 0);
+      const lng = Number(body.lng ?? 0);
+      const entry = scoreRoundGuess(location, deviceId, lat, lng);
+
+      // Читаем актуальное rounds_data из БД
       const { data: cur, error: curErr } = await sb
         .from("geo_rooms")
         .select("rounds_data")
@@ -110,22 +126,20 @@ export async function POST(req: NextRequest) {
       if (curErr || !cur) return err("read failed: " + (curErr?.message ?? "?"), 500);
 
       const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
+      const rnd = rounds[roundIdx];
+      if (!rnd) return err("Раунд не найден", 500);
 
-      // Модифицируем round 0
       const newRounds = [...rounds];
-      if (newRounds[0]) {
-        newRounds[0] = {
-          ...newRounds[0],
-          guesses: [...newRounds[0].guesses, { playerId: "debug", lat: 0, lng: 0, distanceKm: 1, points: 100 }],
-        };
-      }
+      newRounds[roundIdx] = {
+        location_id: locationId,
+        guesses: [...rnd.guesses, entry],
+      };
 
-      const { error: upE, count: upCount } = await sb
+      const { error: upE } = await sb
         .from("geo_rooms")
         .update({ rounds_data: newRounds })
         .eq("id", room.id);
 
-      // Перечитываем
       const { data: after, error: afterErr } = await sb
         .from("geo_rooms")
         .select("rounds_data")
@@ -136,17 +150,13 @@ export async function POST(req: NextRequest) {
 
       return ok({
         roomId: room.id,
-        code: room.code,
-        roundsLength: rounds.length,
-        beforeGuesses: rounds[0]?.guesses?.length,
-        beforeLocationId: rounds[0]?.location_id,
+        roundIdx,
+        locationId,
+        entry,
+        beforeGuesses: rnd.guesses.length,
         updateError: upE?.message ?? null,
-        updateErrorName: upE?.name ?? null,
-        updateCount: upCount,
-        afterReadError: afterErr?.message ?? null,
-        afterGuesses: afterRounds?.[0]?.guesses?.length,
-        afterLocationId: afterRounds?.[0]?.location_id,
-        afterFull: afterRounds?.[0],
+        afterGuesses: afterRounds?.[roundIdx]?.guesses?.length,
+        afterFull: afterRounds?.[roundIdx],
       });
     }
 
