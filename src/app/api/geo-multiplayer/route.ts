@@ -408,31 +408,25 @@ export async function POST(req: NextRequest) {
       if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
       const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
 
-      // Текущий раунд = первый, в котором есть хотя бы один ответ,
-      // НО ещё не все онлайн-игроки ответили.
-      // Если в раунде уже ответили все — он завершён, ищем следующий.
+      // Ищем первый ЗАВЕРШЁННЫЙ раунд (все онлайн ответили).
+      // Это раунд, который только что сыграли.
       const onlinePlayers = room.players.filter((p) => p.online);
       let roundIdx = -1;
       for (let i = 0; i < freshRounds.length; i++) {
         const r = freshRounds[i];
-        if (r.guesses.length === 0) continue; // раунд ещё не начался
+        if (r.guesses.length === 0) break; // следующий раунд ещё не начался
         const answeredIds = new Set(r.guesses.map((g) => g.playerId));
         const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
         if (pendingHere.length > 0) {
-          roundIdx = i;
-          break;
+          // Раунд не завершён — ждём остальных
+          return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
         }
-        // все ответили в этом раунде — он завершён, идём дальше
+        // Раунд завершён
+        roundIdx = i;
       }
-      if (roundIdx < 0) return err("Все раунды завершены");
+      if (roundIdx < 0) return err("Ещё нет завершённых раундов");
       const rnd = freshRounds[roundIdx];
       if (!rnd) return err("Неверный раунд");
-
-      const answered = new Set(rnd.guesses.map((g) => g.playerId));
-      const pending = room.players.filter((p) => !answered.has(p.id) && p.online);
-      if (pending.length > 0) {
-        return err(`Ждём ответов: ${pending.map((p) => p.name).join(", ")}`);
-      }
 
       // --- расчёт очков и переход ---
       const roundsData = [...freshRounds];
