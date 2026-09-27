@@ -33,6 +33,8 @@ export interface GeoPlayer {
   /** true, пока соединение живое (heartbeat) */
   online: boolean;
   joined_at: string;
+  /** timestamp последнего heartbeat (ms) — для авто-офлайн */
+  last_seen?: number;
 }
 
 // ---------- Гаданье в раунде ----------

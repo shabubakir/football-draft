@@ -388,7 +388,7 @@ export function GeoMultiplayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentRoundIdx, phase, myAnswered, currentLocation?.id]);
 
-  // ---------- Авто-переход: все онлайн ответили, но никто не нажал "next" ----------
+  // ---------- Авто-переход: все онлайн ответили → через 3 сек следующий раунд ----------
   const doNextRef = useRef<(() => void) | null>(null);
   const allAnsweredRef = useRef(false);
   allAnsweredRef.current =
@@ -405,7 +405,7 @@ export function GeoMultiplayer({
     if (!allAnsweredRef.current) return;
     const t = setTimeout(() => {
       if (allAnsweredRef.current) doNextRef.current?.();
-    }, 45_000);
+    }, 3_000);
     return () => clearTimeout(t);
   }, [allAnsweredRef.current, currentRoundIdx]);
 

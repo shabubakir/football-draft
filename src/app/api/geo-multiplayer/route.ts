@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
         name,
         online: true,
         joined_at: new Date().toISOString(),
+        last_seen: Date.now(),
       };
       const { data, error } = await sb
         .from("geo_rooms")
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
         // Возвращение: обновляем имя (если дали новое) и online=true.
         const players = room.players.map((p) =>
           p.id === deviceId
-            ? { ...p, online: true, name: body.name ? sanitizeName(body.name) : p.name }
+            ? { ...p, online: true, last_seen: Date.now(), name: body.name ? sanitizeName(body.name) : p.name }
             : p
         );
         const { error: upE } = await sb.from("geo_rooms").update({ players }).eq("id", room.id);
@@ -174,6 +175,7 @@ export async function POST(req: NextRequest) {
         name: sanitizeName(body.name),
         online: true,
         joined_at: new Date().toISOString(),
+        last_seen: Date.now(),
       };
       const players = [...room.players, player];
       const scores = [...room.scores, { playerId: deviceId, total: 0 }];
@@ -378,7 +380,7 @@ export async function POST(req: NextRequest) {
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
       }
 
-      // Все ответили → ищем следующий неактивированный раунд.
+      // Все ответили (или авто-переход) → ищем следующий неактивированный раунд.
       let nextIdx = -1;
       for (let i = 0; i < freshRounds.length; i++) {
         if (!freshRounds[i].location_id) {
@@ -477,6 +479,21 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return ok({ ok: true });
 
+      if (room.status === "playing") {
+        // В игре: помечаем offline (не удаляем — иначе scores/ranks ломаются).
+        // next уже пропускает офлайн-игроков.
+        const players = room.players.map((p) =>
+          p.id === deviceId ? { ...p, online: false } : p
+        );
+        const { error: upE } = await sb
+          .from("geo_rooms")
+          .update({ players })
+          .eq("id", room.id);
+        if (upE) return err(upE.message, 500);
+        return ok({ ok: true });
+      }
+
+      // В лобби: удаляем игрока.
       const players = room.players.filter((p) => p.id !== deviceId);
       const scores = room.scores.filter((s) => s.playerId !== deviceId);
       const { error: upE } = await sb
@@ -499,10 +516,14 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return ok({ ok: true, inRoom: false });
 
-      // если меня нет — возвращаемся (реконнект)
-      const players = room.players.map((p) =>
-        p.id === deviceId ? { ...p, online: true } : p
-      );
+      // Я онлайн; остальные — офлайн, если их last_seen > 50 сек назад.
+      // (heartbeat каждые 25 сек; 50 = 2 пропущенных цикла)
+      const now = Date.now();
+      const players = room.players.map((p) => {
+        if (p.id === deviceId) return { ...p, online: true, last_seen: now };
+        const lastSeen = p.last_seen ?? 0;
+        return { ...p, online: now - lastSeen < 50_000 };
+      });
       const { error: upE } = await sb.from("geo_rooms").update({ players }).eq("id", room.id);
       if (upE) return err(upE.message, 500);
       return ok({ ok: true, inRoom: true });
@@ -515,7 +536,7 @@ export async function POST(req: NextRequest) {
       if ("error" in found) return err(found.error, found.status);
       const room = found.room;
       const players = room.players.map((p) =>
-        p.id === deviceId ? { ...p, online: false } : p
+        p.id === deviceId ? { ...p, online: false, last_seen: 0 } : p
       );
       const { error: upE } = await sb.from("geo_rooms").update({ players }).eq("id", room.id);
       if (upE) return err(upE.message, 500);
