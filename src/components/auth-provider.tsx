@@ -138,43 +138,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (email: string, password: string, username: string) => {
-      const supabase = getSupabaseBrowser();
-      if (!supabase) return { error: "Supabase не настроен" };
+      // Use API route to handle registration with service role
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, username }),
+        });
 
-      // Check username uniqueness
-      const { data: existing } = await supabase
-        .from("user_profiles")
-        .select("id")
-        .eq("username", username)
-        .maybeSingle();
+        const data = await res.json();
 
-      if (existing) return { error: "Username уже занят" };
+        if (!res.ok) {
+          return { error: data.error || "Ошибка регистрации" };
+        }
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { username } },
-      });
+        // Now log in with the new credentials
+        const supabase = getSupabaseBrowser();
+        if (!supabase) return { error: "Supabase не настроен" };
 
-      if (error) return { error: error.message };
-      if (!data.user) return { error: "Ошибка регистрации" };
+        const { data: loginData, error: loginError } =
+          await supabase.auth.signInWithPassword({ email, password });
 
-      // Create profile
-      const { data: profile, error: profileErr } = await supabase
-        .from("user_profiles")
-        .insert({
-          id: data.user.id,
-          username,
-        })
-        .select()
-        .single();
+        if (loginError) return { error: loginError.message };
 
-      if (profileErr) return { error: profileErr.message };
-
-      setUser(profile as UserProfile);
-      return { error: null };
+        const profile = await ensureProfile(supabase, loginData.user);
+        setUser(profile);
+        return { error: null };
+      } catch (e) {
+        console.error("Register error:", e);
+        return { error: "Ошибка сети" };
+      }
     },
-    []
+    [ensureProfile]
   );
 
   const loginWithGoogle = useCallback(async () => {
