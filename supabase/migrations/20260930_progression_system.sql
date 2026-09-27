@@ -241,17 +241,6 @@ begin
   end if;
 end $$;
 
--- 10. Public read access to leaderboard_view (for the leaderboard page)
--- Ensure the view can be read by anon (for public leaderboard)
-do $$
-begin
-  if not exists (
-    select 1 from pg_policies
-    where tablename = 'leaderboard_view'
-      and policyname = 'Public read leaderboard'
-  ) then
-    create policy "Public read leaderboard"
-      on public.leaderboard_view for select
-      using (true);
-  end if;
-end $$;
+-- NOTE: leaderboard_view is a VIEW — RLS policies cannot be created on views.
+-- Access to the underlying tables (user_profiles, xp_events, user_game_stats)
+-- already controls what is readable.
