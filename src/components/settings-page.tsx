@@ -8,6 +8,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "./auth-provider";
 import { getSupabaseBrowser } from "@/lib/auth";
+import { Nav } from "./nav";
 
 export default function SettingsPage() {
   const { user, loading, updateProfile, logout } = useAuth();
@@ -79,8 +80,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 py-8 px-4">
-      <div className="max-w-md mx-auto">
+    <div className="min-h-screen bg-stone-50">
+      {/* Навигация */}
+      <div className="border-b border-stone-200 bg-white px-4 py-3">
+        <Nav />
+      </div>
+
+      <div className="py-8 px-4">
+        <div className="max-w-md mx-auto">
         <div className="rounded-3xl border border-stone-200 bg-white shadow-sm overflow-hidden">
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-6 text-center">
             <h1 className="text-2xl font-black">НАСТРОЙКИ</h1>
@@ -175,12 +182,21 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <Link
-          href="/profile"
-          className="mt-4 block text-center text-sm text-stone-500 hover:text-stone-700"
-        >
-          ← Вернуться к профилю
-        </Link>
+        <div className="mt-4 flex flex-col gap-2">
+          <Link
+            href="/"
+            className="text-center text-sm text-stone-500 hover:text-stone-700"
+          >
+            ← Вернуться на главную
+          </Link>
+          <Link
+            href="/profile"
+            className="text-center text-sm text-stone-500 hover:text-stone-700"
+          >
+            → Вернуться к профилю
+          </Link>
+        </div>
+        </div>
       </div>
     </div>
   );

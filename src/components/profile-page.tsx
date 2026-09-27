@@ -15,6 +15,7 @@ import {
   xpForLevel,
 } from "@/lib/xp";
 import type { GameStats } from "@/lib/game-stats";
+import { Nav } from "./nav";
 
 interface ProfileStats {
   total_xp: number;
@@ -99,7 +100,13 @@ export default function ProfilePage() {
   const nextLevelXp = xpForLevel(level + 1);
 
   return (
-    <div className="min-h-screen bg-stone-50 py-8 px-4">
+    <div className="min-h-screen bg-stone-50">
+      {/* Навигация */}
+      <div className="border-b border-stone-200 bg-white px-4 py-3">
+        <Nav />
+      </div>
+
+      <div className="py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="rounded-3xl border border-stone-200 bg-white shadow-sm overflow-hidden">
           {/* Header */}
@@ -224,6 +231,7 @@ export default function ProfilePage() {
             </Link>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

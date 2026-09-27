@@ -81,6 +81,14 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Кнопка назад */}
+        <Link
+          href="/"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700"
+        >
+          ← Вернуться на главную
+        </Link>
+
         <div className="rounded-3xl border border-stone-200 bg-white shadow-sm overflow-hidden">
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-6 text-center">
             <small className="text-[11px] tracking-[0.25em] text-emerald-200">
