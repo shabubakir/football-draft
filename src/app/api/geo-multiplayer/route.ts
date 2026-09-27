@@ -254,7 +254,10 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Записываем ответ
+      // Записываем ответ.
+      // RACE-SAFE: между fresh-read и update другой игрок мог уже записать
+      // свой ответ. Поэтому после update делаем verify-read и проверяем,
+      // что наш entry на месте. Если нет (overwrite) — повторяем merge.
       const newRounds = [...freshRounds];
       newRounds[roundIdx] = {
         location_id: locationId,
@@ -267,16 +270,48 @@ export async function POST(req: NextRequest) {
         .eq("id", room.id);
       if (upE) return err("Не удалось сохранить ответ: " + upE.message, 500);
 
-      // Верификация: перечитываем и проверяем что ответ записался
-      const { data: verify, error: vErr } = await sb
-        .from("geo_rooms")
-        .select("rounds_data")
-        .eq("id", room.id)
-        .maybeSingle();
-      if (vErr || !verify) return err("Ответ не подтверждён БД", 500);
-      const persisted = (verify as { rounds_data: GeoRoomRound[] }).rounds_data;
-      const persistedGuess = persisted[roundIdx]?.guesses?.find((g) => g.playerId === deviceId);
-      if (!persistedGuess) {
+      // Верификация + retry (до 3 попыток)
+      let persisted: GeoRoomRound[] | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: verify, error: vErr } = await sb
+          .from("geo_rooms")
+          .select("rounds_data")
+          .eq("id", room.id)
+          .maybeSingle();
+        if (vErr || !verify) return err("Ответ не подтверждён БД", 500);
+        const data = (verify as { rounds_data: GeoRoomRound[] }).rounds_data;
+        const found = data[roundIdx]?.guesses?.find((g) => g.playerId === deviceId);
+        if (found) {
+          persisted = data;
+          break;
+        }
+        // Наш entry затерли — повторяем: читаем свежее, merge, write
+        const { data: reFresh, error: rfErr } = await sb
+          .from("geo_rooms")
+          .select("rounds_data")
+          .eq("id", room.id)
+          .maybeSingle();
+        if (rfErr || !reFresh) return err("Не удалось перечитать комнату", 500);
+        const reRounds = (reFresh as { rounds_data: GeoRoomRound[] }).rounds_data;
+        const reRnd = reRounds[roundIdx];
+        if (!reRnd) return err("Раунд не найден", 500);
+        const reExisting = reRnd.guesses.find((g) => g.playerId === deviceId);
+        if (reExisting) {
+          persisted = reRounds;
+          break;
+        }
+        const reNew = [...reRounds];
+        reNew[roundIdx] = {
+          location_id: locationId,
+          guesses: [...reRnd.guesses, entry],
+        };
+        const { error: reUpE } = await sb
+          .from("geo_rooms")
+          .update({ rounds_data: reNew })
+          .eq("id", room.id);
+        if (reUpE) return err("Не удалось сохранить ответ (retry): " + reUpE.message, 500);
+      }
+      if (!persisted) {
         return err("Ответ не записан в БД (внутренняя ошибка)", 500);
       }
 
