@@ -341,14 +341,6 @@ export function Nav({ dark = false }: { dark?: boolean }) {
               >
                 ⚙️ Настройки
               </Link>
-              <Link
-                href="/leaderboard"
-                role="menuitem"
-                onClick={() => setUserMenuOpen(false)}
-                className={`block px-4 py-2 rounded-lg text-sm transition ${dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
-              >
-                🏆 Лидерборд
-              </Link>
               <button
                 type="button"
                 onClick={() => {
