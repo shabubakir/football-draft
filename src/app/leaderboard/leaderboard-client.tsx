@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/auth";
 import { levelFromXp, rankOf } from "@/lib/xp";
+import { Nav } from "@/components/nav";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -77,8 +78,11 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-2xl mx-auto px-4 pt-6">
+        <Nav />
+      </div>
+      <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="rounded-3xl border border-stone-200 bg-white shadow-sm overflow-hidden">
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-6 text-center">
             <h1 className="text-2xl font-black">🏆 ЛИДЕРБОРД</h1>
@@ -171,3 +175,4 @@ export default function LeaderboardPage() {
     </div>
   );
 }
+
