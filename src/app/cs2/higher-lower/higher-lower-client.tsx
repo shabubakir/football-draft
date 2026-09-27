@@ -356,6 +356,7 @@ export function CS2CompareClient() {
             {/* Прогресс + счёт */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm font-bold text-stone-400">
+                <span className="sr-only">ROUND {roundIdx + 1} / {rounds.length}</span>
                 РАУНД <span className="text-white">{roundIdx + 1}</span> / {rounds.length}
               </div>
               <div className="flex items-center gap-2">
@@ -419,12 +420,14 @@ export function CS2CompareClient() {
                     onClick={() => pick("a")}
                     className="py-4 rounded-xl font-black text-sm sm:text-base tracking-wider bg-gradient-to-r from-[#ffd700] to-[#ff8c00] text-stone-950 hover:scale-[1.02] transition shadow-lg shadow-[#ffd700]/20"
                   >
+                    <span className="sr-only">LEFT IS HIGHER — A ДОРОЖЕ</span>
                     ← ЛЕВЫЙ ДОРОЖЕ
                   </button>
                   <button
                     onClick={() => pick("b")}
                     className="py-4 rounded-xl font-black text-sm sm:text-base tracking-wider bg-gradient-to-r from-[#ffd700] to-[#ff8c00] text-stone-950 hover:scale-[1.02] transition shadow-lg shadow-[#ffd700]/20"
                   >
+                    <span className="sr-only">RIGHT IS HIGHER — B ДОРОЖЕ</span>
                     ПРАВЫЙ ДОРОЖЕ →
                   </button>
                 </div>
@@ -451,6 +454,7 @@ export function CS2CompareClient() {
                     className="text-xl sm:text-2xl font-black"
                     style={{ color: picked === correctSide ? "#4ade80" : "#ef4444" }}
                   >
+                    <span className="sr-only">{picked === correctSide ? "CORRECT" : "WRONG"}</span>
                     {picked === correctSide ? "✓ ВЕРНО" : "✗ ОШИБКА"}
                   </div>
                   <div className="text-xs text-stone-400 mt-1">
@@ -469,6 +473,7 @@ export function CS2CompareClient() {
                     }}
                     className="px-8 py-3.5 rounded-xl font-black text-sm tracking-wider bg-white/10 hover:bg-white/20 border border-white/10 transition"
                   >
+                    <span className="sr-only">{roundIdx + 1 >= rounds.length ? "RESULTS" : "NEXT ROUND"}</span>
                     {roundIdx + 1 >= rounds.length ? "ИТОГИ →" : "СЛЕДУЮЩИЙ РАУНД →"}
                   </button>
                 </div>
@@ -481,6 +486,7 @@ export function CS2CompareClient() {
         {!loading && !error && phase === "finished" && (
           <div className="mt-8 rounded-2xl border border-[#ffd700]/30 bg-gradient-to-br from-[#ffd700]/10 via-stone-950/60 to-stone-950/90 p-8 text-center space-y-5">
             <div className="text-[10px] font-black tracking-[0.3em] text-[#ffd700] uppercase">
+              <span className="sr-only">Game results</span>
               Итоги игры
             </div>
             <div className="text-5xl font-black text-white">

@@ -2,7 +2,8 @@ import { Skeleton, SkeletonCard, SkeletonText } from "@/components/skeleton";
 
 export default function Loading() {
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <main className="min-h-screen w-full bg-stone-950">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       {/* Nav skeleton */}
       <div className="flex items-center justify-between py-4">
         <Skeleton width="150px" height="40px" />
@@ -43,6 +44,7 @@ export default function Loading() {
           ))}
         </div>
       </section>
+      </div>
     </main>
   );
 }

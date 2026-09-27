@@ -25,12 +25,12 @@ const NAV_GAMES: NavGame[] = [
   { href: "/career", label: "ПУТЬ ФУТБОЛИСТА", match: "/career", icon: "route", desc: "Угадай по карьере" },
   // Футбольная викторина: match "/quiz/online" — чтобы /quiz/geo не подсвечивал её
   { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz/online", icon: "trophy", desc: "Футбол · до 5 игроков" },
-  { href: "/akinator", label: "ФУТБОЛЬНЫЙ ДЖИНН", match: "/akinator", icon: "ghost", desc: "Akinator · угадай кто" },
+  { href: "/akinator", label: "AKINATOR", match: "/akinator", icon: "ghost", desc: "Угадай футболиста" },
   // CS2 КЕЙСЫ: без match — активен только на самом /cs2,
   // чтобы /cs2/aim и /cs2/higher-lower подсвечивали только себя.
   { href: "/cs2", label: "CS2 КЕЙСЫ", icon: "grid", desc: "Симулятор кейсов" },
   { href: "/cs2/aim", label: "CS2 AIM", match: "/cs2/aim", icon: "crosshair", desc: "Тренировка реакции" },
-  { href: "/cs2/higher-lower", label: "CS2 ВЫШЕ/НИЖЕ", match: "/cs2/higher-lower", icon: "swap", desc: "Угадай, что дороже" },
+  { href: "/cs2/higher-lower", label: "CS2 HIGHER/LOWER", match: "/cs2/higher-lower", icon: "swap", desc: "Угадай, что дороже" },
   { href: "/quiz/geo", label: "ВИКТОРИНА", match: "/quiz/geo", icon: "trophy", desc: "География · до 5 игроков" },
   { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
 ];

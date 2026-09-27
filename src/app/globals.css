@@ -1,18 +1,16 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f5f1e8;
-  --foreground: #1c1917;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--background, #0c0a09);
+  --color-foreground: var(--foreground, #fafaf9);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Базовый тёмный фон — страницы задают свой фон при необходимости.
+   Иначе у тёмных страниц (главная, GameShell) белый текст на светлом
+   фоне отсюда становился невидим. */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #0c0a09;
+  color: #fafaf9;
 }

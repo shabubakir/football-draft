@@ -37,6 +37,7 @@ import {
 } from "@/lib/audio";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { usePlayerName } from "@/lib/use-player-name";
 
 const ITEM_W = 148; // ширина карточки трека (w-36 + gap-1)
 const BATTLE_DUR = 4200; // ms — немного быстрее одиночной игры (динамика матча)
@@ -168,7 +169,7 @@ export function CaseBattle({
   const [phase, setPhase] = useState<"create" | "join" | "lobby" | "play" | "end">(initialPhase);
   const [room, setRoom] = useState<BattleRoom | null>(null);
   const [myId] = useState<string>(() => getDeviceId());
-  const [myName, setMyName] = useState<string>(getMyName);
+  const { name: myName, setName: setMyName } = usePlayerName("cs2_battle_name");
   const [joinCode, setJoinCode] = useState(initialJoinCode);
   const [autoJoined, setAutoJoined] = useState(false);
   const [error, setError] = useState("");
@@ -205,8 +206,7 @@ export function CaseBattle({
 
   useEffect(() => {
     preloadSounds();
-    if (myName) localStorage.setItem("cs2_battle_name", myName);
-  }, [myName]);
+  }, []);
 
   useEffect(() => () => {
     if (animRef.current) clearInterval(animRef.current);

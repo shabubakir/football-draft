@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDeviceId } from "@/lib/profile";
+import { usePlayerName } from "@/lib/use-player-name";
 import {
   formatDistance,
   formatScore,
@@ -145,15 +146,7 @@ export function GeoMultiplayer({
   onExit?: () => void;
 }) {
   const [myId] = useState<string>(() => getDeviceId());
-  const [myName, setMyName] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    return (
-      localStorage.getItem("geo_mp_name") ||
-      localStorage.getItem("grid_player_name") ||
-      localStorage.getItem("cs2_battle_name") ||
-      ""
-    );
-  });
+  const { name: myName, setName: setMyName } = usePlayerName("geo_mp_name");
   const [joinCode, setJoinCode] = useState<string>(
     initialRoomCode ? initialRoomCode.toUpperCase() : ""
   );
@@ -190,13 +183,6 @@ export function GeoMultiplayer({
   );
   const inRoom = room !== null;
   const mySeatIdx = room ? room.players.findIndex((p) => p.id === myId) : -1;
-
-  // ---------- Сохранение имени ----------
-  useEffect(() => {
-    if (myName && typeof window !== "undefined") {
-      localStorage.setItem("geo_mp_name", myName);
-    }
-  }, [myName]);
 
   // ---------- Countdown для перехода в следующий раунд ----------
   useEffect(() => {
@@ -636,6 +622,12 @@ export function GeoMultiplayer({
             </p>
           </div>
           <div className="p-6 space-y-3">
+            {myName.trim() && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-stone-500">Вы играете как</span>
+                <span className="font-bold text-stone-900">{myName}</span>
+              </div>
+            )}
             <label className="block">
               <small className="text-[10px] tracking-[0.15em] text-stone-500">ВАШЕ ИМЯ</small>
               <input

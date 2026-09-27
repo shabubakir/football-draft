@@ -8,7 +8,8 @@ import { ProgressCard } from "@/components/progress-card";
 
 export default function Home() {
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <main className="min-h-screen w-full bg-stone-950 text-stone-100">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <Nav dark />
 
       <section className="mt-10 sm:mt-16 grid md:grid-cols-[1.4fr_1fr] gap-6 items-center">
@@ -86,6 +87,7 @@ export default function Home() {
           </a>
         </nav>
       </footer>
+      </div>
     </main>
   );
 }

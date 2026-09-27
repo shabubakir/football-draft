@@ -6,7 +6,8 @@ export const metadata = {
 
 export default function LegalPage() {
   return (
-    <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <main className="min-h-screen w-full bg-stone-100">
+      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <Nav />
       <div className="mt-10 space-y-6">
         <h1 className="text-3xl font-black">
@@ -32,6 +33,7 @@ export default function LegalPage() {
         <p className="text-xs text-stone-400">
           Football Draft · сделано для игры с друзьями · {new Date().getFullYear()}
         </p>
+      </div>
       </div>
     </main>
   );

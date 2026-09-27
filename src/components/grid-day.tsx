@@ -9,11 +9,11 @@ import {
   addXp,
   ensureProfile,
   getDeviceId,
-  getDeviceName,
   setDeviceName,
   XP_KEYS,
 } from "@/lib/profile";
 import { useProgression } from "@/lib/progression/use-progression";
+import { usePlayerName } from "@/lib/use-player-name";
 
 // Общий для всех сид сетки на дату (локальное время)
 export function daySeed(date: Date = new Date()): number {
@@ -42,7 +42,7 @@ type DayResult = {
 
 export function GridDay() {
   const deviceId = useMemo(() => getDeviceId(), []);
-  const [name, setName] = useState(() => getDeviceName());
+  const { name, setName } = usePlayerName("grid_player_name");
   const [cells, setCells] = useState<(string | null)[]>(() => Array(9).fill(null));
   const [mistakes, setMistakes] = useState(0);
   const [finished, setFinished] = useState(false);

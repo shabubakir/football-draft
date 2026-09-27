@@ -7,6 +7,7 @@ import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GRID_THEMES, type GridTheme, type GridClue } from "@/lib/grid";
 import { PLAYERS } from "@/lib/players";
+import { usePlayerName } from "@/lib/use-player-name";
 
 type Role = "host" | "guest";
 
@@ -67,18 +68,11 @@ export function GridOnline() {
   const [joinCode, setJoinCode] = useState(joinParam);
   const [room, setRoom] = useState<Room | null>(null);
   const [myId, setMyId] = useState<string>(() => uid());
-  const [myName, setMyName] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("grid_player_name") ?? "";
-  });
+  const { name: myName, setName: setMyName } = usePlayerName("grid_player_name");
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [joinedByLink, setJoinedByLink] = useState(false);
-
-  useEffect(() => {
-    if (myName) localStorage.setItem("grid_player_name", myName);
-  }, [myName]);
 
   const supabaseRef = useRef<SupabaseClient | null>(null);
 

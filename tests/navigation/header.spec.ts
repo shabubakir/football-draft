@@ -1,17 +1,19 @@
 import { test, expect, Page } from "@playwright/test";
 
 // Все пункты меню навигации ведут на существующие страницы
-const NAV_LINKS: Array<[string, string]> = [
-  ["СЕТКА 9 ОНЛАЙН", "/grid/online"],
-  ["ДРАФТ", "/draft"],
-  ["УГАДАЙ ИГРОКА", "/guess"],
-  ["ПУТЬ ФУТБОЛИСТА", "/career"],
-  ["ВИКТОРИНА", "/quiz/online"],
-  ["CS2 КЕЙСЫ", "/cs2"],
-  ["CS2 AIM", "/cs2/aim"],
-  ["CS2 HIGHER/LOWER", "/cs2/higher-lower"],
-  ["AKINATOR", "/akinator"],
-  ["GEOGUESSR", "/geoguessr"],
+// label → [href, категория мега-меню]
+const NAV_LINKS: Array<[string, string, string]> = [
+  ["СЕТКА 9 ОНЛАЙН", "/grid/online", "ФУТБОЛ"],
+  ["ДРАФТ", "/draft", "ФУТБОЛ"],
+  ["УГАДАЙ ИГРОКА", "/guess", "ФУТБОЛ"],
+  ["ПУТЬ ФУТБОЛИСТА", "/career", "ФУТБОЛ"],
+  ["ВИКТОРИНА", "/quiz/online", "ФУТБОЛ"],
+  ["AKINATOR", "/akinator", "ФУТБОЛ"],
+  ["CS2 КЕЙСЫ", "/cs2", "КИБЕРСПОРТ"],
+  ["CS2 AIM", "/cs2/aim", "КИБЕРСПОРТ"],
+  ["CS2 HIGHER/LOWER", "/cs2/higher-lower", "КИБЕРСПОРТ"],
+  ["ВИКТОРИНА", "/quiz/geo", "ГЕОГРАФИЯ"],
+  ["GEOGUESSR", "/geoguessr", "ГЕОГРАФИЯ"],
 ];
 
 async function openDropdown(page: Page) {
@@ -30,9 +32,19 @@ test.describe("Header / Navigation", () => {
 
     // Открываем dropdown один раз
     await openDropdown(page);
-    for (const [label, href] of NAV_LINKS) {
-      // Ссылки в dropdown имеют role="menuitem"
-      const item = nav.getByRole("menuitem", { name: label });
+    let lastCat = "";
+    for (const [label, href, cat] of NAV_LINKS) {
+      if (cat !== lastCat) {
+        await nav.getByRole("menuitem", { name: cat }).click();
+        await page.waitForTimeout(200);
+        lastCat = cat;
+      }
+      // Ссылки в dropdown имеют role="menuitem".
+      // У «ВИКТОРИНА» две карточки (футбол / география) — уточняем по href.
+      const items = nav.getByRole("menuitem", { name: label });
+      const item = (await items.count()) === 1
+        ? items.first()
+        : items.filter({ has: nav.locator(`[href="${href}"]`) }).first();
       await expect(item, label).toBeVisible({ timeout: 5000 });
       await expect(item, "href для " + label).toHaveAttribute("href", href);
     }
@@ -65,9 +77,11 @@ test.describe("Header / Navigation", () => {
   test("back/forward работает без потери состояния навигации", async ({ page }) => {
     await page.goto("/");
     await page.waitForTimeout(500);
-    // Открываем dropdown и кликаем на ДРАФТ
+    // Открываем dropdown, выбираем категорию и кликаем на ДРАФТ
     const nav = page.locator("header").locator("nav").first();
     await nav.getByRole("button", { name: /ВСЕ ИГРЫ/ }).click();
+    await page.waitForTimeout(300);
+    await nav.getByRole("menuitem", { name: "ФУТБОЛ" }).click();
     await page.waitForTimeout(300);
     await nav.getByRole("menuitem", { name: "ДРАФТ" }).click();
     await page.waitForURL("http://localhost:3000/draft", { timeout: 10000 });

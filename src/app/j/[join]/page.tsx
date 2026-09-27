@@ -7,10 +7,12 @@ export const metadata = {
 
 export default function JoinPage() {
   return (
-    <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <Nav />
-      <div className="mt-10">
-        <QuizOnline />
+    <main className="min-h-screen w-full bg-stone-100">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <Nav />
+        <div className="mt-10">
+          <QuizOnline />
+        </div>
       </div>
     </main>
   );

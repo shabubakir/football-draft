@@ -7,6 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { shuffleQuestions, type QuizTopic } from "@/lib/quiz";
 import { OptimizedImage } from "@/components/optimized-image";
 import { useProgression } from "@/lib/progression/use-progression";
+import { usePlayerName } from "@/lib/use-player-name";
 
 type QuizPhase = "lobby" | "playing" | "reveal" | "end";
 type Role = "host" | "guest";
@@ -65,13 +66,7 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
   const cameByLink = Boolean(joinParam);
   const [role, setRole] = useState<Role>("host");
   const [myId, setMyId] = useState<string>(() => uid());
-  const [myName, setMyName] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("quiz_player_name") ?? "";
-  });
-  useEffect(() => {
-    if (myName) localStorage.setItem("quiz_player_name", myName);
-  }, [myName]);
+  const { name: myName, setName: setMyName } = usePlayerName("quiz_player_name");
   const [joinCode, setJoinCode] = useState(joinParam);
   const [room, setRoom] = useState<QuizRoom | null>(null);
   const [phase, setPhase] = useState<QuizPhase>("lobby");
