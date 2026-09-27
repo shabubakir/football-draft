@@ -54,6 +54,9 @@ export function Nav() {
         <Link href="/cs2" className={linkCls(isActive("/cs2"))}>
           CS2 КЕЙСЫ
         </Link>
+        <Link href="/akinator" className={linkCls(isActive("/akinator"))}>
+          AKINATOR
+        </Link>
       </nav>
       <button
         type="button"
@@ -92,6 +95,9 @@ export function Nav() {
           </Link>
           <Link href="/cs2" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/cs2") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             CS2 КЕЙСЫ
+          </Link>
+          <Link href="/akinator" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/akinator") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
+            AKINATOR
           </Link>
         </div>
       )}

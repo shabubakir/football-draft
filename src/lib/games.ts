@@ -73,4 +73,13 @@ export const GAMES: GameCard[] = [
     cta: "ПРОКРУТИТЬ",
     accent: "from-yellow-500/20 to-yellow-500/5",
   },
+  {
+    href: "/akinator",
+    tag: "МИСТИКА · БЕЗ ЛИМИТОВ",
+    title: "FOOTBALL AKINATOR",
+    desc: "Загадай любого человека, клуб или объект из мира футбола. Я попробую угадать его за несколько вопросов.",
+    footer: "БЕСКОНЕЧНЫЕ ВОПРОСЫ · ИСТИННАЯ ЛОГИКА",
+    cta: "ИГРАТЬ →",
+    accent: "from-purple-500/20 to-purple-500/5",
+  },
 ];
