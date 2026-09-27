@@ -325,15 +325,31 @@ export async function POST(req: NextRequest) {
         guesses: [...rnd.guesses, entry],
       };
 
-      // Используем upsert с onConflict по id — это гарантирует запись
-      const { data: upserted, error: upE } = await sb
-        .from("geo_rooms")
-        .upsert({ id: room.id, rounds_data: newRounds }, { onConflict: "id" })
-        .select("rounds_data")
-        .maybeSingle();
-      if (upE) return err("Не удалось сохранить ответ: " + upE.message, 500);
-
-      const afterRounds = upserted ? (upserted as { rounds_data: GeoRoomRound[] }).rounds_data : null;
+      // Используем raw fetch к PostgREST напрямую (обходим потенциальные
+      // проблемы с supabase-js client'ом на сервере).
+      const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const restRes = await fetch(
+        `${sbUrl}/rest/v1/geo_rooms?id=eq.${room.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: sbKey,
+            Authorization: `Bearer ${sbKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({ rounds_data: newRounds }),
+        }
+      );
+      if (!restRes.ok) {
+        const restText = await restRes.text();
+        return err("Не удалось сохранить ответ: " + restRes.status + " " + restText.slice(0, 200), 500);
+      }
+      const restBody = await restRes.json();
+      const afterRounds: GeoRoomRound[] | null = Array.isArray(restBody) && restBody.length > 0
+        ? (restBody[0].rounds_data as GeoRoomRound[])
+        : null;
       if (!afterRounds) return err("Ответ не подтверждён БД", 500);
 
       const persistedGuess = afterRounds[roundIdx]?.guesses?.find((g) => g.playerId === deviceId);
