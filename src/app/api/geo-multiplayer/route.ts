@@ -381,10 +381,19 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return err("Вы не игрок в этой комнате");
 
+      // Читаем свежее rounds_data из БД (guess'и могли быть записаны между fetchRoom и next)
+      const { data: freshCur, error: freshErr } = await sb
+        .from("geo_rooms")
+        .select("rounds_data")
+        .eq("id", room.id)
+        .maybeSingle();
+      if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
+      const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
+
       // Текущий раунд = первый с пустыми guesses
-      const roundIdx = room.rounds_data.findIndex((r) => r.guesses.length === 0);
+      const roundIdx = freshRounds.findIndex((r) => r.guesses.length === 0);
       if (roundIdx < 0) return err("Все раунды завершены");
-      const rnd = room.rounds_data[roundIdx];
+      const rnd = freshRounds[roundIdx];
       if (!rnd) return err("Неверный раунд");
 
       const answered = new Set(rnd.guesses.map((g) => g.playerId));
@@ -394,7 +403,7 @@ export async function POST(req: NextRequest) {
       }
 
       // --- расчёт очков и переход ---
-      const roundsData = [...room.rounds_data];
+      const roundsData = [...freshRounds];
       const scores = computeScores(room.players, roundsData);
 
       let status: GeoRoom["status"] = room.status;
