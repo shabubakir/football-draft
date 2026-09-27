@@ -432,11 +432,11 @@ export function Nav({ dark = false }: { dark?: boolean }) {
           {gamesOpen && (
             <div
               role="menu"
-              className="absolute left-1/2 -translate-x-1/2 top-full pt-2 z-50 flex items-stretch"
+              className="absolute left-1/2 -translate-x-1/2 top-full pt-2 z-50 flex items-start"
             >
               {/* Левая панель: категории */}
               <div
-                className={`w-44 rounded-2xl p-2 shadow-xl ${
+                className={`w-44 rounded-2xl p-2 shadow-xl self-start ${
                   dark ? "bg-stone-900 border border-white/10" : "bg-white border border-stone-200"
                 }`}
               >
