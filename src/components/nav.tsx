@@ -25,7 +25,7 @@ const NAV_GAMES: NavGame[] = [
   { href: "/career", label: "ПУТЬ ФУТБОЛИСТА", match: "/career", icon: "route", desc: "Угадай по карьере" },
   // Футбольная викторина: match "/quiz/online" — чтобы /quiz/geo не подсвечивал её
   { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz/online", icon: "trophy", desc: "Футбол · до 5 игроков" },
-  { href: "/akinator", label: "AKINATOR", match: "/akinator", icon: "ghost", desc: "Угадай футболиста" },
+  { href: "/akinator", label: "ФУТБОЛЬНЫЙ ДЖИНН", match: "/akinator", icon: "ghost", desc: "Akinator · угадай футболиста" },
   // CS2 КЕЙСЫ: без match — активен только на самом /cs2,
   // чтобы /cs2/aim и /cs2/higher-lower подсвечивали только себя.
   { href: "/cs2", label: "CS2 КЕЙСЫ", icon: "grid", desc: "Симулятор кейсов" },
