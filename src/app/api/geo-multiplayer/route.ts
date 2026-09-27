@@ -244,10 +244,26 @@ export async function POST(req: NextRequest) {
         .from("geo_rooms")
         .update({ rounds_data: roundsData, round_location_ids: locIds })
         .eq("id", room.id);
-      if (upE) return err(upE.message, 500);
+      if (upE) return err("Не удалось сохранить ответ: " + upE.message, 500);
+
+      // Перечитываем из БД, чтобы убедиться что запись применилась
+      // (иногда PostgREST возвращает 200, но update не затронул строк).
+      const { data: verify, error: vErr } = await sb
+        .from("geo_rooms")
+        .select("rounds_data")
+        .eq("id", room.id)
+        .maybeSingle();
+      if (vErr || !verify) {
+        return err("Ответ не подтверждён БД", 500);
+      }
+      const persisted = (verify as { rounds_data: GeoRoomRound[] }).rounds_data;
+      const persistedGuess = persisted[roundIdx]?.guesses?.find((g) => g.playerId === deviceId);
+      if (!persistedGuess) {
+        return err("Ответ не записан в БД (внутренняя ошибка)", 500);
+      }
 
       return ok({
-        room: { ...room, rounds_data: roundsData, round_location_ids: locIds },
+        room: { ...room, rounds_data: persisted, round_location_ids: locIds },
         result: { distanceKm: entry.distanceKm, points: entry.points },
       });
     }
