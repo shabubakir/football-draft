@@ -324,35 +324,56 @@ export function QuizOnline() {
     if (next === "reveal" && f.q_state !== "answering") return;
     if (next !== "reveal" && f.q_state !== "reveal") return;
 
-    if (next === "reveal") {
-      // Начисляем очки по СВЕЖИМ answers из базы
-      const qIdx = f.current_q;
-      const q = qs[qIdx];
-      const answersForQ = f.answers?.[qIdx] ?? {};
-      const newScores = { ...f.scores };
-      if (q) {
-        for (const p of f.players) {
-          if (answersForQ[p.id] === q.correct) {
-            newScores[p.id] = (newScores[p.id] ?? 0) + 10;
-          }
-        }
-      }
-      // next_at для reveal: REVEAL_SECONDS
-      const nextAt = new Date(Date.now() + REVEAL_SECONDS * 1000).toISOString();
-      await sb.from("quiz_rooms").update({ q_state: "reveal", scores: newScores, next_at: nextAt }).eq("id", r.id);
-    } else if (next === "answering") {
-      const nextQ = f.current_q + 1;
-      if (nextQ >= TOTAL_QUESTIONS) {
-        await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
-      } else {
-        // next_at для answering: ANSWER_SECONDS или ANSWER_SECONDS_IMAGE (если вопрос с картинкой)
-        const nextQuestion = questions[nextQ];
-        const answerTime = nextQuestion?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
-        const nextAt = new Date(Date.now() + answerTime * 1000).toISOString();
-        await sb.from("quiz_rooms").update({ q_state: "answering", current_q: nextQ, next_at: nextAt }).eq("id", r.id);
+    // Страхуемся от зависания: если next_at почему-то пустой/просроченный —
+    // продвигаем фазу немедленно (вместо ожидания таймера, которого нет)
+    if (f.next_at) {
+      const nextAtMs = new Date(f.next_at).getTime();
+      if (Number.isFinite(nextAtMs) && Date.now() >= nextAtMs) {
+        console.log("QUIZ DEBUG: advance — next_at expired, proceeding immediately");
       }
     } else {
-      await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
+      console.warn("QUIZ DEBUG: advance — next_at is null, proceeding");
+    }
+
+    let result;
+    try {
+      if (next === "reveal") {
+        // Начисляем очки по СВЕЖИМ answers из базы
+        const qIdx = f.current_q;
+        const q = qs[qIdx];
+        const answersForQ = f.answers?.[qIdx] ?? {};
+        const newScores = { ...f.scores };
+        if (q) {
+          for (const p of f.players) {
+            if (answersForQ[p.id] === q.correct) {
+              newScores[p.id] = (newScores[p.id] ?? 0) + 10;
+            }
+          }
+        }
+        // next_at для reveal: REVEAL_SECONDS
+        const nextAt = new Date(Date.now() + REVEAL_SECONDS * 1000).toISOString();
+        result = await sb.from("quiz_rooms").update({ q_state: "reveal", scores: newScores, next_at: nextAt }).eq("id", r.id);
+      } else if (next === "answering") {
+        const nextQ = f.current_q + 1;
+        if (nextQ >= TOTAL_QUESTIONS) {
+          result = await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
+        } else {
+          // next_at для answering: ANSWER_SECONDS или ANSWER_SECONDS_IMAGE (если вопрос с картинкой)
+          const nextQuestion = qs[nextQ];
+          const answerTime = nextQuestion?.image ? ANSWER_SECONDS_IMAGE : ANSWER_SECONDS;
+          const nextAt = new Date(Date.now() + answerTime * 1000).toISOString();
+          result = await sb.from("quiz_rooms").update({ q_state: "answering", current_q: nextQ, next_at: nextAt }).eq("id", r.id);
+        }
+      } else {
+        result = await sb.from("quiz_rooms").update({ status: "finished", next_at: null }).eq("id", r.id);
+      }
+    } catch (err) {
+      console.error("quiz: advance error", err);
+      return;
+    }
+    if (result?.error) {
+      console.error("quiz: advance DB error", result.error);
+      return;
     }
   }, [initSb]);
 
@@ -464,6 +485,7 @@ export function QuizOnline() {
   // Это НАДЁЖНЫЙ механизм: не зависит от setTimeout, не теряется.
   const lastSyncRef = useRef(0);
   const advancingRef = useRef(false);
+  const soloAdvancingRef = useRef(false); // защита от двойного advance в соло-режиме
   useEffect(() => {
     const sb = sbClient.current;
     if (!sb || !room) return;
@@ -482,6 +504,25 @@ export function QuizOnline() {
         lastSyncRef.current = now;
         const fresh = data as QuizRoom;
         setRoom((prev) => (prev ? { ...prev, ...fresh } : fresh));
+
+        // СТРАХОВКА: next_at = NULL при playing — страница «зависнет» (таймер 0с,
+        // события realtime могут не дойти). Пропускаем фазу вперёд.
+        if (fresh.status === "playing" && !fresh.next_at && !advancingRef.current) {
+          advancingRef.current = true;
+          try {
+            if (fresh.q_state === "answering") {
+              const allAnswered = fresh.players.length > 0 &&
+                fresh.players.every((p) => (fresh.answers?.[fresh.current_q] ?? {})[p.id] !== undefined);
+              if (allAnswered) await advance(fresh, "reveal");
+            } else {
+              const nextQ = fresh.current_q + 1;
+              if (nextQ >= TOTAL_QUESTIONS) await advance(fresh, "finished");
+              else await advance(fresh, "answering");
+            }
+          } finally {
+            advancingRef.current = false;
+          }
+        }
 
         // СЕРВЕРНЫЙ ТАЙМЕР: если next_at просрочен и мы ещё не продвигаем — advance
         if (fresh.status === "playing" && !advancingRef.current) {
@@ -559,10 +600,10 @@ export function QuizOnline() {
         const { data: fresh } = await sb
           .from("quiz_rooms").select("answers,q_state,current_q").eq("id", r.id).maybeSingle();
         if (!fresh) return;
-        // 2. Фаза могла смениться — не пишем
+        // 2. Фаза могла смениться — не пишем (ответ считается, таймер уже идёт)
         if (fresh.q_state !== "answering" || fresh.current_q !== r.current_q) return;
-        // 3. Собираем новый answers на основе СВЕЖИХ данных
         const qIdx = r.current_q;
+        // 3. Собираем новый answers на основе СВЕЖИХ данных
         const newAnswers = { ...((fresh.answers as Record<number, Record<string, number>>) ?? {}) };
         newAnswers[qIdx] = { ...(newAnswers[qIdx] ?? {}), [myId]: optIdx };
         // 4. PATCH
@@ -573,11 +614,19 @@ export function QuizOnline() {
           setError(`⚠️ Ответ не сохранился: ${upE.message}`);
         }
         // СОЛО-РЕЖИМ (1 игрок): сразу ревил, не ждём таймер
-        // Короткая задержка 100мс — даём PATCH записаться в БД,
+        // Короткая задержка 150мс — даём PATCH записаться в БД,
         // чтобы advance() прочитал свежий answer и начислил очки
         if (r.players.length <= 1 && !upE) {
           console.log("QUIZ DEBUG: solo mode — instant reveal");
-          setTimeout(() => advanceRef.current?.(r, "reveal"), 150);
+          // Страхуемся от повторного вызова (двойной клик)
+          if (soloAdvancingRef.current) return;
+          soloAdvancingRef.current = true;
+          setTimeout(() => {
+            advanceRef.current?.(r, "reveal");
+            soloAdvancingRef.current = false;
+          }, 150);
+          // Страхуемся от зависания: если advance не сработал за 5 сек —
+          // polling-цикл выше сам продвинет фазу (next_at просрочен/нулевой)
         }
       } catch (err) {
         console.error("quiz: lockAnswer error", err);
