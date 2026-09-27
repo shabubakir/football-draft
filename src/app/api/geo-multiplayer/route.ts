@@ -126,6 +126,25 @@ export async function POST(req: NextRequest) {
     }
 
     // ================= join =================
+    // ================= rename (сменить имя игрока) =================
+    case "rename": {
+      if (!code) return err("code required");
+      const found = await fetchRoom(code);
+      if ("error" in found) return err(found.error, found.status);
+      const room = found.room;
+      const me = room.players.find((p) => p.id === deviceId);
+      if (!me) return err("Вы не игрок в этой комнате");
+      const newName = sanitizeName(body.name);
+      const newPlayers = room.players.map((p) => (p.id === deviceId ? { ...p, name: newName } : p));
+      const { error: upE } = await sb
+        .from("geo_rooms")
+        .update({ players: newPlayers })
+        .eq("id", room.id);
+      if (upE) return err(upE.message, 500);
+      return ok({ room: { ...room, players: newPlayers } });
+    }
+
+    // ================= join =================
     case "join": {
       if (!code) return err("code required");
       const found = await fetchRoom(code);
@@ -342,25 +361,34 @@ export async function POST(req: NextRequest) {
       if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
       const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
 
-      // Ищем первый ЗАВЕРШЁННЫЙ раунд (все онлайн ответили).
-      // Это раунд, который только что сыграли.
-      const onlinePlayers = room.players.filter((p) => p.online);
-      let roundIdx = -1;
+      // Находим первый раунд с ответами, где ещё НЕ все ответили — это текущий раунд.
+      const allPlayers = room.players;
+      let activeIdx = -1;
       for (let i = 0; i < freshRounds.length; i++) {
         const r = freshRounds[i];
-        if (r.guesses.length === 0) break; // следующий раунд ещё не начался
+        if (r.guesses.length === 0) break; // этот раунд ещё не начался
         const answeredIds = new Set(r.guesses.map((g) => g.playerId));
-        const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
+        const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
         if (pendingHere.length > 0) {
-          // Раунд не завершён — ждём остальных
-          return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
+          activeIdx = i;
+          break;
         }
-        // Раунд завершён
-        roundIdx = i;
       }
-      if (roundIdx < 0) return err("Ещё нет завершённых раундов");
-      const rnd = freshRounds[roundIdx];
-      if (!rnd) return err("Неверный раунд");
+      if (activeIdx >= 0) {
+        const r = freshRounds[activeIdx];
+        const answeredIds = new Set(r.guesses.map((g) => g.playerId));
+        const pendingHere = allPlayers.filter((p) => !answeredIds.has(p.id));
+        return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
+      }
+      // Все раунды до первого пустого завершены — переходим к следующему
+      let roundIdx = -1;
+      for (let i = 0; i < freshRounds.length; i++) {
+        if (freshRounds[i].guesses.length === 0) {
+          roundIdx = i;
+          break;
+        }
+      }
+      if (roundIdx < 0) return err("Все раунды завершены");
 
       // --- расчёт очков и переход ---
       const roundsData = [...freshRounds];

@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
  *  - live: SkinCash (как в /api/cs2-prices, кэш 7 дней в памяти);
  *  - fallback: статическая база src/lib/data/cs2-prices.json (ножи/кейсы).
  * Не хардкодим цены в клиенте.
+ *
+ * IMPORTANT: каждый запрос ограниченный по времени (Promise.race + ABORT).
+ * Если SkinCash не отвечает — ответим статикой, не вешая сервер.
  */
 
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 дней
@@ -29,12 +32,14 @@ type CacheEntry = {
   ts: number;
 };
 
-// Инвертированный кэш: "name (wear)" → цена (live)
+// Кэш: "name (wear)" → цена (live)
 let wearPriceCache: Map<string, CacheEntry> = new Map();
-// Метки "кейс обработан" + одиночные цены (ножи/кейсы)
+// Метки "кейс обработан" + одиночные цены
 let singlePriceCache: Map<string, CacheEntry> = new Map();
 // Статические цены (ножи/кейсы)
 let staticMap: Map<string, number> | null = null;
+// Пул предметов (кэшируется после первой загрузки)
+let itemPool: PricedItem[] | null = null;
 
 async function loadStatic(): Promise<void> {
   if (staticMap && staticMap.size > 0) return;
@@ -49,34 +54,25 @@ async function loadStatic(): Promise<void> {
 
 async function fetchOnePrice(
   marketHashName: string,
-  retries = 1
+  timeoutMs: number
 ): Promise<number | null> {
   const encoded = encodeURIComponent(marketHashName);
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const res = await fetch(`https://api.skincash.gg/v1/prices/${encoded}`, {
-        headers: { Accept: "application/json" },
-      });
-      if (res.status === 404) return null;
-      if (res.status === 429) {
-        if (attempt < retries) {
-          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
-          continue;
-        }
-        return null;
-      }
-      if (!res.ok) return null;
-      const json = await res.json();
-      return typeof json.price === "number" ? json.price : null;
-    } catch {
-      if (attempt < retries) {
-        await new Promise((r) => setTimeout(r, 600));
-        continue;
-      }
-      return null;
-    }
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`https://api.skincash.gg/v1/prices/${encoded}`, {
+      headers: { Accept: "application/json" },
+      signal: ctrl.signal,
+    });
+    if (res.status === 404) return null;
+    if (res.status === 429 || !res.ok) return null;
+    const json = await res.json();
+    return typeof json.price === "number" ? json.price : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(to);
   }
-  return null;
 }
 
 function setCache(map: Map<string, CacheEntry>, key: string, price: number): void {
@@ -94,18 +90,20 @@ function fromCache(map: Map<string, CacheEntry>, key: string): number | null {
 }
 
 /**
- * Загружает кэш цен для указанных кейсов (live SkinCash, батчи по 20).
- * Обработанные кейсы помечаются — повторный запрос не идёт.
+ * Загружает кэш цен для указанных кейсов.
+ * ВАЖНО: ограничено по времени (maxMs). Если не успели — возвращаем то, что есть.
  */
-async function ensureWearCache(caseNames: string[]): Promise<void> {
+async function ensureWearCache(caseNames: string[], maxMs: number): Promise<void> {
+  const started = Date.now();
   const { CASES } = await import("@/lib/cs2");
   const wanted = new Set(caseNames);
 
   for (const cs of CASES) {
     if (!wanted.has(cs.name)) continue;
-    // Метка "обработан" (кэш 7 дней) — не запрашиваем повторно
     if (fromCache(singlePriceCache, `__case:${cs.name}`) != null) continue;
 
+    // Ограничение на кейс: не дольше maxMs
+    const caseBudget = maxMs;
     const names = [
       ...cs.items.map((i) => i.n),
       ...cs.rares.map((r) => r.n),
@@ -115,7 +113,7 @@ async function ensureWearCache(caseNames: string[]): Promise<void> {
     for (const name of names) {
       const isKnife = name.startsWith("\u2605") || name.startsWith("\u2606");
       if (isKnife) {
-        requests.push(name); // нож — одна цена
+        requests.push(name);
       } else {
         for (const wear of WEARS) {
           requests.push(`${name} (${wear})`);
@@ -125,26 +123,31 @@ async function ensureWearCache(caseNames: string[]): Promise<void> {
 
     const BATCH = 20;
     for (let i = 0; i < requests.length; i += BATCH) {
+      const elapsed = Date.now() - started;
+      if (elapsed > caseBudget) break; // не успеваем — выходим
       const batch = requests.slice(i, i + BATCH);
-      const results = await Promise.allSettled(batch.map((q) => fetchOnePrice(q)));
+      const results = await Promise.all(
+        batch.map((q) => fetchOnePrice(q, 4000)) // 4 сек на запрос, без ретраев
+      );
       for (let j = 0; j < batch.length; j++) {
-        const r = results[j];
-        if (r.status === "fulfilled" && r.value != null && r.value > 0) {
-          setCache(wearPriceCache, batch[j].toLowerCase(), r.value);
+        const v = results[j];
+        if (v != null && v > 0) {
+          setCache(wearPriceCache, batch[j].toLowerCase(), v);
         }
       }
       if (i + BATCH < requests.length) {
-        await new Promise((r) => setTimeout(r, 250));
+        await new Promise((r) => setTimeout(r, 100));
       }
     }
 
+    // Метка: кейс обработан (пусть и частично) — не запрашиваем повторно
     setCache(singlePriceCache, `__case:${cs.name}`, 1);
   }
 }
 
 /**
- * Цена предмета: средняя по всем wears (скин) / одна (нож).
- * live-кэш → статическая база → null.
+ * Цена предмета: средняя по wears (скин) / одна (нож).
+ * live-кэш → статика → null.
  */
 function itemPrice(name: string): number | null {
   const lower = name.toLowerCase();
@@ -165,12 +168,42 @@ function itemPrice(name: string): number | null {
     const p = fromCache(wearPriceCache, `${lower} (${w})`);
     if (p != null && p > 0) prices.push(p);
   }
-  if (prices.length === 0) {
-    const st = staticMap?.get(lower);
-    if (st != null && st > 0) return st;
-    return null;
+  if (prices.length > 0) {
+    return prices.reduce((a, b) => a + b, 0) / prices.length;
   }
-  return prices.reduce((a, b) => a + b, 0) / prices.length;
+  // Статика не содержит скинов (только кейсы/ножи) — null
+  return null;
+}
+
+/**
+ * Строит пул предметов с ценой (кэшируется).
+ */
+async function buildPool(caseNames: string[], maxMs: number): Promise<PricedItem[]> {
+  if (itemPool && itemPool.length > 0) return itemPool;
+  const { CASES } = await import("@/lib/cs2");
+  let poolCases = CASES;
+  if (caseNames && caseNames.length > 0) {
+    const wanted = new Set(caseNames);
+    const filtered = CASES.filter((c) => wanted.has(c.name));
+    if (filtered.length > 0) poolCases = filtered;
+  }
+  await ensureWearCache(poolCases.map((c) => c.name), maxMs);
+
+  const all: PricedItem[] = [];
+  for (const cs of poolCases) {
+    for (const it of cs.items) {
+      const p = itemPrice(it.n);
+      if (p != null && p > 0) all.push({ n: it.n, img: it.img, price: p });
+    }
+    for (const r of cs.rares) {
+      const p = itemPrice(r.n);
+      if (p != null && p > 0) all.push({ n: r.n, img: r.img, price: p });
+    }
+  }
+  if (all.length >= 2) {
+    itemPool = all;
+  }
+  return all;
 }
 
 type CompareRound = {
@@ -189,37 +222,31 @@ export async function GET(req: NextRequest) {
     ? casesParam.split(",").map((s) => s.trim()).filter(Boolean)
     : null;
 
+  // Ограничение на весь запрос: 20 секунд (чтобы не вешать сервер)
+  const MAX_MS = 20000;
+
   try {
-    await loadStatic();
-    const { CASES } = await import("@/lib/cs2");
+    await Promise.race([
+      loadStatic(),
+      new Promise((r) => setTimeout(r, MAX_MS)),
+    ]);
 
-    let pool = CASES;
-    if (caseNames && caseNames.length > 0) {
-      const wanted = new Set(caseNames);
-      const filtered = CASES.filter((c) => wanted.has(c.name));
-      if (filtered.length > 0) pool = filtered;
+    const all = (await Promise.race([
+      buildPool(caseNames ?? [], MAX_MS),
+      new Promise<PricedItem[]>((resolve) => setTimeout(() => resolve([]), MAX_MS)),
+    ])) as PricedItem[];
+
+    if (!all || all.length < 2) {
+      return NextResponse.json(
+        { error: "Не удалось загрузить цены — попробуйте позже" },
+        { status: 503 }
+      );
     }
 
-    // 1. Кэш цен для нужных кейсов (live, 7 дней)
-    await ensureWearCache(pool.map((c) => c.name));
-
-    // 2. Пул предметов с ценой
-    const all: PricedItem[] = [];
-    for (const cs of pool) {
-      for (const it of cs.items) {
-        const p = itemPrice(it.n);
-        if (p != null && p > 0) all.push({ n: it.n, img: it.img, price: p });
-      }
-      for (const r of cs.rares) {
-        const p = itemPrice(r.n);
-        if (p != null && p > 0) all.push({ n: r.n, img: r.img, price: p });
-      }
-    }
-
-    // 3. Раунды: 2 разных предмета, разница цены >= 5%
+    // Раунды: 2 разных предмета, разница цены >= 5%
     const rounds: CompareRound[] = [];
     let guard = roundsN * 50;
-    while (rounds.length < roundsN && guard-- > 0 && all.length >= 2) {
+    while (rounds.length < roundsN && guard-- > 0) {
       const i = Math.floor(Math.random() * all.length);
       let j = Math.floor(Math.random() * all.length);
       if (j === i) j = (j + 1) % all.length;

@@ -175,6 +175,7 @@ export function GeoMultiplayer({
   const [myAnswered, setMyAnswered] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [mpImgFailed, setMpImgFailed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null); // таймер ответа в секундах
 
   const apiMyName = useRef(myName);
   apiMyName.current = myName;
@@ -224,6 +225,9 @@ export function GeoMultiplayer({
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, [countdown, phase, room]);
+
+  // ref для doGuess (чтобы таймер мог вызвать его)
+  const doGuessRef = useRef<(() => void) | null>(null);
 
   // ---------- Heartbeat (показываем, что мы на связи) ----------
   useEffect(() => {
@@ -360,7 +364,15 @@ export function GeoMultiplayer({
   }, [autoJoined, initialRoomCode, room, myId]);
 
   // ---------- Вычисляем текущий раунд ----------
-  const currentRoundIdx = room ? room.rounds_data.length - 1 : 0;
+  // Первый раунд с хотя бы одним ответом = активный.
+  // Если первый раунд пустой — игра только началась.
+  const currentRoundIdx = useMemo(() => {
+    if (!room) return 0;
+    for (let i = 0; i < room.rounds_data.length; i++) {
+      if (room.rounds_data[i].guesses.length > 0) return i;
+    }
+    return 0;
+  }, [room]);
   const currentRoundData: GeoRoomRound | null =
     room && room.rounds_data.length > 0 ? room.rounds_data[currentRoundIdx] : null;
   const currentLocationId =
@@ -368,6 +380,30 @@ export function GeoMultiplayer({
     room?.round_location_ids?.[currentRoundIdx] ??
     null;
   const currentLocation = currentLocationId ? getLocationById(currentLocationId) : null;
+
+  // ---------- Таймер раунда (30 сек на ответ) ----------
+  const ROUND_TIME = 30;
+  useEffect(() => {
+    if (phase !== "play" || myAnswered) {
+      setTimeLeft(null);
+      return;
+    }
+    if (!currentLocation) return;
+    setTimeLeft(ROUND_TIME);
+    const iv = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t === null) return null;
+        if (t <= 1) {
+          clearInterval(iv);
+          doGuessRef.current?.();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentRoundIdx, phase, myAnswered, currentLocation?.id]);
 
   const myScore = useMemo(() => {
     if (!room) return 0;
@@ -469,12 +505,15 @@ export function GeoMultiplayer({
       });
       setRoom(d.room);
       setMyAnswered(true);
+      setTimeLeft(null);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }, [api, room, guess]);
+
+  doGuessRef.current = doGuess;
 
   const doNext = useCallback(async () => {
     if (!room) return;
@@ -483,6 +522,9 @@ export function GeoMultiplayer({
     try {
       const d = await api("next", { code: room.code });
       setRoom(d.room);
+      setGuess(null);
+      setMyAnswered(false);
+      setTimeLeft(null);
       // после «next» запускаем countdown
       if (d.room.status === "playing") {
         setCountdown(5);
@@ -507,6 +549,7 @@ export function GeoMultiplayer({
       setPhase("lobby");
       setGuess(null);
       setMyAnswered(false);
+      setTimeLeft(null);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -526,6 +569,23 @@ export function GeoMultiplayer({
     setPhase("menu");
     onExit?.();
   }, [api, room, onExit]);
+
+  const doRename = useCallback(async () => {
+    if (!room) return;
+    const trimmed = myName.trim();
+    if (!trimmed) {
+      setError("Введите имя");
+      return;
+    }
+    try {
+      const d = await api("rename", { code: room.code, name: trimmed });
+      setRoom(d.room);
+      localStorage.setItem("geo_mp_name", trimmed);
+      setError("");
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }, [api, room, myName]);
 
   const copyToClipboard = useCallback(async (text: string, which: "code" | "link") => {
     try {
@@ -744,12 +804,23 @@ export function GeoMultiplayer({
                         background: p.online ? PLAYER_COLORS[i % PLAYER_COLORS.length] : "#d4d4d8",
                       }}
                     />
-                    <span className="text-sm font-bold text-stone-900 flex-1 truncate">
-                      {p.name}
-                      {p.id === myId && <span className="ml-1 text-emerald-600 text-xs">(вы)</span>}
-                    </span>
-                    <span className="text-[10px] tracking-wider text-stone-500 font-bold">
-                      {i === 0 ? "HOST" : PLAYER_LABELS[i]}
+                    {p.id === myId ? (
+                      <input
+                        type="text"
+                        maxLength={24}
+                        value={myName}
+                        onChange={(e) => setMyName(e.target.value)}
+                        onBlur={doRename}
+                        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+                        className="text-sm font-bold text-stone-900 flex-1 min-w-0 bg-transparent border-b border-emerald-300 focus:outline-none py-0.5"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-stone-900 flex-1 truncate">
+                        {p.name}
+                      </span>
+                    )}
+                    <span className="text-[10px] tracking-wider text-stone-500 font-bold flex-shrink-0">
+                      {p.id === myId ? <span className="text-emerald-600">(вы)</span> : i === 0 ? "HOST" : PLAYER_LABELS[i]}
                     </span>
                   </div>
                 ))}
@@ -871,6 +942,17 @@ export function GeoMultiplayer({
                 />
               ))}
             </div>
+            {/* Таймер ответа */}
+            {timeLeft !== null && !myAnswered && (
+              <div
+                className={`rounded-xl px-3 py-2 text-center min-w-[72px] ${
+                  timeLeft <= 10 ? "bg-rose-600 text-white animate-pulse" : "bg-amber-500 text-white"
+                }`}
+              >
+                <div className="text-[9px] tracking-[0.15em] opacity-80">ВРЕМЯ</div>
+                <div className="text-lg font-black leading-none tabular-nums">{timeLeft}с</div>
+              </div>
+            )}
             <div className="rounded-xl bg-stone-900 text-white px-4 py-2 text-center min-w-[92px]">
               <div className="text-[10px] tracking-[0.15em] text-stone-400">МОЙ СЧЁТ</div>
               <div className="text-lg font-black leading-none">{formatScore(myScore)}</div>
