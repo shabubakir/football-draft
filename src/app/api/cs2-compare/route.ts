@@ -184,27 +184,40 @@ type CompareRound = { a: PricedItem; b: PricedItem };
 
 /**
  * Генерация N раундов из предметов с известной ценой.
- * Разница цен между A и B: от 5% (чтобы не было "невозможно угадать").
+ * - предметы НЕ повторяются между раундами;
+ * - разница цен между A и B >= 5% (чтобы было угадываемо).
+ * Если предметов не хватает на N*2 — вернём, сколько смогли.
  */
 function buildRounds(priced: PricedItem[], n: number): CompareRound[] {
   const rounds: CompareRound[] = [];
-  const used = new Set<string>();
-  let guard = n * 60;
-  while (rounds.length < n && guard-- > 0) {
-    const i = Math.floor(Math.random() * priced.length);
-    let j = Math.floor(Math.random() * priced.length);
-    if (j === i) j = (j + 1) % priced.length;
-    const A = priced[i];
-    const B = priced[j];
-    if (A.n === B.n) continue;
-    const diff = Math.abs(A.price - B.price);
-    const base = Math.max(A.price, B.price);
-    if (base > 0 && diff / base < 0.05) continue;
-    // Не повторяем пару (A,B) в рамках одной сессии генерации
-    const key = A.n < B.n ? `${A.n}|${B.n}` : `${B.n}|${A.n}`;
-    if (used.has(key)) continue;
-    used.add(key);
-    rounds.push({ a: A, b: B });
+  const used = new Set<string>(); // имена предметов, уже использованные
+
+  // Перемешанный пул
+  const pool = priced.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+
+  // Итерации: в каждой проходим по пулу и собираем пары
+  for (let pass = 0; pass < 10 && rounds.length < n; pass++) {
+    for (let i = 0; i + 1 < pool.length && rounds.length < n; i += 2) {
+      const A = pool[i];
+      const B = pool[i + 1];
+      const key = A.n.toLowerCase();
+      if (used.has(key) || used.has(B.n.toLowerCase())) continue;
+      const diff = Math.abs(A.price - B.price);
+      const base = Math.max(A.price, B.price);
+      if (base > 0 && diff / base < 0.05) continue;
+      used.add(key);
+      used.add(B.n.toLowerCase());
+      rounds.push({ a: A, b: B });
+    }
+    // Перемешиваем заново, чтобы на следующем проходе были другие пары
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
   }
   return rounds;
 }
