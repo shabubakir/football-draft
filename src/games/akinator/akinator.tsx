@@ -24,6 +24,7 @@ import type { Answer, Entity } from "./types";
 import { Genie } from "./genn";
 import type { GenieMood } from "./genn";
 import { loadStats, recordGame, resetStats, EMPTY_STATS } from "./stats";
+import { getEntityPhoto } from "./avatars";
 import type { AkinatorStats } from "./types";
 
 // ---------- вспомогательные ----------
@@ -445,12 +446,13 @@ export function AkinatorGame() {
 
 function EntityCard({ entity }: { entity: Entity }) {
   const color = entity.color || categoryColor(entity.category);
+  const photo = getEntityPhoto(entity);
   return (
     <div className="ak-entity" style={{ "--ak-color": color } as React.CSSProperties}>
-      {entity.img ? (
+      {photo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={entity.img}
+          src={photo}
           alt={entity.name}
           className="ak-entity-img"
         />

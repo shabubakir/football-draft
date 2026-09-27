@@ -57,6 +57,9 @@ export function Nav() {
         <Link href="/akinator" className={linkCls(isActive("/akinator"))}>
           AKINATOR
         </Link>
+        <Link href="/geoguessr" className={linkCls(isActive("/geoguessr"))}>
+          GEOGUESSR
+        </Link>
       </nav>
       <button
         type="button"
@@ -98,6 +101,9 @@ export function Nav() {
           </Link>
           <Link href="/akinator" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/akinator") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
             AKINATOR
+          </Link>
+          <Link href="/geoguessr" onClick={() => setOpen(false)} className={`block px-4 py-3 rounded-lg ${isActive("/geoguessr") ? "bg-stone-200/60 font-bold text-stone-900" : "text-stone-600"}`}>
+            GEOGUESSR LITE
           </Link>
         </div>
       )}
