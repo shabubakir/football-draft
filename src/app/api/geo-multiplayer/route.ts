@@ -390,9 +390,10 @@ export async function POST(req: NextRequest) {
       if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
       const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
 
-      // Текущий раунд = первый с пустыми guesses
-      const roundIdx = freshRounds.findIndex((r) => r.guesses.length === 0);
-      if (roundIdx < 0) return err("Все раунды завершены");
+      // Текущий раунд = первый с НЕ-пустыми guesses (раунд в который отвечают)
+      // Если все раунды пустые — игра не началась
+      const roundIdx = freshRounds.findIndex((r) => r.guesses.length > 0);
+      if (roundIdx < 0) return err("Ещё нет ответов");
       const rnd = freshRounds[roundIdx];
       if (!rnd) return err("Неверный раунд");
 
