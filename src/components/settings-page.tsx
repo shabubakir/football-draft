@@ -120,7 +120,7 @@ export default function SettingsPage() {
                 EMAIL
               </label>
               <div className="rounded-xl bg-stone-100 px-4 py-3 text-stone-600">
-                {user.id}
+                {(user as any).email || "Не указан"}
               </div>
             </div>
 

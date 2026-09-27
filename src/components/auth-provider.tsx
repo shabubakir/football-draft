@@ -77,7 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: profile, error } = await supabase
       .from("user_profiles")
-      .insert({ id: authUser.id, username: base })
+      .insert({ 
+        id: authUser.id, 
+        username: base,
+        email: authUser.email || null
+      })
       .select()
       .single();
 
@@ -86,7 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Имя занято — пробуем с суффиксом
     const { data: retry, error: retryErr } = await supabase
       .from("user_profiles")
-      .insert({ id: authUser.id, username: `${base.slice(0, 12)}_${authUser.id.slice(0, 4)}` })
+      .insert({ 
+        id: authUser.id, 
+        username: `${base.slice(0, 12)}_${authUser.id.slice(0, 4)}`,
+        email: authUser.email || null
+      })
       .select()
       .single();
 
