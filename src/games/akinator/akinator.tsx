@@ -367,7 +367,7 @@ export function AkinatorGame() {
           </div>
           <h2 className="ak-lose-title">
             {state.phase === "surrender"
-              ? "Не угадал..."
+              ? "Я пока не могу уверенно определить игрока."
               : "Мне не удалось..."}
           </h2>
 
@@ -391,7 +391,7 @@ export function AkinatorGame() {
                   className="ak-btn ak-btn-primary"
                   onClick={() => setShowCorrectInput(true)}
                 >
-                  📝 Назови правильный ответ
+                  Кто это был?
                 </button>
               ) : (
                 <div className="ak-correct-input">

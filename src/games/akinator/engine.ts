@@ -1,28 +1,32 @@
 // ============================================================
-// FOOTBALL AKINATOR — движок (алгоритм угадывания)
+// FOOTBALL AKINATOR — движок (алгоритм угадывания) v2
 // ============================================================
 //
-// Идея:
-//  1. Держим множество кандидатов.
-//  2. После каждого ответа пересчитываем «вес» каждого кандидата
-//     (вероятность, что это загаданная сущность).
-//  3. Вопрос выбирается так, чтобы максимально разделить
-//     оставшуюся массу кандидатов (максимальная информативность).
-//  4. Когда уверенность в топ-кандидате достаточна — гадаем.
+// Две стадии обработки ответа:
 //
-// Ответы:
-//  - yes / no        — полная уверенность (вес ×2 / ÷2)
-//  - maybe_yes / maybe_no — частичная (вес ×1.4 / ÷1.4)
-//  - unknown         — почти нейтрально (вес ×1.05 / ÷1.05)
+//  HARD FILTER  — для вопросов с флагом `hard: true`.
+//    «Да»  → остаются только сущности, для которых check() === true
+//    «Нет» → остаются только сущности, для которых check() === false
+//    Сущности с check() === null НЕ исключаются (нет данных ≠ противоречие).
+//
+//  SCORING      — для всех остальных вопросов и для мягких ответов
+//    («скорее да», «скорее нет», «не знаю»).
+//    Да = сильный плюс, Скорее да = средний плюс, Не знаю = нейтрально,
+//    Скорее нет = средний минус, Нет = сильный минус.
+//
+//  ANTI-ERROR   — перед каждой догадкой проверяем, что кандидат
+//    совместим со ВСЕМИ жёсткими ответами пользователя.
+//    Если противоречит хотя бы одному — НЕ ПREDЛАГАЕМ.
+//
 // ============================================================
 
 import type { Answer, Entity, Question } from "./types";
 import { ALL_ENTITIES, ENTITY_MAP, QUESTIONS } from "./data";
 
-// ---------- веса ответов ----------
+// ---------- веса ответов (мягкое скоринг) ----------
 const ANSWER_FACTOR: Record<Answer, { yes: number; no: number }> = {
-  yes:        { yes: 2.2, no: 0.4 },
-  no:         { yes: 0.4, no: 2.2 },
+  yes:        { yes: 2.2,  no: 0.4  },
+  no:         { yes: 0.4,  no: 2.2  },
   maybe_yes:  { yes: 1.35, no: 0.75 },
   maybe_no:   { yes: 0.75, no: 1.35 },
   unknown:    { yes: 1.06, no: 0.95 },
@@ -33,10 +37,10 @@ const ANSWER_FACTOR: Record<Answer, { yes: number; no: number }> = {
 const NA_FACTOR = 0.92;
 
 // ---------- пороговые значения ----------
-const GUESS_CONFIDENCE = 0.55;    // уверенность, чтобы начать гадать
-const MAX_QUESTIONS = 25;         // после этого — финальный догад
-const MAX_GUESS_ROUNDS = 3;       // сколько раз гадаем, прежде чем «сдаться»
-const MIN_QUESTIONS_BEFORE_GUESS = 4; // минимум вопросов перед первой догадкой
+const GUESS_CONFIDENCE = 0.45;
+const MAX_QUESTIONS = 25;
+const MAX_GUESS_ROUNDS = 3;
+const MIN_QUESTIONS_BEFORE_GUESS = 4;
 
 export interface Weighted {
   id: string;
@@ -60,6 +64,11 @@ export interface EngineState {
   wrongGuesses: number;
   /** Правильный ответ, если пользователь его назвал */
   correctId?: string;
+  /**
+   * История жёстких ответов: questionId → "yes" | "no".
+   * Используется анти-ошибочным механизмом перед догадкой.
+   */
+  hardAnswers: Record<string, "yes" | "no">;
 }
 
 // ---------- утилиты ----------
@@ -67,7 +76,6 @@ export interface EngineState {
 /**
  * Оценка «информативности» вопроса:
  * сколько информации (битов) он даст в среднем при текущих весах.
- * По сути — энтропия разделения «да/нет» с учётом весов.
  */
 function questionInfoGain(
   q: Question,
@@ -94,14 +102,13 @@ function questionInfoGain(
   const pn = noMass / total;
 
   // Идеальный вопрос делит массу ровно пополам.
-  // Мерим близость к балансу: 1 - |py - pn| (чем ближе к 0.5/0.5, тем лучше)
   let score = 1 - Math.abs(py - pn);
 
   // Штраф за много «не знаю» (вопрос не применим к большинству)
   const naRatio = naMass / total;
   score *= 1 - naRatio * 0.7;
 
-  // Немного штрафруем очень мелкие разделения
+  // Штраф за очень мелкие разделения
   if (py < 0.05 && pn < 0.05) score *= 0.5;
 
   return Math.max(score, 0);
@@ -117,8 +124,6 @@ function pickQuestion(
   let best: Question | null = null;
   let bestScore = -1;
 
-  // Детерминированный порядок + маленький «шум» по индексу,
-  // чтобы при равных scores не всегда выбирался один и тот же.
   const questions = [...QUESTIONS].sort((a, b) => a.id.localeCompare(b.id));
 
   for (const q of questions) {
@@ -144,6 +149,42 @@ function pickQuestion(
   return best;
 }
 
+/**
+ * АНТИ-ОШИБОЧНАЯ ПРОВЕРКА.
+ * Возвращает true, если кандидат совместим со ВСЕМИ жёсткими ответами.
+ * check() === null не является противоречием (нет данных).
+ */
+function isCompatibleWithHardAnswers(
+  entity: Entity,
+  hardAnswers: Record<string, "yes" | "no">
+): boolean {
+  for (const [qid, answer] of Object.entries(hardAnswers)) {
+    const q = QUESTIONS.find((x) => x.id === qid);
+    if (!q || !q.hard) continue;
+    const res = q.check(entity);
+    if (res === null) continue; // нет данных — не противоречие
+    if (answer === "yes" && res !== true) return false;
+    if (answer === "no" && res !== false) return false;
+  }
+  return true;
+}
+
+/**
+ * Топ-кандидат, прошедший анти-ошибочную проверку.
+ * Возвращает null, если ни один кандидат не совместим.
+ */
+function safeTopCandidate(state: EngineState): Weighted | null {
+  let best: Weighted | null = null;
+  for (const id of state.candidates) {
+    const e = ENTITY_MAP.get(id);
+    if (!e) continue;
+    if (!isCompatibleWithHardAnswers(e, state.hardAnswers)) continue;
+    const w = state.weights[id] ?? 0;
+    if (!best || w > best.weight) best = { id, weight: w };
+  }
+  return best;
+}
+
 // ---------- публичный API ----------
 
 /** Инициализация новой игры */
@@ -158,6 +199,7 @@ export function newGame(): EngineState {
     questionNum: 0,
     phase: "playing",
     wrongGuesses: 0,
+    hardAnswers: {},
   };
 }
 
@@ -173,31 +215,64 @@ export function answer(
   const q = QUESTIONS.find((x) => x.id === questionId);
   if (!q) return state;
 
-  const factor = ANSWER_FACTOR[answer];
   const weights = { ...state.weights };
+  let candidates: string[];
+  const hardAnswers = { ...state.hardAnswers };
 
-  for (const id of state.candidates) {
-    const e = ENTITY_MAP.get(id)!;
-    const res = q.check(e);
-    const w = weights[id] ?? 1;
-    let nw: number;
-    if (res === true) nw = w * factor.yes;
-    else if (res === false) nw = w * factor.no;
-    else nw = w * NA_FACTOR;
+  // ---------- СТАДИЯ 1: HARD FILTER ----------
+  // Жёсткий ответ (yes/no) на вопрос с hard:true
+  const isHardAnswer = q.hard && (answer === "yes" || answer === "no");
 
-    weights[id] = nw;
+  if (isHardAnswer) {
+    // Запоминаем жёсткий ответ для анти-ошибочного механизма
+    hardAnswers[questionId] = answer;
+
+    // Полностью исключаем противоречащих
+    candidates = state.candidates.filter((id) => {
+      const e = ENTITY_MAP.get(id)!;
+      const res = q.check(e);
+      if (res === null) return true; // нет данных — оставляем
+      // Да → только true; Нет → только false
+      if (answer === "yes") return res === true;
+      return res === false;
+    });
+  } else {
+    // ---------- СТАДИЯ 2: SOFT SCORING ----------
+    const factor = ANSWER_FACTOR[answer];
+    candidates = [...state.candidates];
+
+    for (const id of candidates) {
+      const e = ENTITY_MAP.get(id)!;
+      const res = q.check(e);
+      const w = weights[id] ?? 1;
+      let nw: number;
+      if (res === true) nw = w * factor.yes;
+      else if (res === false) nw = w * factor.no;
+      else nw = w * NA_FACTOR;
+      weights[id] = nw;
+    }
+
+    // Хвост: отбрасываем сущности с ничтожным весом
+    const sorted = [...candidates].sort(
+      (a, b) => (weights[b] ?? 0) - (weights[a] ?? 0)
+    );
+    const topW = weights[sorted[0]] ?? 0;
+    const threshold = topW * 0.0025;
+    const filtered = sorted.filter((id) => (weights[id] ?? 0) >= threshold);
+    candidates = filtered.length >= 8 ? filtered : sorted.slice(0, 8);
   }
-  // Хвост: отбрасываем сущности, ставшие почти невозможными
-  // (относительный вес < 0.25% от лучшего), но держим минимум 8.
-  const sorted = [...state.candidates].sort(
-    (a, b) => (weights[b] ?? 0) - (weights[a] ?? 0)
-  );
-  const topW = weights[sorted[0]] ?? 0;
-  const threshold = topW * 0.0025;
-  const candidates =
-    sorted.filter((id) => (weights[id] ?? 0) >= threshold).length >= 8
-      ? sorted.filter((id) => (weights[id] ?? 0) >= threshold)
-      : sorted.slice(0, 8);
+
+  // Если жёсткий фильтр оставил слишком мало кандидатов —
+  // возвращаем удалённых с нулевым весом обратно, чтобы
+  // можно было продолжить игру (игрок мог ошибиться).
+  if (candidates.length < 3 && state.candidates.length > 3) {
+    const kept = new Set(candidates);
+    const removed = state.candidates.filter((id) => !kept.has(id));
+    for (const id of removed) {
+      candidates.push(id);
+      weights[id] = 0.0001;
+    }
+  }
 
   const next: EngineState = {
     ...state,
@@ -205,28 +280,34 @@ export function answer(
     weights,
     asked: [...state.asked, questionId],
     questionNum: state.questionNum + 1,
+    hardAnswers,
   };
 
   // Проверка: пора гадать?
-  const top = topCandidate(next);
+  const top = safeTopCandidate(next);
   const totalMass = candidates.reduce((s, id) => s + (weights[id] ?? 0), 0);
-  const confidence = totalMass > 0 ? (top ? top.weight / totalMass : 0) : 0;
+  const confidence = totalMass > 0 && top ? top.weight / totalMass : 0;
 
   if (
+    top &&
     confidence >= GUESS_CONFIDENCE &&
-    state.questionNum >= MIN_QUESTIONS_BEFORE_GUESS // минимум 5 вопросов
+    state.questionNum >= MIN_QUESTIONS_BEFORE_GUESS
   ) {
-    return { ...next, phase: "guessing", guessId: top!.id };
+    return { ...next, phase: "guessing", guessId: top.id };
   }
 
   if (state.questionNum >= MAX_QUESTIONS) {
-    return { ...next, phase: "guessing", guessId: top?.id };
+    if (top) {
+      return { ...next, phase: "guessing", guessId: top.id };
+    }
+    // Ни один кандидат не совместим с жёсткими ответами
+    return { ...next, phase: "surrender" };
   }
 
   return next;
 }
 
-/** Топ-кандидат по весу */
+/** Топ-кандидат по весу (БЕЗ анти-ошибочной проверки — для отладки) */
 export function topCandidate(state: EngineState): Weighted | null {
   let best: Weighted | null = null;
   for (const id of state.candidates) {
@@ -234,6 +315,11 @@ export function topCandidate(state: EngineState): Weighted | null {
     if (!best || w > best.weight) best = { id, weight: w };
   }
   return best;
+}
+
+/** Топ-кандидат, прошедший анти-ошибочную проверку */
+export function safeTopCandidateExport(state: EngineState): Weighted | null {
+  return safeTopCandidate(state);
 }
 
 /** Топ-N кандидатов (для «почти угадал» / подсказок) */
@@ -255,29 +341,16 @@ export function currentQuestion(state: EngineState): Question | null {
 
 /**
  * Игрок ответил «Нет, ошибся» на догадку.
- * Слегка понижает вес угаданной сущности и продолжаем игру.
+ * Полностью исключает угаданную сущность (жёсткий ответ «нет» на «это X?»).
  */
 export function rejectGuess(state: EngineState): EngineState {
   const weights = { ...state.weights };
-  // Вычёркиваем угаданного и его двойников — тех, кто оказался
-  // «почти так же возможен» (в пределах ×3 от веса догадки).
+  // Полностью исключаем угаданного
   if (state.guessId) {
-    const gw = weights[state.guessId] ?? 1;
-    for (const id of state.candidates) {
-      const e = ENTITY_MAP.get(id)!;
-      const guessE = ENTITY_MAP.get(state.guessId)!;
-      const w = weights[id] ?? 0;
-      const isTwin =
-        e.category === guessE.category &&
-        w >= gw * 0.33 &&
-        w <= gw * 3;
-      if (id === state.guessId || isTwin) {
-        weights[id] = 0.0001;
-      }
-    }
+    weights[state.guessId] = 0;
   }
   const candidates = state.candidates.filter(
-    (id) => (weights[id] ?? 0) > 0.0005
+    (id) => (weights[id] ?? 0) > 0
   );
   const next: EngineState = {
     ...state,
