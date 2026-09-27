@@ -625,8 +625,16 @@ export function GeoMultiplayer({
                 className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-stone-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </label>
-            <PrimaryButton onClick={() => setPhase("create")} disabled={!myName.trim()}>
-              ИГРАТЬ С ДРУЗЬЯМИ
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+            {schemaError && (
+              <p className="text-xs text-amber-700">
+                Таблица <code className="font-mono">geo_rooms</code> не создана. Выполните SQL-миграцию
+                из <code className="font-mono">supabase/migrations/20260928_geo_rooms.sql</code> в
+                Supabase Dashboard.
+              </p>
+            )}
+            <PrimaryButton onClick={doCreate} disabled={busy || creating || !myName.trim()}>
+              {busy || creating ? "Создаём…" : "ИГРАТЬ С ДРУЗЬЯМИ"}
             </PrimaryButton>
             <PrimaryButton variant="outline" onClick={onExit}>
               НАЗАД В CLASSIC
@@ -637,44 +645,7 @@ export function GeoMultiplayer({
     );
   }
 
-  // ---------- CREATE ----------
-  if (phase === "create" && !room) {
-    return (
-      <div className="w-full max-w-xl mx-auto">
-        <div className="rounded-3xl border border-stone-200 bg-white shadow-sm p-6">
-          <GeoModePill>MULTIPLAYER</GeoModePill>
-          <h3 className="mt-4 text-xl font-black text-stone-900">СОЗДАНИЕ КОМНАТЫ</h3>
-          <label className="mt-4 block">
-            <small className="text-[10px] tracking-[0.15em] text-stone-500">ВАШЕ ИМЯ</small>
-            <input
-              type="text"
-              maxLength={24}
-              value={myName}
-              onChange={(e) => setMyName(e.target.value)}
-              placeholder="Введите имя"
-              className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-stone-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </label>
-          {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
-          {schemaError && (
-            <p className="mt-2 text-xs text-amber-700">
-              Таблица <code className="font-mono">geo_rooms</code> не создана. Выполните SQL-миграцию
-              из <code className="font-mono">supabase/migrations/20260928_geo_rooms.sql</code> в
-              Supabase Dashboard.
-            </p>
-          )}
-          <div className="mt-5 space-y-3">
-            <PrimaryButton onClick={doCreate} disabled={busy || !myName.trim()}>
-              {busy ? "Создаём…" : "СОЗДАТЬ КОМНАТУ"}
-            </PrimaryButton>
-            <PrimaryButton variant="outline" onClick={() => setPhase("menu")}>
-              НАЗАД
-            </PrimaryButton>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   // ---------- JOIN ----------
   if (phase === "join" && !room) {
