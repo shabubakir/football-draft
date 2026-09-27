@@ -10,20 +10,31 @@ import { levelFromXp } from "@/lib/xp";
 // ---------- Конфиг пунктов меню ----------
 // Футбольные игры идут первыми (основной контент сайта),
 // затем другие мини-игры и рейтинги.
+// `match` — префикс пути для подсветки активного пункта.
 const NAV_ITEMS = [
   { href: "/", label: "ИГРЫ", desc: "Все игры" },
   { href: "/grid/online", label: "СЕТКА 9 ОНЛАЙН", match: "/grid" },
-  { href: "/draft", label: "ДРАФТ" },
-  { href: "/guess", label: "УГАДАЙ ИГРОКА" },
-  { href: "/career", label: "ПУТЬ ФУТБОЛИСТА" },
-  { href: "/quiz/online", label: "ВИКТОРИНА" },
-  { href: "/cs2", label: "CS2 КЕЙСЫ", match: "/cs2" },
-  { href: "/cs2/aim", label: "CS2 AIM" },
-  { href: "/cs2/higher-lower", label: "CS2 HIGHER/LOWER" },
-  { href: "/akinator", label: "AKINATOR" },
-  { href: "/geoguessr", label: "GEOGUESSR" },
-  { href: "/leaderboard", label: "РЕЙТИНГ" },
+  { href: "/draft", label: "ДРАФТ", match: "/draft" },
+  { href: "/guess", label: "УГАДАЙ ИГРОКА", match: "/guess" },
+  { href: "/career", label: "ПУТЬ ФУТБОЛИСТА", match: "/career" },
+  { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz" },
+  // CS2 КЕЙСЫ: без match — активен только на самом /cs2,
+  // чтобы /cs2/aim и /cs2/higher-lower подсвечивали только себя.
+  { href: "/cs2", label: "CS2 КЕЙСЫ" },
+  { href: "/cs2/aim", label: "CS2 AIM", match: "/cs2/aim" },
+  { href: "/cs2/higher-lower", label: "CS2 HIGHER/LOWER", match: "/cs2/higher-lower" },
+  { href: "/akinator", label: "AKINATOR", match: "/akinator" },
+  { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr" },
+  { href: "/leaderboard", label: "РЕЙТИНГ", match: "/leaderboard" },
 ] as const;
+
+// ---------- Группы для выпадающего меню «ВСЕ ИГРЫ» ----------
+const GAME_GROUPS: { icon: string; title: string; hrefs: string[] }[] = [
+  { icon: "⚽", title: "Футбол", hrefs: ["/grid", "/draft", "/guess", "/career", "/quiz"] },
+  { icon: "🔫", title: "CS2", hrefs: ["/cs2"] },
+  { icon: "🌍", title: "География", hrefs: ["/geoguessr"] },
+  { icon: "🎭", title: "Акинатор", hrefs: ["/akinator"] },
+];
 
 export function Nav({ dark = false }: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -268,24 +279,41 @@ export function Nav({ dark = false }: { dark?: boolean }) {
               className="absolute left-0 top-full pt-1 z-50 w-64"
             >
               <div className={`rounded-2xl p-2 shadow-lg ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
-                {gamesItems.map((item) => {
-                  const active = (item as { match?: string }).match
-                    ? pathname.startsWith((item as { match?: string }).match!)
-                    : isActive(item.href);
+                {GAME_GROUPS.map((group) => {
+                  const groupItems = gamesItems.filter((i) =>
+                    group.hrefs.includes(i.href)
+                  );
+                  if (groupItems.length === 0) return null;
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      role="menuitem"
-                      onClick={() => setGamesOpen(false)}
-                      className={`block px-4 py-3 rounded-lg transition ${
-                        active
-                          ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
-                          : dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
+                    <div key={group.title} className="mb-1 last:mb-0">
+                      <div
+                        className={`px-4 pt-1 pb-0.5 text-[10px] font-black tracking-[0.15em] uppercase ${
+                          dark ? "text-white/35" : "text-stone-400"
+                        }`}
+                      >
+                        {group.icon} {group.title}
+                      </div>
+                      {groupItems.map((item) => {
+                        const active = (item as { match?: string }).match
+                          ? pathname.startsWith((item as { match?: string }).match!)
+                          : isActive(item.href);
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            role="menuitem"
+                            onClick={() => setGamesOpen(false)}
+                            className={`block px-4 py-2.5 rounded-lg text-sm transition ${
+                              active
+                                ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
+                                : dark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                            }`}
+                          >
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   );
                 })}
               </div>
@@ -332,23 +360,36 @@ export function Nav({ dark = false }: { dark?: boolean }) {
 
       {open && (
         <div className={`sm:hidden absolute left-4 right-4 top-16 z-50 rounded-2xl p-2 shadow-lg max-h-[70vh] overflow-y-auto ${dark ? "bg-stone-900 border border-white/10" : "border border-stone-200 bg-white"}`}>
-          {NAV_ITEMS.map((item) => {
-            const active = (item as { match?: string }).match
-              ? pathname.startsWith((item as { match?: string }).match!)
-              : isActive(item.href);
+          {GAME_GROUPS.map((group) => {
+            const groupItems = NAV_ITEMS.filter(
+              (i) => i.href !== "/" && i.href !== "/leaderboard" && group.hrefs.includes(i.href)
+            );
+            if (groupItems.length === 0) return null;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`block px-4 py-3 rounded-lg ${
-                  active
-                    ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
-                    : dark ? "text-white/50" : "text-stone-600"
-                }`}
-              >
-                {item.label}
-              </Link>
+              <div key={group.title}>
+                <div className={`px-4 pt-2 pb-0.5 text-[10px] font-black tracking-[0.15em] uppercase ${dark ? "text-white/35" : "text-stone-400"}`}>
+                  {group.icon} {group.title}
+                </div>
+                {groupItems.map((item) => {
+                  const active = (item as { match?: string }).match
+                    ? pathname.startsWith((item as { match?: string }).match!)
+                    : isActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={`block px-4 py-3 rounded-lg ${
+                        active
+                          ? dark ? "bg-white/10 font-bold text-white" : "bg-stone-200/60 font-bold text-stone-900"
+                          : dark ? "text-white/50" : "text-stone-600"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })}
 
