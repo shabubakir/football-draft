@@ -26,15 +26,16 @@ export function usePlayerName(storageKey: string): {
       ""
     );
   });
+  const [authApplied, setAuthApplied] = useState(false);
 
-  // Авторизован: берём username из профиля, если имя ещё не выбрано
+  // Авторизован: username всегда имеет приоритет над localStorage
   useEffect(() => {
     if (authLoading) return;
-    if (user && !name.trim()) {
+    if (user && !authApplied) {
       setName(user.username);
+      setAuthApplied(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
+  }, [user, authLoading, authApplied]);
 
   // Синхронизируем с localStorage при любом изменении
   useEffect(() => {
