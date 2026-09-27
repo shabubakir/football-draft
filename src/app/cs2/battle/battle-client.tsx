@@ -11,7 +11,15 @@ export function CS2BattleClient() {
   const codeParam = params.get("code");
 
   return (
-    <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <main className="min-h-screen bg-stone-950 text-white flex flex-col">
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 h-80"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% -20%, rgba(255,215,0,0.10) 0%, transparent 60%)",
+        }}
+      />
+      <div className="relative flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
       <Nav dark />
       <div className="mt-10">
         <CaseBattle
@@ -27,6 +35,7 @@ export function CS2BattleClient() {
         <Link href="/cs2" className="text-xs text-stone-500 hover:text-stone-300">
           ← к CS2 кейсам
         </Link>
+      </div>
       </div>
     </main>
   );

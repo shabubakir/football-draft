@@ -339,7 +339,7 @@ export function CS2CaseSimulator() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight drop-shadow">
             CS2 <span className="text-[#ffd700]">CASES</span>
           </h1>
           <p className="text-sm text-stone-400 mt-1">
@@ -625,7 +625,7 @@ export function CS2CaseSimulator() {
       </div>
 
       {/* Items in case — full grid with per-skin odds */}
-      <div className="bg-white/[0.03] rounded-xl border border-white/5 p-4">
+      <div className="bg-stone-900/50 rounded-xl border border-white/10 p-4">
         <h3 className="text-sm font-bold text-stone-300 mb-3 uppercase tracking-wider">
           Предметы в кейсе · {selectedCase.name}
         </h3>
@@ -713,7 +713,7 @@ export function CS2CaseSimulator() {
 
       {/* History */}
       {history.length > 0 && (
-        <div className="bg-white/[0.03] rounded-xl border border-white/5 p-4">
+        <div className="bg-stone-900/50 rounded-xl border border-white/10 p-4">
           <h3 className="text-sm font-bold text-stone-400 mb-3 uppercase tracking-wider">
             История (последние {history.length})
           </h3>
