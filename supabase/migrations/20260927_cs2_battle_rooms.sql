@@ -41,10 +41,6 @@ drop policy if exists "anyone can update battle rooms" on public.cs2_battle_room
 create policy "anyone can update battle rooms" on public.cs2_battle_rooms for update using (true);
 
 -- ---------- Realtime ----------
-do $$
-begin
-  alter publication supabase_realtime add table public.cs2_battle_rooms;
-exception
-  when duplicate_object then null;
-end
-$$;
+-- Если таблица уже добавлена в publication, эта строка выдаст ошибку
+-- "already exists" — это нормально, её можно пропустить.
+alter publication supabase_realtime add table public.cs2_battle_rooms;

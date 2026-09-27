@@ -32,23 +32,15 @@ create index if not exists cs2_battle_rooms_created_idx on public.cs2_battle_roo
 alter table public.cs2_battle_rooms enable row level security;
 
 drop policy if exists "battle rooms readable" on public.cs2_battle_rooms;
-create policy "battle rooms readable" on public.cs2_battle_rooms
-  for select using (true);
+create policy "battle rooms readable" on public.cs2_battle_rooms for select using (true);
 
-drop policy if exists "battle rooms writable" on public.cs2_battle_rooms;
-create policy "battle rooms writable" on public.cs2_battle_rooms
-  for insert with check (true);
+drop policy if exists "anyone can create battle rooms" on public.cs2_battle_rooms;
+create policy "anyone can create battle rooms" on public.cs2_battle_rooms for insert with check (true);
 
-drop policy if exists "battle rooms updatable" on public.cs2_battle_rooms;
-create policy "battle rooms updatable" on public.cs2_battle_rooms
-  for update using (true);
+drop policy if exists "anyone can update battle rooms" on public.cs2_battle_rooms;
+create policy "anyone can update battle rooms" on public.cs2_battle_rooms for update using (true);
 
--- ---------- Подписка realtime ----------
-do $$
-begin
-  if not exists (
-    select 1 from pg_publication_objects where pubname = 'supabase_realtime' and objname = 'cs2_battle_rooms'
-  ) then
-    alter publication supabase_realtime add table public.cs2_battle_rooms;
-  end if;
-end $$;
+-- ---------- Realtime ----------
+-- Если таблица уже добавлена в publication, эта строка выдаст ошибку
+-- "already exists" — это нормально, её можно пропустить.
+alter publication supabase_realtime add table public.cs2_battle_rooms;
