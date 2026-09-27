@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Nav } from "@/components/nav";
 import { CS2CaseSimulator } from "@/components/cs2-case";
@@ -79,6 +80,51 @@ export function CS2PageClient() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* ================= МИНИ-ИГРЫ CS2 ================= */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link
+              href="/cs2/aim"
+              className="group relative overflow-hidden rounded-2xl border border-[#ffd700]/25 bg-gradient-to-br from-[#ffd700]/10 via-stone-950/60 to-stone-950/90 p-6 hover:border-[#ffd700]/50 transition"
+            >
+              <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-[#eb4b4b]/10 blur-3xl" />
+              <div className="relative space-y-3">
+                <span className="px-3 py-1 rounded-full bg-[#eb4b4b]/15 border border-[#eb4b4b]/40 text-[#eb4b4b] text-[10px] font-black tracking-widest">
+                  🎯 РЕАКЦИЯ
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-white">
+                  CS2 <span className="text-[#ffd700]">AIM</span>
+                </h3>
+                <p className="text-sm text-stone-400 max-w-xs">
+                  30 секунд кликай по мишеням. Считаем реакцию, точность и лучший счёт.
+                </p>
+                <div className="text-xs font-black text-[#ffd700] tracking-wider group-hover:translate-x-1 transition-transform">
+                  ИГРАТЬ →
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/cs2/higher-lower"
+              className="group relative overflow-hidden rounded-2xl border border-[#ffd700]/25 bg-gradient-to-br from-[#ffd700]/10 via-stone-950/60 to-stone-950/90 p-6 hover:border-[#ffd700]/50 transition"
+            >
+              <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-[#4b69ff]/10 blur-3xl" />
+              <div className="relative space-y-3">
+                <span className="px-3 py-1 rounded-full bg-[#4b69ff]/15 border border-[#4b69ff]/40 text-[#4b69ff] text-[10px] font-black tracking-widest">
+                  💰 ЦЕНЫ
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-white">
+                  SKIN <span className="text-[#ffd700]">HIGHER / LOWER</span>
+                </h3>
+                <p className="text-sm text-stone-400 max-w-xs">
+                  Два скина из базы кейсов — угадай, какой дороже. 10 раундов, streak и бонусы.
+                </p>
+                <div className="text-xs font-black text-[#ffd700] tracking-wider group-hover:translate-x-1 transition-transform">
+                  ИГРАТЬ →
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       )}
