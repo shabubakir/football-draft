@@ -120,12 +120,12 @@ function PrimaryButton({
   className?: string;
 }) {
   const base =
-    "w-full rounded-2xl text-white text-base sm:text-lg font-black tracking-wide px-6 py-4 transition disabled:opacity-50 disabled:cursor-not-allowed";
+    "w-full rounded-2xl text-base sm:text-lg font-black tracking-wide px-6 py-4 transition disabled:opacity-50 disabled:cursor-not-allowed";
   const map = {
-    emerald: "bg-emerald-600 hover:bg-emerald-500",
-    dark: "bg-stone-900 hover:bg-stone-700",
+    emerald: "bg-emerald-600 hover:bg-emerald-500 text-white",
+    dark: "bg-stone-900 hover:bg-stone-700 text-white",
     outline: "bg-white border-2 border-stone-900 text-stone-900 hover:bg-stone-100",
-    rose: "bg-rose-600 hover:bg-rose-500",
+    rose: "bg-rose-600 hover:bg-rose-500 text-white",
   } as const;
   return (
     <button type="button" onClick={onClick} disabled={disabled} className={`${base} ${map[variant]} ${className}`}>
@@ -162,18 +162,17 @@ export function GeoMultiplayer({
   const [connected, setConnected] = useState(true);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const [leftBy, setLeftBy] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false); // защита от двойного «Создать»
 
   // --- Игровое состояние (локальное) ---
   const [guess, setGuess] = useState<[number, number] | null>(null);
   const [myAnswered, setMyAnswered] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
   const [mpImgFailed, setMpImgFailed] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null); // таймер ответа в секундах
 
   const apiMyName = useRef(myName);
   apiMyName.current = myName;
   const prevPlayersRef = useRef<GeoPlayer[] | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const supabaseRef = useRef<SupabaseClient | null>(null);
 
@@ -183,34 +182,6 @@ export function GeoMultiplayer({
   );
   const inRoom = room !== null;
   const mySeatIdx = room ? room.players.findIndex((p) => p.id === myId) : -1;
-
-  // ---------- Countdown для перехода в следующий раунд ----------
-  useEffect(() => {
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-      countdownRef.current = null;
-    }
-    if (countdown === null) return;
-    if (countdown <= 0) {
-      setCountdown(null);
-      // переход в следующий раунд
-      if (phase === "play" && room) {
-        const roundIdx = room.rounds_data.length - 1;
-        if (roundIdx < room.rounds - 1) {
-          setGuess(null);
-          setMyAnswered(false);
-          setMpImgFailed(false);
-        }
-      }
-      return;
-    }
-    countdownRef.current = setInterval(() => {
-      setCountdown((c) => (c === null ? null : c - 1));
-    }, 1000);
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, [countdown, phase, room]);
 
   // ref для doGuess (чтобы таймер мог вызвать его)
   const doGuessRef = useRef<(() => void) | null>(null);
@@ -323,8 +294,18 @@ export function GeoMultiplayer({
   }, [room?.id]);
 
   // ---------- Авто-вход по коду (ссылка) ----------
+  // ВАЖНО: не подключаемся автоматически, если имя не введено —
+  // гость должен увидеть поле «Ваше имя» и ввести его сам.
+  // Если имя уже есть (localStorage / авторизованный username) — входит сразу.
+  // Effect перезапускается при каждом изменении myName:
+  //  - имя пусто  → показываем подсказку и ждём;
+  //  - имя введено → один раз пробуем зайти (autoJoined=true после попытки).
   useEffect(() => {
     if (autoJoined || !initialRoomCode || room) return;
+    if (!myName.trim()) {
+      setError("Введите имя, чтобы подключиться к комнате");
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -338,7 +319,6 @@ export function GeoMultiplayer({
       } catch (e) {
         if (cancelled) return;
         setError((e as Error).message);
-        setPhase("join");
       } finally {
         if (!cancelled) setAutoJoined(true);
       }
@@ -347,7 +327,7 @@ export function GeoMultiplayer({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoJoined, initialRoomCode, room, myId]);
+  }, [autoJoined, initialRoomCode, room, myId, myName]);
 
   // ---------- Вычисляем текущий раунд ----------
   // Первый раунд с хотя бы одним ответом = активный.
@@ -415,9 +395,12 @@ export function GeoMultiplayer({
       setError("Введите имя игрока");
       return;
     }
+    // Защита от двойного нажатия: первая кнопка блокируется сразу.
+    if (creating || busy) return;
     setError("");
     setSchemaError(false);
     setBusy(true);
+    setCreating(true);
     try {
       const d = await api("create", { rounds: 5 });
       setRoom(d.room);
@@ -428,8 +411,9 @@ export function GeoMultiplayer({
       if (/schema cache|Could not find the table/i.test(msg)) setSchemaError(true);
     } finally {
       setBusy(false);
+      setCreating(false);
     }
-  }, [api, myName]);
+  }, [api, myName, creating, busy]);
 
   const doJoin = useCallback(
     async (codeArg?: string) => {
@@ -511,12 +495,14 @@ export function GeoMultiplayer({
       setGuess(null);
       setMyAnswered(false);
       setTimeLeft(null);
-      // после «next» запускаем countdown
-      if (d.room.status === "playing") {
-        setCountdown(5);
-      } else if (d.room.status === "finished") {
+      setMpImgFailed(false);
+      if (d.room.status === "finished") {
         setPhase("end");
       }
+      // ДАЛЬШЕ НЕТ АВТО-ПЕРХОДА: следующий раунд показывается,
+      // когда currentRoundIdx сдвинулся (все ответили → кнопка «next» уже
+      // применила новый раунд). Игрок сам жмёт «СЛЕДУЮЩИЙ РАУНД» повторно
+      // не нужно — кнопка уже ведёт в новый раунд после этого вызова.
     } catch (e) {
       // Если «ещё не все ответили» — молча показываем статус ожидания
       setError((e as Error).message);
@@ -1134,18 +1120,9 @@ export function GeoMultiplayer({
               </div>
 
               <div className="mt-4">
-                {countdown !== null ? (
-                  <div className="rounded-2xl bg-stone-900 text-white text-center py-4">
-                    <div className="text-[10px] tracking-[0.2em] text-stone-400">
-                      {isLastRound ? "ФИНАЛ ЧЕРЕЗ" : "СЛЕДУЮЩИЙ РАУНД ЧЕРЕЗ"}
-                    </div>
-                    <div className="text-4xl font-black mt-1">{countdown}</div>
-                  </div>
-                ) : (
-                  <PrimaryButton onClick={doNext} disabled={busy} variant="dark">
-                    {busy ? "…" : isLastRound ? "ИТОГИ ИГРЫ" : "СЛЕДУЮЩИЙ РАУНД"}
-                  </PrimaryButton>
-                )}
+                <PrimaryButton onClick={doNext} disabled={busy} variant="dark">
+                  {busy ? "…" : isLastRound ? "ИТОГИ ИГРЫ" : "СЛЕДУЮЩИЙ РАУНД"}
+                </PrimaryButton>
               </div>
             </div>
           )}
