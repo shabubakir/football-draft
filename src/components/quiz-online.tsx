@@ -58,7 +58,7 @@ function uid() {
   return "p" + Math.random().toString(36).slice(2, 10);
 }
 
-export function QuizOnline() {
+export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
   const sbRef = useRef<SupabaseClient | null>(null);
   const params = useParams<{ join?: string; [key: string]: string | string[] | undefined }>();
   const joinParam = (params.join as string | undefined) ?? (params["j"] as string | undefined) ?? "";
@@ -79,7 +79,7 @@ export function QuizOnline() {
   const [msg, setMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [joinedByLink, setJoinedByLink] = useState(false);
-  const [topic, setTopic] = useState<QuizTopic>("football");
+  const [topic, setTopic] = useState<QuizTopic>(fixedTopic ?? "football");
 
   const [questions, setQuestions] = useState<ReturnType<typeof shuffleQuestions>>([]);
   const [brokenImgs, setBrokenImgs] = useState<Set<string>>(new Set());
@@ -768,29 +768,12 @@ export function QuizOnline() {
               </p>
               <div className="mt-4">
                 <div className="text-sm font-semibold text-white/60">Тема вопросов</div>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTopic("football")}
-                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition active:scale-[0.97] ${
-                      topic === "football"
-                        ? "border-cyan-500 bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-500/30"
-                        : "border-white/10 bg-white/5 text-white/50 hover:border-white/25"
-                    }`}
-                  >
-                    ⚽ Футбол
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTopic("geo")}
-                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition active:scale-[0.97] ${
-                      topic === "geo"
-                        ? "border-emerald-500 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30"
-                        : "border-white/10 bg-white/5 text-white/50 hover:border-white/25"
-                    }`}
-                  >
-                    🌍 География
-                  </button>
+                <div className={`mt-2 rounded-xl border px-4 py-3 text-sm font-bold ${
+                  topic === "geo"
+                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-300"
+                    : "border-cyan-500 bg-cyan-500/15 text-cyan-300"
+                }`}>
+                  {topic === "geo" ? "🌍 География" : "⚽ Футбол"}
                 </div>
               </div>
               <input

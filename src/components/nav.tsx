@@ -23,13 +23,15 @@ const NAV_GAMES: NavGame[] = [
   { href: "/draft", label: "ДРАФТ", match: "/draft", icon: "clipboard", desc: "Исторический турнир" },
   { href: "/guess", label: "УГАДАЙ ИГРОКА", match: "/guess", icon: "question", desc: "Ежедневная игра" },
   { href: "/career", label: "ПУТЬ ФУТБОЛИСТА", match: "/career", icon: "route", desc: "Угадай по карьере" },
-  { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz", icon: "trophy", desc: "До 5 игроков онлайн" },
+  // Футбольная викторина: match "/quiz/online" — чтобы /quiz/geo не подсвечивал её
+  { href: "/quiz/online", label: "ВИКТОРИНА", match: "/quiz/online", icon: "trophy", desc: "Футбол · до 5 игроков" },
+  { href: "/akinator", label: "ФУТБОЛЬНЫЙ ДЖИНН", match: "/akinator", icon: "ghost", desc: "Akinator · угадай кто" },
   // CS2 КЕЙСЫ: без match — активен только на самом /cs2,
   // чтобы /cs2/aim и /cs2/higher-lower подсвечивали только себя.
   { href: "/cs2", label: "CS2 КЕЙСЫ", icon: "grid", desc: "Симулятор кейсов" },
   { href: "/cs2/aim", label: "CS2 AIM", match: "/cs2/aim", icon: "crosshair", desc: "Тренировка реакции" },
   { href: "/cs2/higher-lower", label: "CS2 ВЫШЕ/НИЖЕ", match: "/cs2/higher-lower", icon: "swap", desc: "Угадай, что дороже" },
-  { href: "/akinator", label: "AKINATOR", match: "/akinator", icon: "ghost", desc: "Футбольный джинн" },
+  { href: "/quiz/geo", label: "ВИКТОРИНА", match: "/quiz/geo", icon: "trophy", desc: "География · до 5 игроков" },
   { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
 ];
 
@@ -44,7 +46,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "ФУТБОЛ",
     icon: "globe",
-    hrefs: ["/grid/online", "/draft", "/guess", "/career", "/quiz/online"],
+    hrefs: ["/grid/online", "/draft", "/guess", "/career", "/quiz/online", "/akinator"],
   },
   {
     title: "КИБЕРСПОРТ",
@@ -54,12 +56,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "ГЕОГРАФИЯ",
     icon: "pin",
-    hrefs: ["/geoguessr"],
-  },
-  {
-    title: "АКИНАТОР",
-    icon: "ghost",
-    hrefs: ["/akinator"],
+    hrefs: ["/quiz/geo", "/geoguessr"],
   },
 ];
 
