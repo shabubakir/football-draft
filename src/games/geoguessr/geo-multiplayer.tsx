@@ -19,6 +19,7 @@ import {
   MAX_ROUND_POINTS,
 } from "./geo-engine";
 import { GeoMap } from "./geo-map";
+import { geoImageUrl } from "./locations";
 import {
   GEO_MAX_PLAYERS,
   GEO_ROUND_OPTIONS,
@@ -173,6 +174,7 @@ export function GeoMultiplayer({
   const [guess, setGuess] = useState<[number, number] | null>(null);
   const [myAnswered, setMyAnswered] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [mpImgFailed, setMpImgFailed] = useState(false);
 
   const apiMyName = useRef(myName);
   apiMyName.current = myName;
@@ -210,6 +212,7 @@ export function GeoMultiplayer({
         if (roundIdx < room.rounds - 1) {
           setGuess(null);
           setMyAnswered(false);
+          setMpImgFailed(false);
         }
       }
       return;
@@ -904,12 +907,30 @@ export function GeoMultiplayer({
         {/* ===== ФОТО ===== */}
         <div className="mt-3 rounded-2xl overflow-hidden border border-stone-200 bg-stone-900 relative">
           <div className="relative w-full aspect-[16/9] sm:aspect-[2/1]">
-            <img
-              key={currentLocation.id}
-              src={currentLocation.image}
-              alt={`${currentLocation.city}, ${currentLocation.country}`}
-              className="w-full h-full object-cover"
-            />
+            {mpImgFailed ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-stone-800 px-6 text-center">
+                <span className="text-4xl">🗺️</span>
+                <span className="text-stone-300 text-sm">
+                  Не удалось загрузить фото — попробуй ещё раз или переподключись
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMpImgFailed(false)}
+                  className="mt-1 rounded-lg bg-stone-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-stone-500"
+                >
+                  ПОВТОРИТЬ ЗАГРУЗКУ
+                </button>
+              </div>
+            ) : (
+              <img
+                key={currentLocation.id}
+                src={geoImageUrl(currentLocation.image)}
+                referrerPolicy="no-referrer"
+                alt={`${currentLocation.city}, ${currentLocation.country}`}
+                onError={() => setMpImgFailed(true)}
+                className="w-full h-full object-cover"
+              />
+            )}
             <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
           </div>
         </div>

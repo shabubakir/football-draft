@@ -15,10 +15,23 @@
 import { shuffle, type GeoLocation } from "./geo-engine";
 
 // Прямой URL оригинала с лимитом ширины (Commons отдаёт JPEG).
-const orig = (title: string) =>
+const commonsUrl = (title: string) =>
   `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(
     title
   )}?width=1600`;
+
+// URL через наш прокси /api/geo-image — обходит hotlink-защиту
+// Commons (403 на referrer с Vercel/локалки). img-теги должны
+// использовать именно geoImageUrl, плюс referrerPolicy="no-referrer".
+export const geoImageUrl = (commonsUri: string) =>
+  `/api/geo-image?url=${encodeURIComponent(commonsUri)}`;
+
+// Для локации: прокси-URL её фото.
+export const geoImageSrc = (location: { image: string }) =>
+  geoImageUrl(location.image);
+
+// Внутренний прямой URL (используется прокси и в тестах).
+const orig = (title: string) => commonsUrl(title);
 
 export const LOCATIONS: GeoLocation[] = [
   // ==================== КАЗАХСТАН (8) ====================

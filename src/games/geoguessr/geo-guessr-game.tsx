@@ -22,7 +22,7 @@ import {
   type GeoRoundResult,
   type GeoStats,
 } from "./geo-engine";
-import { LOCATIONS } from "./locations";
+import { LOCATIONS, geoImageUrl } from "./locations";
 import { GeoMap } from "./geo-map";
 
 type Phase = "playing" | "revealed" | "done";
@@ -38,6 +38,7 @@ export function GeoGuessrGame() {
   const [roundResult, setRoundResult] = useState<GeoRoundResult | null>(null);
   const [history, setHistory] = useState<GeoRoundResult[]>([]);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const [finalResult, setFinalResult] = useState<GeoGameResult | null>(null);
   const [stats, setStats] = useState<GeoStats | null>(null);
 
@@ -78,6 +79,7 @@ export function GeoGuessrGame() {
     setGuess(null);
     setRoundResult(null);
     setImgLoaded(false);
+    setImgFailed(false);
     setPhase("playing");
   }, [round, history, usedIds, current]);
 
@@ -90,6 +92,7 @@ export function GeoGuessrGame() {
     setRoundResult(null);
     setHistory([]);
     setImgLoaded(false);
+    setImgFailed(false);
     setFinalResult(null);
     setStats(null);
   }, []);
@@ -145,22 +148,44 @@ export function GeoGuessrGame() {
       {/* ===== ФОТО ===== */}
       <div className="mt-4 rounded-2xl overflow-hidden border border-stone-200 bg-stone-900 relative">
         <div className="relative w-full aspect-[16/9] sm:aspect-[2/1]">
-          {!imgLoaded && (
+          {!imgLoaded && !imgFailed && (
             <div className="absolute inset-0 flex items-center justify-center bg-stone-800">
               <span className="text-stone-400 text-sm animate-pulse">
                 Загружаем место…
               </span>
             </div>
           )}
-          <img
-            key={current.id}
-            src={current.image}
-            alt={`${current.city}, ${current.country}`}
-            onLoad={() => setImgLoaded(true)}
-            className={`w-full h-full object-cover transition-opacity duration-500 ${
-              imgLoaded ? "opacity-100" : "opacity-0"
-            }`}
-          />
+          {imgFailed && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-stone-800 px-6 text-center">
+              <span className="text-4xl">🗺️</span>
+              <span className="text-stone-300 text-sm">
+                Не удалось загрузить фото — попробуй ещё раз или переподключись
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setImgFailed(false);
+                  setImgLoaded(false);
+                }}
+                className="mt-1 rounded-lg bg-stone-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-stone-500"
+              >
+                ПОВТОРИТЬ ЗАГРУЗКУ
+              </button>
+            </div>
+          )}
+          {!imgFailed && (
+            <img
+              key={current.id}
+              src={geoImageUrl(current.image)}
+              referrerPolicy="no-referrer"
+              alt={`${current.city}, ${current.country}`}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgFailed(true)}
+              className={`w-full h-full object-cover transition-opacity duration-500 ${
+                imgLoaded ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          )}
           {/* лёгкая тень снизу для читаемости */}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
         </div>
