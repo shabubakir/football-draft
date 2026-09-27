@@ -75,6 +75,11 @@ alter table public.user_profiles enable row level security;
 alter table public.user_game_stats enable row level security;
 alter table public.user_achievements enable row level security;
 alter table public.xp_events enable row level security;
+alter table public.achievements enable row level security;
+
+-- achievements: публичное чтение (определения достижений)
+create policy "Achievements are public" on public.achievements
+  for select using (true);
 
 -- user_profiles: пользователь видит свой профиль
 create policy "Users can view own profile" on public.user_profiles
@@ -121,6 +126,5 @@ left join public.user_game_stats ugs on up.id = ugs.user_id
 where up.created_at is not null
 group by up.id, up.username, up.avatar_url, up.created_at;
 
--- RLS для view (публичное чтение)
-create policy "Leaderboard is public" on public.leaderboard_view
-  for select using (true);
+-- View наследует RLS от базовых таблиц (user_profiles, xp_events, user_game_stats)
+-- Публичное чтение обеспечивается тем, что все поля в view — публичные данные
