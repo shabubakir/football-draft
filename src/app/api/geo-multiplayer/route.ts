@@ -339,7 +339,7 @@ export async function POST(req: NextRequest) {
             "Content-Type": "application/json",
             Prefer: "return=representation",
           },
-          body: JSON.stringify({ rounds_data: newRounds }),
+          body: JSON.stringify({ code: room.code, rounds_data: newRounds }),
         }
       );
       if (!restRes.ok) {
