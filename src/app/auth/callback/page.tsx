@@ -27,7 +27,7 @@ export default function AuthCallbackPage() {
         }
 
         // Дать время Supabase обработать callback
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Проверить, есть ли session
         const { data } = await supabase.auth.getSession();
@@ -35,15 +35,36 @@ export default function AuthCallbackPage() {
         if (data.session) {
           setStatus("success");
           
-          // Получить returnTo из URL
+          // Получить returnTo из URL (query params или hash)
+          let returnTo = "/";
           const params = new URLSearchParams(window.location.search);
-          const returnTo = params.get("returnTo") || "/";
+          returnTo = params.get("returnTo") || "/";
           
-          // Перенаправить на главную через секунду
+          // Перенаправить на главную через 1.5 секунды
           setTimeout(() => {
-            router.replace(returnTo.startsWith("/") ? returnTo : "/");
-          }, 1000);
+            const target = returnTo.startsWith("/") ? returnTo : "/";
+            router.replace(target);
+          }, 1500);
         } else {
+          // Если нет session — попробовать получить из URL (hash params)
+          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+          const accessToken = hashParams.get("access_token");
+          
+          if (accessToken) {
+            // Есть access_token в hash — Supabase должен был обработать
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData.session) {
+              setStatus("success");
+              const params = new URLSearchParams(window.location.search);
+              const returnTo = params.get("returnTo") || "/";
+              setTimeout(() => {
+                router.replace(returnTo.startsWith("/") ? returnTo : "/");
+              }, 1000);
+              return;
+            }
+          }
+          
           setStatus("error");
           setErrorMsg("Не удалось получить сессию после авторизации");
         }
@@ -55,7 +76,7 @@ export default function AuthCallbackPage() {
     };
 
     handleCallback();
-  }, [router]);
+  }, [router, supabase]);
 
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
