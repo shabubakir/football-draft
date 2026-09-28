@@ -83,7 +83,16 @@ function ShapeEl({ s }: { s: MapShape }) {
         />
       );
     case "circle":
-      return <circle cx={s.cx} cy={s.cy} r={s.r} fill={s.fill} />;
+      return (
+        <circle
+          cx={s.cx}
+          cy={s.cy}
+          r={s.r}
+          fill={s.fill}
+          stroke={s.stroke}
+          strokeWidth={s.width ? s.width / 100 : undefined}
+        />
+      );
     case "line":
       return (
         <line
@@ -93,6 +102,15 @@ function ShapeEl({ s }: { s: MapShape }) {
           y2={s.y2}
           stroke={s.stroke}
           strokeWidth={s.width / 100}
+        />
+      );
+    case "path":
+      return (
+        <path
+          d={s.d}
+          fill={s.fill ?? "none"}
+          stroke={s.stroke}
+          strokeWidth={s.width ? s.width / 100 : undefined}
         />
       );
     case "text":

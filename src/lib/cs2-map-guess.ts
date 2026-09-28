@@ -30,8 +30,9 @@ export interface MapLocation {
 
 export type MapShape =
   | { type: "rect"; x: number; y: number; w: number; h: number; fill: string; rx?: number }
-  | { type: "circle"; cx: number; cy: number; r: number; fill: string }
+  | { type: "circle"; cx: number; cy: number; r: number; fill: string; stroke?: string; width?: number }
   | { type: "line"; x1: number; y1: number; x2: number; y2: number; stroke: string; width: number }
+  | { type: "path"; d: string; fill?: string; stroke?: string; width?: number }
   | { type: "text"; x: number; y: number; text: string; size: number; fill: string; anchor?: "start" | "middle" | "end" };
 
 export const MAP_NAMES = [
@@ -104,7 +105,7 @@ function floorGrid(x: number, y: number, w: number, h: number, color: string): M
 }
 
 export const LOCATIONS: MapLocation[] = [
-  // ===== MIRAGE =====
+  // ===== MIRAGE ===== (purple/blue Egyptian theme)
   loc(
     "mirage_a_site",
     "MIRAGE",
@@ -113,10 +114,15 @@ export const LOCATIONS: MapLocation[] = [
     0.72,
     0.35,
     [
-      { type: "rect", x: 0.6, y: 0.25, w: 0.3, h: 0.22, fill: "#2d1b4e", rx: 2 },
-      { type: "rect", x: 0.65, y: 0.28, w: 0.12, h: 0.12, fill: "#3d2b5e" },
-      { type: "rect", x: 0.8, y: 0.28, w: 0.08, h: 0.1, fill: "#4a3572" },
-      { type: "text", x: 0.75, y: 0.2, text: "A SITE", size: 6, fill: "#a78bfa", anchor: "middle" },
+      // Distinctive purple pyramid shape (triangle-like)
+      { type: "rect", x: 0.62, y: 0.26, w: 0.28, h: 0.2, fill: "#3b1a5c", rx: 2 },
+      { type: "rect", x: 0.66, y: 0.29, w: 0.1, h: 0.09, fill: "#4d2775" },
+      { type: "rect", x: 0.79, y: 0.29, w: 0.08, h: 0.08, fill: "#5d3590" },
+      // Egyptian column markers (distinctive to Mirage)
+      { type: "circle", cx: 0.68, cy: 0.42, r: 0.012, fill: "#a78bfa" },
+      { type: "circle", cx: 0.72, cy: 0.42, r: 0.012, fill: "#a78bfa" },
+      { type: "circle", cx: 0.76, cy: 0.42, r: 0.012, fill: "#a78bfa" },
+      { type: "text", x: 0.76, y: 0.22, text: "A SITE", size: 6, fill: "#c4b5fd", anchor: "middle" },
     ],
     "#a78bfa"
   ),
@@ -128,10 +134,13 @@ export const LOCATIONS: MapLocation[] = [
     0.28,
     0.62,
     [
-      { type: "rect", x: 0.15, y: 0.52, w: 0.28, h: 0.24, fill: "#1b3a4e", rx: 2 },
-      { type: "rect", x: 0.18, y: 0.55, w: 0.1, h: 0.1, fill: "#2b4a5e" },
-      { type: "rect", x: 0.3, y: 0.58, w: 0.1, h: 0.12, fill: "#2b4a5e" },
-      { type: "text", x: 0.29, y: 0.5, text: "B SITE", size: 6, fill: "#60a5fa", anchor: "middle" },
+      // Blue-teal palette (distinctive to Mirage B)
+      { type: "rect", x: 0.16, y: 0.53, w: 0.26, h: 0.22, fill: "#1e3a5f", rx: 2 },
+      { type: "rect", x: 0.19, y: 0.56, w: 0.09, h: 0.09, fill: "#2d5a7a" },
+      { type: "rect", x: 0.31, y: 0.58, w: 0.09, h: 0.11, fill: "#2d5a7a" },
+      // Water/river marker (Mirage has distinctive water areas)
+      { type: "line", x1: 0.16, y1: 0.76, x2: 0.42, y2: 0.76, stroke: "#3b82f6", width: 0.008 },
+      { type: "text", x: 0.29, y: 0.5, text: "B SITE", size: 6, fill: "#93c5fd", anchor: "middle" },
     ],
     "#60a5fa"
   ),
@@ -143,10 +152,14 @@ export const LOCATIONS: MapLocation[] = [
     0.5,
     0.48,
     [
-      { type: "rect", x: 0.35, y: 0.4, w: 0.3, h: 0.18, fill: "#2d3b4e", rx: 2 },
-      { type: "rect", x: 0.38, y: 0.43, w: 0.24, h: 0.12, fill: "#3d4b5e" },
-      { type: "line", x1: 0.35, y1: 0.49, x2: 0.65, y2: 0.49, stroke: "#4a5a6a", width: 1 },
-      { type: "text", x: 0.5, y: 0.38, text: "MID", size: 6, fill: "#94a3b8", anchor: "middle" },
+      // Purple-slate gradient (Mirage mid)
+      { type: "rect", x: 0.36, y: 0.41, w: 0.28, h: 0.16, fill: "#2d2d4e", rx: 2 },
+      { type: "rect", x: 0.39, y: 0.44, w: 0.22, h: 0.1, fill: "#3d3d5e" },
+      // Egyptian archway pattern (3 arches)
+      { type: "line", x1: 0.4, y1: 0.49, x2: 0.4, y2: 0.55, stroke: "#7c6bb5", width: 0.006 },
+      { type: "line", x1: 0.5, y1: 0.49, x2: 0.5, y2: 0.55, stroke: "#7c6bb5", width: 0.006 },
+      { type: "line", x1: 0.6, y1: 0.49, x2: 0.6, y2: 0.55, stroke: "#7c6bb5", width: 0.006 },
+      { type: "text", x: 0.5, y: 0.38, text: "MID", size: 6, fill: "#a5a5c5", anchor: "middle" },
     ],
     "#94a3b8"
   ),
@@ -181,7 +194,7 @@ export const LOCATIONS: MapLocation[] = [
     "#c084fc"
   ),
 
-  // ===== DUST 2 =====
+  // ===== DUST 2 ===== (sand/desert theme - warm beige/yellow)
   loc(
     "dust2_a_site",
     "DUST 2",
@@ -190,10 +203,14 @@ export const LOCATIONS: MapLocation[] = [
     0.75,
     0.3,
     [
-      { type: "rect", x: 0.65, y: 0.22, w: 0.28, h: 0.18, fill: "#4e3b2b", rx: 2 },
-      { type: "rect", x: 0.68, y: 0.25, w: 0.1, h: 0.1, fill: "#5e4b3b" },
-      { type: "rect", x: 0.8, y: 0.26, w: 0.08, h: 0.08, fill: "#6e5b4b" },
-      { type: "text", x: 0.79, y: 0.2, text: "A SITE", size: 6, fill: "#fbbf24", anchor: "middle" },
+      // Warm sand tones (distinctive to Dust2)
+      { type: "rect", x: 0.66, y: 0.23, w: 0.26, h: 0.16, fill: "#6b5a3b", rx: 2 },
+      { type: "rect", x: 0.69, y: 0.26, w: 0.09, h: 0.09, fill: "#7d6b4a" },
+      { type: "rect", x: 0.81, y: 0.26, w: 0.07, h: 0.07, fill: "#8d7b5a" },
+      // Sand dune lines (distinctive to Dust2)
+      { type: "line", x1: 0.66, y1: 0.41, x2: 0.92, y2: 0.41, stroke: "#d4a574", width: 0.008 },
+      { type: "line", x1: 0.66, y1: 0.43, x2: 0.92, y2: 0.43, stroke: "#c49a6a", width: 0.006 },
+      { type: "text", x: 0.79, y: 0.2, text: "A SITE", size: 6, fill: "#fde68a", anchor: "middle" },
     ],
     "#fbbf24"
   ),
@@ -205,9 +222,13 @@ export const LOCATIONS: MapLocation[] = [
     0.25,
     0.65,
     [
-      { type: "rect", x: 0.15, y: 0.56, w: 0.26, h: 0.22, fill: "#3b4e2b", rx: 2 },
-      { type: "rect", x: 0.18, y: 0.6, w: 0.1, h: 0.1, fill: "#4b5e3b" },
-      { type: "text", x: 0.28, y: 0.54, text: "B SITE", size: 6, fill: "#4ade80", anchor: "middle" },
+      // Olive-green sand (Dust2 B site has more vegetation)
+      { type: "rect", x: 0.16, y: 0.57, w: 0.24, h: 0.2, fill: "#5a6b3b", rx: 2 },
+      { type: "rect", x: 0.19, y: 0.6, w: 0.09, h: 0.09, fill: "#6a7b4a" },
+      // Palm tree markers (distinctive to Dust2)
+      { type: "line", x1: 0.32, y1: 0.62, x2: 0.32, y2: 0.72, stroke: "#8b7355", width: 0.008 },
+      { type: "circle", cx: 0.32, cy: 0.62, r: 0.015, fill: "#4ade80" },
+      { type: "text", x: 0.28, y: 0.54, text: "B SITE", size: 6, fill: "#86efac", anchor: "middle" },
     ],
     "#4ade80"
   ),
@@ -219,9 +240,13 @@ export const LOCATIONS: MapLocation[] = [
     0.5,
     0.5,
     [
-      { type: "rect", x: 0.4, y: 0.42, w: 0.2, h: 0.16, fill: "#4e4a3b", rx: 1 },
-      { type: "rect", x: 0.43, y: 0.45, w: 0.14, h: 0.1, fill: "#5e5a4b" },
-      { type: "text", x: 0.5, y: 0.4, text: "MID DOORS", size: 5, fill: "#eab308", anchor: "middle" },
+      // Sandstone doors (distinctive Dust2 mid)
+      { type: "rect", x: 0.41, y: 0.43, w: 0.18, h: 0.14, fill: "#6b5f4a", rx: 1 },
+      { type: "rect", x: 0.44, y: 0.46, w: 0.12, h: 0.08, fill: "#7d705a" },
+      // Door frame lines
+      { type: "line", x1: 0.44, y1: 0.46, x2: 0.44, y2: 0.54, stroke: "#8d7b65", width: 0.005 },
+      { type: "line", x1: 0.56, y1: 0.46, x2: 0.56, y2: 0.54, stroke: "#8d7b65", width: 0.005 },
+      { type: "text", x: 0.5, y: 0.4, text: "MID DOORS", size: 5, fill: "#fcd34d", anchor: "middle" },
     ],
     "#eab308"
   ),
@@ -254,7 +279,7 @@ export const LOCATIONS: MapLocation[] = [
     "#ef4444"
   ),
 
-  // ===== INFERNO =====
+  // ===== INFERNO ===== (red-brown Italian Mediterranean theme)
   loc(
     "inferno_a_site",
     "INFERNO",
@@ -263,9 +288,12 @@ export const LOCATIONS: MapLocation[] = [
     0.7,
     0.35,
     [
-      { type: "rect", x: 0.6, y: 0.27, w: 0.26, h: 0.18, fill: "#4e2b2b", rx: 2 },
-      { type: "rect", x: 0.63, y: 0.3, w: 0.1, h: 0.1, fill: "#5e3b3b" },
-      { type: "text", x: 0.73, y: 0.25, text: "A SITE", size: 6, fill: "#f87171", anchor: "middle" },
+      // Warm red-brown (Inferno A)
+      { type: "rect", x: 0.61, y: 0.28, w: 0.24, h: 0.16, fill: "#5c2e2e", rx: 2 },
+      { type: "rect", x: 0.64, y: 0.31, w: 0.09, h: 0.09, fill: "#6d3e3e" },
+      // Italian archway (distinctive to Inferno)
+      { type: "circle", cx: 0.73, cy: 0.45, r: 0.035, fill: "none", stroke: "#f87171", width: 0.006 },
+      { type: "text", x: 0.73, y: 0.25, text: "A SITE", size: 6, fill: "#fca5a5", anchor: "middle" },
     ],
     "#f87171"
   ),
@@ -277,9 +305,13 @@ export const LOCATIONS: MapLocation[] = [
     0.3,
     0.6,
     [
-      { type: "rect", x: 0.2, y: 0.52, w: 0.24, h: 0.2, fill: "#2b3e4e", rx: 2 },
-      { type: "rect", x: 0.23, y: 0.55, w: 0.1, h: 0.1, fill: "#3b4e5e" },
-      { type: "text", x: 0.32, y: 0.5, text: "B SITE", size: 6, fill: "#38bdf8", anchor: "middle" },
+      // Cool blue-grey (Inferno B - contrast to A)
+      { type: "rect", x: 0.21, y: 0.53, w: 0.22, h: 0.18, fill: "#2e4a5c", rx: 2 },
+      { type: "rect", x: 0.24, y: 0.56, w: 0.09, h: 0.09, fill: "#3e5a6c" },
+      // Vineyard pattern (Inferno has Italian vineyard elements)
+      { type: "line", x1: 0.21, y1: 0.72, x2: 0.43, y2: 0.72, stroke: "#4ade80", width: 0.006 },
+      { type: "line", x1: 0.21, y1: 0.74, x2: 0.43, y2: 0.74, stroke: "#38bdf8", width: 0.006 },
+      { type: "text", x: 0.32, y: 0.5, text: "B SITE", size: 6, fill: "#7dd3fc", anchor: "middle" },
     ],
     "#38bdf8"
   ),
@@ -291,9 +323,12 @@ export const LOCATIONS: MapLocation[] = [
     0.5,
     0.55,
     [
-      { type: "rect", x: 0.4, y: 0.48, w: 0.2, h: 0.14, fill: "#4e4b2b", rx: 3 },
-      { type: "rect", x: 0.43, y: 0.5, w: 0.14, h: 0.08, fill: "#5e5b3b" },
-      { type: "text", x: 0.5, y: 0.46, text: "BANANA", size: 5, fill: "#facc15", anchor: "middle" },
+      // Curved banana corridor (yellow-green)
+      { type: "rect", x: 0.41, y: 0.49, w: 0.18, h: 0.12, fill: "#5c5a2e", rx: 4 },
+      { type: "rect", x: 0.44, y: 0.51, w: 0.12, h: 0.08, fill: "#6d6b3e" },
+      // Banana curve (arced line)
+      { type: "path", d: "M0.41,0.49 Q0.5,0.45 0.59,0.49", fill: "none", stroke: "#facc15", width: 0.008 },
+      { type: "text", x: 0.5, y: 0.46, text: "BANANA", size: 5, fill: "#fde047", anchor: "middle" },
     ],
     "#facc15"
   ),
@@ -312,7 +347,7 @@ export const LOCATIONS: MapLocation[] = [
     "#a78bfa"
   ),
 
-  // ===== NUKE =====
+  // ===== NUKE ===== (cool blue-grey, nuclear/factory theme)
   loc(
     "nuke_a_site",
     "NUKE",
@@ -321,9 +356,13 @@ export const LOCATIONS: MapLocation[] = [
     0.7,
     0.4,
     [
-      { type: "rect", x: 0.6, y: 0.32, w: 0.24, h: 0.18, fill: "#1a3a4e", rx: 2 },
-      { type: "rect", x: 0.63, y: 0.35, w: 0.1, h: 0.1, fill: "#2a4a5e" },
-      { type: "text", x: 0.72, y: 0.3, text: "A SITE", size: 6, fill: "#22d3ee", anchor: "middle" },
+      // Cold steel blue (Nuke A)
+      { type: "rect", x: 0.61, y: 0.33, w: 0.22, h: 0.16, fill: "#1e3e5c", rx: 2 },
+      { type: "rect", x: 0.64, y: 0.36, w: 0.09, h: 0.09, fill: "#2e4e6c" },
+      // Industrial pipe markers (Nuke is a nuclear facility)
+      { type: "circle", cx: 0.7, cy: 0.5, r: 0.02, fill: "#22d3ee" },
+      { type: "circle", cx: 0.7, cy: 0.5, r: 0.012, fill: "#67e8f9" },
+      { type: "text", x: 0.72, y: 0.3, text: "A SITE", size: 6, fill: "#a5f3fc", anchor: "middle" },
     ],
     "#22d3ee"
   ),
@@ -335,9 +374,13 @@ export const LOCATIONS: MapLocation[] = [
     0.3,
     0.55,
     [
-      { type: "rect", x: 0.2, y: 0.48, w: 0.22, h: 0.18, fill: "#3e2a1a", rx: 2 },
-      { type: "rect", x: 0.23, y: 0.51, w: 0.08, h: 0.1, fill: "#4e3a2a" },
-      { type: "text", x: 0.31, y: 0.46, text: "B SITE", size: 6, fill: "#fb923c", anchor: "middle" },
+      // Warm rust-orange (Nuke B - contrast to cold A)
+      { type: "rect", x: 0.21, y: 0.49, w: 0.2, h: 0.16, fill: "#5c3e1e", rx: 2 },
+      { type: "rect", x: 0.24, y: 0.52, w: 0.08, h: 0.09, fill: "#6c4e2e" },
+      // Radiation warning stripes (Nuke theme)
+      { type: "line", x1: 0.21, y1: 0.66, x2: 0.25, y2: 0.66, stroke: "#fb923c", width: 0.01 },
+      { type: "line", x1: 0.35, y1: 0.66, x2: 0.39, y2: 0.66, stroke: "#fbbf24", width: 0.01 },
+      { type: "text", x: 0.31, y: 0.46, text: "B SITE", size: 6, fill: "#fed7aa", anchor: "middle" },
     ],
     "#fb923c"
   ),
@@ -349,9 +392,14 @@ export const LOCATIONS: MapLocation[] = [
     0.5,
     0.15,
     [
-      { type: "rect", x: 0.35, y: 0.08, w: 0.3, h: 0.12, fill: "#2a2a3e", rx: 1 },
-      { type: "rect", x: 0.38, y: 0.1, w: 0.24, h: 0.08, fill: "#3a3a4e" },
-      { type: "text", x: 0.5, y: 0.06, text: "ROOF", size: 5, fill: "#60a5fa", anchor: "middle" },
+      // Dark industrial roof
+      { type: "rect", x: 0.36, y: 0.09, w: 0.28, h: 0.1, fill: "#2a2a3e", rx: 1 },
+      { type: "rect", x: 0.39, y: 0.11, w: 0.22, h: 0.06, fill: "#3a3a4e" },
+      // Helicopter pad marker (Nuke roof has heli)
+      { type: "circle", cx: 0.5, cy: 0.14, r: 0.025, fill: "none", stroke: "#60a5fa", width: 0.004 },
+      { type: "line", x1: 0.48, y1: 0.14, x2: 0.52, y2: 0.14, stroke: "#60a5fa", width: 0.003 },
+      { type: "line", x1: 0.5, y1: 0.12, x2: 0.5, y2: 0.16, stroke: "#60a5fa", width: 0.003 },
+      { type: "text", x: 0.5, y: 0.06, text: "ROOF", size: 5, fill: "#93c5fd", anchor: "middle" },
     ],
     "#60a5fa"
   ),
@@ -370,7 +418,7 @@ export const LOCATIONS: MapLocation[] = [
     "#f472b6"
   ),
 
-  // ===== ANCIENT =====
+  // ===== ANCIENT ===== (green-blue Norse/mythological theme)
   loc(
     "ancient_a_site",
     "ANCIENT",
@@ -379,9 +427,12 @@ export const LOCATIONS: MapLocation[] = [
     0.68,
     0.38,
     [
-      { type: "rect", x: 0.58, y: 0.3, w: 0.24, h: 0.18, fill: "#3e4e2a", rx: 2 },
-      { type: "rect", x: 0.61, y: 0.33, w: 0.1, h: 0.1, fill: "#4e5e3a" },
-      { type: "text", x: 0.7, y: 0.28, text: "A SITE", size: 6, fill: "#84cc16", anchor: "middle" },
+      // Vibrant green (Ancient A - distinctive)
+      { type: "rect", x: 0.59, y: 0.31, w: 0.22, h: 0.16, fill: "#2e5c3e", rx: 2 },
+      { type: "rect", x: 0.62, y: 0.34, w: 0.09, h: 0.09, fill: "#3e6c4e" },
+      // Norse rune pattern (Ancient has Norse mythology)
+      { type: "path", d: "M0.72,0.47 L0.74,0.47 L0.74,0.52 L0.72,0.52", fill: "none", stroke: "#84cc16", width: 0.004 },
+      { type: "text", x: 0.7, y: 0.28, text: "A SITE", size: 6, fill: "#bef264", anchor: "middle" },
     ],
     "#84cc16"
   ),
@@ -393,9 +444,13 @@ export const LOCATIONS: MapLocation[] = [
     0.32,
     0.58,
     [
-      { type: "rect", x: 0.22, y: 0.5, w: 0.22, h: 0.18, fill: "#2a3e4e", rx: 2 },
-      { type: "rect", x: 0.25, y: 0.53, w: 0.1, h: 0.1, fill: "#3a4e5e" },
-      { type: "text", x: 0.33, y: 0.48, text: "B SITE", size: 6, fill: "#38bdf8", anchor: "middle" },
+      // Deep blue (Ancient B - cool contrast)
+      { type: "rect", x: 0.23, y: 0.51, w: 0.2, h: 0.16, fill: "#1e3e5c", rx: 2 },
+      { type: "rect", x: 0.26, y: 0.54, w: 0.09, h: 0.09, fill: "#2e4e6c" },
+      // Ice/frost pattern (Ancient has icy areas)
+      { type: "line", x1: 0.23, y1: 0.68, x2: 0.43, y2: 0.68, stroke: "#60a5fa", width: 0.008 },
+      { type: "line", x1: 0.33, y1: 0.68, x2: 0.33, y2: 0.7, stroke: "#93c5fd", width: 0.004 },
+      { type: "text", x: 0.33, y: 0.48, text: "B SITE", size: 6, fill: "#93c5fd", anchor: "middle" },
     ],
     "#38bdf8"
   ),
@@ -414,7 +469,7 @@ export const LOCATIONS: MapLocation[] = [
     "#fbbf24"
   ),
 
-  // ===== ANUBIS =====
+  // ===== ANUBIS ===== (purple-gold Egyptian theme)
   loc(
     "anubis_a_site",
     "ANUBIS",
@@ -423,9 +478,13 @@ export const LOCATIONS: MapLocation[] = [
     0.72,
     0.32,
     [
-      { type: "rect", x: 0.62, y: 0.24, w: 0.26, h: 0.18, fill: "#3e2e4e", rx: 2 },
-      { type: "rect", x: 0.65, y: 0.27, w: 0.1, h: 0.1, fill: "#4e3e5e" },
-      { type: "text", x: 0.75, y: 0.22, text: "A SITE", size: 6, fill: "#c084fc", anchor: "middle" },
+      // Deep purple (Anubis A)
+      { type: "rect", x: 0.63, y: 0.25, w: 0.24, h: 0.16, fill: "#3e1e5c", rx: 2 },
+      { type: "rect", x: 0.66, y: 0.28, w: 0.09, h: 0.09, fill: "#4e2e6c" },
+      // Golden ankh symbol (Egyptian)
+      { type: "circle", cx: 0.75, cy: 0.44, r: 0.02, fill: "none", stroke: "#fbbf24", width: 0.004 },
+      { type: "line", x1: 0.75, y1: 0.44, x2: 0.75, y2: 0.48, stroke: "#fbbf24", width: 0.004 },
+      { type: "text", x: 0.75, y: 0.22, text: "A SITE", size: 6, fill: "#d8b4fe", anchor: "middle" },
     ],
     "#c084fc"
   ),
@@ -437,9 +496,12 @@ export const LOCATIONS: MapLocation[] = [
     0.28,
     0.6,
     [
-      { type: "rect", x: 0.18, y: 0.52, w: 0.22, h: 0.18, fill: "#2e3e2e", rx: 2 },
-      { type: "rect", x: 0.21, y: 0.55, w: 0.1, h: 0.1, fill: "#3e4e3e" },
-      { type: "text", x: 0.29, y: 0.5, text: "B SITE", size: 6, fill: "#4ade80", anchor: "middle" },
+      // Dark green (Anubis B)
+      { type: "rect", x: 0.19, y: 0.53, w: 0.2, h: 0.16, fill: "#1e4e3e", rx: 2 },
+      { type: "rect", x: 0.22, y: 0.56, w: 0.09, h: 0.09, fill: "#2e5e4e" },
+      // Pyramid outline (Anubis has pyramids)
+      { type: "path", d: "M0.29,0.7 L0.33,0.62 L0.37,0.7", fill: "none", stroke: "#fbbf24", width: 0.004 },
+      { type: "text", x: 0.29, y: 0.5, text: "B SITE", size: 6, fill: "#6ee7b7", anchor: "middle" },
     ],
     "#4ade80"
   ),
@@ -458,7 +520,7 @@ export const LOCATIONS: MapLocation[] = [
     "#fbbf24"
   ),
 
-  // ===== VERTIGO =====
+  // ===== VERTIGO ===== (cold grey-blue, high-altitude/cave theme)
   loc(
     "vertigo_a_site",
     "VERTIGO",
@@ -467,9 +529,13 @@ export const LOCATIONS: MapLocation[] = [
     0.65,
     0.4,
     [
-      { type: "rect", x: 0.55, y: 0.32, w: 0.22, h: 0.18, fill: "#2e2e4e", rx: 2 },
-      { type: "rect", x: 0.58, y: 0.35, w: 0.1, h: 0.1, fill: "#3e3e5e" },
-      { type: "text", x: 0.66, y: 0.3, text: "A SITE", size: 6, fill: "#818cf8", anchor: "middle" },
+      // Cool slate (Vertigo A)
+      { type: "rect", x: 0.56, y: 0.33, w: 0.2, h: 0.16, fill: "#2e2e4e", rx: 2 },
+      { type: "rect", x: 0.59, y: 0.36, w: 0.09, h: 0.09, fill: "#3e3e5e" },
+      // Height/altitude lines (Vertigo is high up)
+      { type: "line", x1: 0.56, y1: 0.5, x2: 0.76, y2: 0.5, stroke: "#818cf8", width: 0.004 },
+      { type: "line", x1: 0.56, y1: 0.52, x2: 0.76, y2: 0.52, stroke: "#a5b4fc", width: 0.003 },
+      { type: "text", x: 0.66, y: 0.3, text: "A SITE", size: 6, fill: "#c7d2fe", anchor: "middle" },
     ],
     "#818cf8"
   ),
@@ -495,14 +561,17 @@ export const LOCATIONS: MapLocation[] = [
     0.5,
     0.7,
     [
-      { type: "circle", cx: 0.5, cy: 0.7, r: 0.08, fill: "#1a2e3e" },
-      { type: "circle", cx: 0.5, cy: 0.7, r: 0.05, fill: "#2a3e4e" },
-      { type: "text", x: 0.5, y: 0.6, text: "CAVE", size: 5, fill: "#22d3ee", anchor: "middle" },
+      // Dark cave (Vertigo has a cave)
+      { type: "circle", cx: 0.5, cy: 0.7, r: 0.08, fill: "#0a1a2e" },
+      { type: "circle", cx: 0.5, cy: 0.7, r: 0.05, fill: "#1a2e4e" },
+      // Cave entrance (arch)
+      { type: "path", d: "M0.46,0.74 Q0.5,0.68 0.54,0.74", fill: "none", stroke: "#22d3ee", width: 0.006 },
+      { type: "text", x: 0.5, y: 0.6, text: "CAVE", size: 5, fill: "#67e8f9", anchor: "middle" },
     ],
     "#22d3ee"
   ),
 
-  // ===== OVERPASS =====
+  // ===== OVERPASS ===== (industrial grey-green, factory theme)
   loc(
     "overpass_a_site",
     "OVERPASS",
@@ -511,9 +580,12 @@ export const LOCATIONS: MapLocation[] = [
     0.68,
     0.35,
     [
-      { type: "rect", x: 0.58, y: 0.27, w: 0.24, h: 0.18, fill: "#3e3e2e", rx: 2 },
-      { type: "rect", x: 0.61, y: 0.3, w: 0.1, h: 0.1, fill: "#4e4e3e" },
-      { type: "text", x: 0.7, y: 0.25, text: "A SITE", size: 6, fill: "#a3e635", anchor: "middle" },
+      // Industrial olive (Overpass A)
+      { type: "rect", x: 0.59, y: 0.28, w: 0.22, h: 0.16, fill: "#3e4e2e", rx: 2 },
+      { type: "rect", x: 0.62, y: 0.31, w: 0.09, h: 0.09, fill: "#4e5e3e" },
+      // Factory chimney (Overpass is an industrial area)
+      { type: "rect", x: 0.72, y: 0.44, w: 0.02, h: 0.04, fill: "#a3e635" },
+      { type: "text", x: 0.7, y: 0.25, text: "A SITE", size: 6, fill: "#d9f99d", anchor: "middle" },
     ],
     "#a3e635"
   ),
@@ -539,9 +611,14 @@ export const LOCATIONS: MapLocation[] = [
     0.48,
     0.45,
     [
-      { type: "rect", x: 0.38, y: 0.38, w: 0.2, h: 0.16, fill: "#3e2e3e", rx: 1 },
-      { type: "rect", x: 0.41, y: 0.41, w: 0.14, h: 0.1, fill: "#4e3e4e" },
-      { type: "text", x: 0.48, y: 0.36, text: "OFFICE", size: 5, fill: "#e879f9", anchor: "middle" },
+      // Concrete grey (Overpass mid/office)
+      { type: "rect", x: 0.39, y: 0.39, w: 0.18, h: 0.14, fill: "#3e3e3e", rx: 1 },
+      { type: "rect", x: 0.42, y: 0.42, w: 0.12, h: 0.08, fill: "#4e4e4e" },
+      // Window grid (office building)
+      { type: "line", x1: 0.42, y1: 0.42, x2: 0.42, y2: 0.5, stroke: "#e879f9", width: 0.003 },
+      { type: "line", x1: 0.46, y1: 0.42, x2: 0.46, y2: 0.5, stroke: "#e879f9", width: 0.003 },
+      { type: "line", x1: 0.5, y1: 0.42, x2: 0.5, y2: 0.5, stroke: "#e879f9", width: 0.003 },
+      { type: "text", x: 0.48, y: 0.36, text: "OFFICE", size: 5, fill: "#f0abfc", anchor: "middle" },
     ],
     "#e879f9"
   ),
