@@ -141,11 +141,18 @@ function PrimaryButton({
 export function GeoMultiplayer({
   initialRoomCode = "",
   onExit,
+  testMode = false,
 }: {
   initialRoomCode?: string;
   onExit?: () => void;
+  /** Тестовый режим: второй игрок в одном окне (другой deviceId) */
+  testMode?: boolean;
 }) {
-  const [myId] = useState<string>(() => getDeviceId());
+  // В тестовом режиме используем другой deviceId
+  const [myId] = useState<string>(() => {
+    const base = getDeviceId();
+    return testMode ? `${base}-test` : base;
+  });
   const { name: myName, setName: setMyName } = usePlayerName("geo_mp_name");
   const [joinCode, setJoinCode] = useState<string>(
     initialRoomCode ? initialRoomCode.toUpperCase() : ""
