@@ -93,7 +93,7 @@ function ScoreChip({
   return (
     <div
       className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 min-w-0 transition ${
-        highlight ? "bg-stone-900 text-white border-stone-900" : "bg-stone-50 border-stone-200"
+        highlight ? "bg-emerald-500/15 border-emerald-500/40 text-white" : "bg-white/5 border-white/10 text-white/85"
       }`}
     >
       <span
@@ -164,7 +164,6 @@ export function GeoMultiplayer({
   const [room, setRoom] = useState<GeoRoom | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [autoJoined, setAutoJoined] = useState(false);
   const [schemaError, setSchemaError] = useState(false);
   const [connected, setConnected] = useState(true);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
@@ -357,42 +356,6 @@ export function GeoMultiplayer({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.id]);
-
-  // ---------- Авто-вход по коду (ссылка) ----------
-  // ВАЖНО: не подключаемся автоматически, если имя не введено —
-  // гость должен увидеть поле «Ваше имя» и ввести его сам.
-  // Если имя уже есть (localStorage / авторизованный username) — входит сразу.
-  // Effect перезапускается при каждом изменении myName:
-  //  - имя пусто  → показываем подсказку и ждём;
-  //  - имя введено → один раз пробуем зайти (autoJoined=true после попытки).
-  useEffect(() => {
-    if (autoJoined || !initialRoomCode || room) return;
-    if (!myName.trim()) {
-      setError("Введите имя, чтобы подключиться к комнате");
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const d = await geoApi(myId, apiMyName.current, "join", {
-          code: initialRoomCode.toUpperCase(),
-        });
-        if (cancelled) return;
-        const res = d as ApiResult;
-        setRoom(res.room);
-        setPhase("lobby");
-      } catch (e) {
-        if (cancelled) return;
-        setError((e as Error).message);
-      } finally {
-        if (!cancelled) setAutoJoined(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoJoined, initialRoomCode, room, myId, myName]);
 
   // ---------- Вычисляем текущий раунд ----------
   // Первый раунд с хотя бы одним ответом = активный.
@@ -1022,12 +985,12 @@ export function GeoMultiplayer({
         {/* ===== HEADER: название + раунд + счёт ===== */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <small className="text-[11px] tracking-[0.2em] text-stone-500">
+            <small className="text-[11px] tracking-[0.2em] text-emerald-300/70">
               GEOGUESSR LITE · MULTIPLAYER
             </small>
-            <h2 className="text-2xl font-black text-stone-900">
+            <h2 className="text-2xl font-black text-white">
               РАУНД {currentRoundIdx + 1}{" "}
-              <span className="text-stone-400 font-light">/ {room.rounds}</span>
+              <span className="text-white/30 font-light">/ {room.rounds}</span>
             </h2>
           </div>
           <div className="flex items-center gap-2">
@@ -1039,8 +1002,8 @@ export function GeoMultiplayer({
                     i < currentRoundIdx
                       ? "bg-emerald-500"
                       : i === currentRoundIdx && !myAnswered
-                      ? "bg-stone-900"
-                      : "bg-stone-300"
+                      ? "bg-white/70"
+                      : "bg-white/15"
                   }`}
                 />
               ))}
@@ -1064,8 +1027,8 @@ export function GeoMultiplayer({
         </div>
 
         {/* ===== СКОРБОРД (компактный, мобайл) ===== */}
-        <div className="mt-3 rounded-2xl border border-stone-200 bg-white p-3">
-          <small className="text-[10px] tracking-[0.15em] text-stone-500">ТЕКУЩИЙ РЕЙТИНГ</small>
+        <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-3">
+          <small className="text-[10px] tracking-[0.15em] text-white/40">ТЕКУЩИЙ РЕЙТИНГ</small>
           <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
             {[...room.players]
               .sort((a, b) => {
@@ -1121,7 +1084,7 @@ export function GeoMultiplayer({
         </div>
 
         {/* ===== КАРТА ===== */}
-        <div className="mt-3 rounded-2xl overflow-hidden border border-stone-200 bg-white relative">
+        <div className="mt-3 rounded-2xl overflow-hidden border border-white/10 bg-white relative">
           <div className="h-[300px] sm:h-[340px]">
             <GeoMap
               key={`round-${currentRoundIdx}`}
@@ -1178,7 +1141,7 @@ export function GeoMultiplayer({
                 {guess ? "ПОДТВЕРДИТЬ ОТВЕТ" : "СТАВЬ ТОЧКУ НА КАРТЕ"}
               </PrimaryButton>
               {guess && (
-                <p className="text-xs text-stone-500 text-center">
+                <p className="text-xs text-white/40 text-center">
                   Точка установлена. Можно двигать маркер или кликнуть ещё раз.
                 </p>
               )}
@@ -1187,9 +1150,9 @@ export function GeoMultiplayer({
 
           {/* Фаза: я ответил, жду остальных (до 30 сек) */}
           {myAnswered && !revealPhase && (
-            <div className="rounded-2xl border border-stone-200 bg-white p-5 text-center">
-              <div className="text-lg font-black text-stone-900">ОТВЕТ ПРИНЯТ ✓</div>
-              <p className="mt-1 text-sm text-stone-500">
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5 text-center">
+              <div className="text-lg font-black text-white">ОТВЕТ ПРИНЯТ ✓</div>
+              <p className="mt-1 text-sm text-white/50">
                 Ждём остальных… {answeredCount} / {onlineCount} онлайн ответили
               </p>
               <div className="mt-3 flex items-center justify-center gap-2">
@@ -1200,7 +1163,7 @@ export function GeoMultiplayer({
                       key={p.id}
                       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
                       style={{
-                        background: done ? colorForPlayer(room, p.id) : "#e5e5e5",
+                        background: done ? colorForPlayer(room, p.id) : "rgba(255,255,255,0.15)",
                         opacity: done ? 1 : 0.5,
                       }}
                     >
@@ -1214,21 +1177,21 @@ export function GeoMultiplayer({
 
           {/* Фаза reveal: показываем результат + таймер до следующего раунда */}
           {revealPhase && (
-            <div className="rounded-2xl border border-stone-200 bg-white p-5">
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <small className="text-[10px] tracking-[0.15em] text-stone-500">
+                  <small className="text-[10px] tracking-[0.15em] text-white/40">
                     РАУНД {currentRoundIdx + 1} · РЕЗУЛЬТАТ
                   </small>
-                  <div className="text-lg font-black text-stone-900">
+                  <div className="text-lg font-black text-white">
                     {currentLocation.city}, {currentLocation.country}
                   </div>
                 </div>
                 <div className="text-right">
-                  <small className="text-[10px] tracking-[0.15em] text-stone-500">ТВОИ ОЧКИ</small>
-                  <div className="text-xl font-black text-emerald-600">
+                  <small className="text-[10px] tracking-[0.15em] text-white/40">ТВОИ ОЧКИ</small>
+                  <div className="text-xl font-black text-emerald-400">
                     {myGuessEntry ? formatScore(myGuessEntry.points) : "—"}{" "}
-                    <span className="text-stone-400 text-sm font-light">/ {MAX_ROUND_POINTS}</span>
+                    <span className="text-white/25 text-sm font-light">/ {MAX_ROUND_POINTS}</span>
                   </div>
                 </div>
               </div>
@@ -1239,7 +1202,7 @@ export function GeoMultiplayer({
                   <div
                     key={player.id}
                     className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-all ${
-                      player.id === myId ? "bg-emerald-50 border border-emerald-200" : "bg-stone-50"
+                      player.id === myId ? "bg-emerald-500/15 border border-emerald-500/30" : "bg-white/5"
                     }`}
                     style={{ animationDelay: `${i * 120}ms` }}
                   >
@@ -1247,16 +1210,16 @@ export function GeoMultiplayer({
                       className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                       style={{ background: color }}
                     />
-                    <span className="text-sm font-bold text-stone-900 flex-1 truncate">
+                    <span className="text-sm font-bold text-white flex-1 truncate">
                       {player.name}
                       {player.id === myId && (
-                        <span className="ml-1 text-emerald-600 text-xs">(вы)</span>
+                        <span className="ml-1 text-emerald-400 text-xs">(вы)</span>
                       )}
                     </span>
-                    <span className="text-xs text-stone-500 tabular-nums">
+                    <span className="text-xs text-white/50 tabular-nums">
                       {formatDistance(g.distanceKm)}
                     </span>
-                    <span className="text-sm font-black text-stone-900 tabular-nums w-12 text-right">
+                    <span className="text-sm font-black text-white tabular-nums w-12 text-right">
                       {g.points}
                     </span>
                   </div>
@@ -1265,11 +1228,11 @@ export function GeoMultiplayer({
 
               {/* Авто-переход: таймер обратного отсчёта */}
               <div className="mt-4 flex items-center justify-center gap-3">
-                <div className="flex items-center gap-2 rounded-xl bg-stone-100 px-4 py-2">
-                  <span className="text-xs text-stone-500">
+                <div className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2">
+                  <span className="text-xs text-white/50">
                     {isLastRound ? "Итоги через" : "Следующий раунд через"}
                   </span>
-                  <span className="text-lg font-black text-stone-900 tabular-nums">
+                  <span className="text-lg font-black text-white tabular-nums">
                     {revealLeft ?? "…"}с
                   </span>
                 </div>
@@ -1280,7 +1243,7 @@ export function GeoMultiplayer({
 
         {/* Тост ухода */}
         {leftBy && (
-          <div className="mt-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-center text-xs text-rose-700">
+          <div className="mt-2 rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-center text-xs text-rose-300">
             {leftBy} покинул(а) игру
           </div>
         )}

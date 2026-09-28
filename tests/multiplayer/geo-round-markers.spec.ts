@@ -138,12 +138,25 @@ async function getRoomCode(page: Page): Promise<string> {
 }
 
 // Присоединиться к комнате через URL /geoguessr/multiplayer/CODE
+// Гость видит экран "ВХОД В КОМНАТУ": код подставлен, вводит имя и
+// сам нажимает "ВОЙТИ В КОМНАТУ" (автоматического join нет).
 async function joinRoom(page: Page, code: string) {
   await page.goto(`/geoguessr/multiplayer/${code}`);
   // Ждём экран входа с полем имени
   await page.waitForSelector('input[placeholder="Введите имя"]', { timeout: 15_000 });
   await ensureName(page, "PlayerB");
-  // Авто-join сработает после ввода имени — ждём лобби
+  // Ждём, пока кнопка станет активной (имя + код есть)
+  await page.waitForFunction(
+    () => {
+      const b = Array.from(document.querySelectorAll("button")).find(
+        (x) => x.textContent?.includes("ВОЙТИ В КОМНАТУ")
+      );
+      return b ? !b.disabled : false;
+    },
+    undefined,
+    { timeout: 10_000 }
+  );
+  await page.click("button:has-text('ВОЙТИ В КОМНАТУ')");
   await waitForLobby(page);
 }
 
