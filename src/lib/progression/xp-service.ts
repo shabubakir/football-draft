@@ -87,6 +87,10 @@ function isPerfectScore(result: GameResult): boolean {
       return won && (metadata?.cluesUsed ?? 99) === 0;
     case "quiz":
       return won && (metadata?.wrongAnswers ?? 1) === 0;
+    case "cs2-map-guess":
+      return won && (metadata?.wrong ?? 1) === 0;
+    case "reaction-test":
+      return (metadata?.best ?? 9999) < 180;
     default:
       return false;
   }

@@ -81,6 +81,8 @@ export async function POST(req: Request) {
       "cs2-cases": { complete: 2, win: 0 },
       "cs2-aim": { complete: 5, win: 10, perfect: 20 },
       "cs2-hl": { complete: 5, win: 10, perfect: 15 },
+      "cs2-map-guess": { complete: 5, win: 15, perfect: 25 },
+      "reaction-test": { complete: 5, win: 10, perfect: 25 },
       akinator: { complete: 5, win: 15, perfect: 10 },
       geoguessr: { complete: 5, win: 25, perfect: 30 },
     };
@@ -99,7 +101,9 @@ export async function POST(req: Request) {
     // Perfect score check (server-side validation)
     if (rules.perfect) {
       const isPerfect =
-        gameId === "cs2-aim" && (score ?? 0) >= 1000;
+        (gameId === "cs2-aim" && (score ?? 0) >= 1000) ||
+        (gameId === "cs2-map-guess" && won && (metadata?.wrong ?? 1) === 0) ||
+        (gameId === "reaction-test" && (metadata?.best ?? 9999) < 180);
       if (isPerfect) xpAmount += rules.perfect;
     }
 
@@ -152,6 +156,29 @@ export async function POST(req: Request) {
     }
     if (gameId === "cs2-hl" && metadata?.streak) {
       update.bestStreak = Math.max(current.bestStreak ?? 0, metadata.streak);
+    }
+    if (gameId === "cs2-map-guess") {
+      update.totalScore = (current.totalScore ?? 0) + (score ?? 0);
+      if ((score ?? 0) > (current.bestScore ?? 0)) update.bestScore = score ?? 0;
+      update.correctAnswers =
+        (current.correctAnswers ?? 0) + (metadata?.correct ?? 0);
+      update.wrongAnswers =
+        (current.wrongAnswers ?? 0) + (metadata?.wrong ?? 0);
+      if (metadata?.streak) {
+        update.bestStreak = Math.max(current.bestStreak ?? 0, metadata.streak);
+      }
+    }
+    if (gameId === "reaction-test") {
+      update.totalAttempts = (current.totalAttempts ?? 0) + 1;
+      update.falseStarts =
+        (current.falseStarts ?? 0) + (metadata?.falseStarts ?? 0);
+      const best = metadata?.best ?? 0;
+      if (best > 0 && (best < (current.bestReaction ?? 0) || !current.bestReaction)) {
+        update.bestReaction = best;
+      }
+      if (metadata?.streak) {
+        update.bestStreak = Math.max(current.bestStreak ?? 0, metadata.streak);
+      }
     }
 
     await supabase.from("user_game_stats").upsert(

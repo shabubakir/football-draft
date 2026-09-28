@@ -290,17 +290,24 @@ export default function ProfilePage() {
             <div className="space-y-2">
               {Object.entries(gameStats).map(([gid, st]) => {
                 const reg = getAllGames().find((g) => g.id === gid);
-                const games = st.gamesPlayed ?? 0;
-                const wins = st.wins ?? 0;
-                const wr = games > 0 ? Math.round((wins / games) * 100) : 0;
+                const name = reg ? `${reg.icon} ${reg.name}` : gid;
+                let meta = `${st.gamesPlayed ?? 0} игр`;
+                if (gid === "cs2-map-guess") {
+                  meta = `${st.gamesPlayed ?? 0} игр · рекорд ${st.bestScore ?? 0} · верно ${st.correctAnswers ?? 0}/${(st.correctAnswers ?? 0) + (st.wrongAnswers ?? 0)} · серия ${st.bestStreak ?? 0}`;
+                } else if (gid === "reaction-test") {
+                  meta = `${st.gamesPlayed ?? 0} игр · рекорд ${st.bestReaction > 0 ? `${st.bestReaction} ms` : "—"} · попыток ${st.totalAttempts ?? 0} · серия ${st.bestStreak ?? 0}`;
+                } else {
+                  const games = st.gamesPlayed ?? 0;
+                  const wins = st.wins ?? 0;
+                  const wr = games > 0 ? Math.round((wins / games) * 100) : 0;
+                  meta = `${games} игр · ${wins} побед · ${wr}%`;
+                }
                 return (
-                  <div key={gid} className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 px-4 py-3">
-                    <span className="font-bold text-stone-700 text-sm">
-                      {reg ? `${reg.icon} ${reg.name}` : gid}
-                    </span>
-                    <span className="text-xs text-stone-500">
-                      {games} игр · {wins} побед · {wr}%
-                    </span>
+                  <div key={gid} className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-stone-700 text-sm">{name}</span>
+                      <span className="text-xs text-stone-500">{meta}</span>
+                    </div>
                   </div>
                 );
               })}

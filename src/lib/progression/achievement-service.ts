@@ -190,22 +190,116 @@ const ACHIEVEMENTS: AchievementDef[] = [
     },
   },
   {
+    id: "first_map",
+    name: "FIRST MAP",
+    description: "Сыграй первую игру CS2 Map Guess",
+    icon: "🗺️",
+    rewardXp: 15,
+    check: (d) => (d.gameStats["cs2-map-guess"]?.gamesPlayed ?? 0) >= 1,
+    progress: (d) =>
+      Math.min((d.gameStats["cs2-map-guess"]?.gamesPlayed ?? 0) / 1, 1),
+  },
+  {
+    id: "map_reader",
+    name: "MAP READER",
+    description: "20 правильных ответов в CS2 Map Guess",
+    icon: "📖",
+    rewardXp: 40,
+    check: (d) => (d.gameStats["cs2-map-guess"]?.correctAnswers ?? 0) >= 20,
+    progress: (d) =>
+      Math.min((d.gameStats["cs2-map-guess"]?.correctAnswers ?? 0) / 20, 1),
+  },
+  {
+    id: "map_master",
+    name: "MAP MASTER",
+    description: "90% точности в CS2 Map Guess (20+ ответов)",
+    icon: "🎯",
+    rewardXp: 60,
+    check: (d) => {
+      const s = d.gameStats["cs2-map-guess"];
+      if (!s) return false;
+      const total = (s.correctAnswers ?? 0) + (s.wrongAnswers ?? 0);
+      return total >= 20 && s.correctAnswers! / total >= 0.9;
+    },
+    progress: (d) => {
+      const s = d.gameStats["cs2-map-guess"];
+      if (!s) return 0;
+      const total = (s.correctAnswers ?? 0) + (s.wrongAnswers ?? 0);
+      const acc = total > 0 ? s.correctAnswers! / total : 0;
+      return Math.min((total / 20) * acc, 1);
+    },
+  },
+  {
+    id: "cartographer",
+    name: "CARTOGRAPHER",
+    description: "100 правильных ответов в CS2 Map Guess",
+    icon: "🏆",
+    rewardXp: 100,
+    check: (d) => (d.gameStats["cs2-map-guess"]?.correctAnswers ?? 0) >= 100,
+    progress: (d) =>
+      Math.min((d.gameStats["cs2-map-guess"]?.correctAnswers ?? 0) / 100, 1),
+  },
+  {
+    id: "quick_hands",
+    name: "QUICK HANDS",
+    description: "Реакция < 200 ms в Reaction Test",
+    icon: "⚡",
+    rewardXp: 30,
+    check: (d) => {
+      const br = d.gameStats["reaction-test"]?.bestReaction ?? 0;
+      return br > 0 && br < 200;
+    },
+    progress: (d) => {
+      const br = d.gameStats["reaction-test"]?.bestReaction ?? 0;
+      if (br <= 0) return 0;
+      return br >= 200 ? 0 : Math.max(0, 1 - br / 200);
+    },
+  },
+  {
+    id: "lightning",
+    name: "LIGHTNING",
+    description: "Реакция < 150 ms в Reaction Test",
+    icon: "🌩️",
+    rewardXp: 60,
+    check: (d) => {
+      const br = d.gameStats["reaction-test"]?.bestReaction ?? 0;
+      return br > 0 && br < 150;
+    },
+    progress: (d) => {
+      const br = d.gameStats["reaction-test"]?.bestReaction ?? 0;
+      if (br <= 0) return 0;
+      return br >= 150 ? 0 : Math.max(0, 1 - br / 150);
+    },
+  },
+  {
+    id: "consistent",
+    name: "CONSISTENT",
+    description: "5 попыток подряд без false start",
+    icon: "🎯",
+    rewardXp: 40,
+    check: (d) => (d.gameStats["reaction-test"]?.bestStreak ?? 0) >= 5,
+    progress: (d) =>
+      Math.min((d.gameStats["reaction-test"]?.bestStreak ?? 0) / 5, 1),
+  },
+  {
     id: "all_rounder",
     name: "Универсал",
-    description: "Сыграй во все 10 игр",
+    description: "Сыграй во все 12 игр",
     icon: "🎪",
     rewardXp: 100,
     check: (d) => {
       const allGames = [
         "football-draft", "grid-day", "guess-player", "career", "quiz",
-        "cs2-cases", "cs2-aim", "cs2-hl", "akinator", "geoguessr",
+        "cs2-cases", "cs2-aim", "cs2-hl", "cs2-map-guess",
+        "reaction-test", "akinator", "geoguessr",
       ];
       return allGames.every((g) => (d.gameStats[g]?.gamesPlayed ?? 0) >= 1);
     },
     progress: (d) => {
       const allGames = [
         "football-draft", "grid-day", "guess-player", "career", "quiz",
-        "cs2-cases", "cs2-aim", "cs2-hl", "akinator", "geoguessr",
+        "cs2-cases", "cs2-aim", "cs2-hl", "cs2-map-guess",
+        "reaction-test", "akinator", "geoguessr",
       ];
       const played = allGames.filter(
         (g) => (d.gameStats[g]?.gamesPlayed ?? 0) >= 1

@@ -120,4 +120,22 @@ export const GAMES: GameCard[] = [
     cta: "ИГРАТЬ",
     theme: "geoguessr",
   },
+  {
+    href: "/cs2/map-guess",
+    tag: "МИНИ-ИГРА · CS2",
+    title: "CS2 MAP GUESS",
+    desc: "Угадай карту по тактическому скриншоту или поставь точку на миникарте. 8 карт, 10 раундов, 2 режима.",
+    footer: "8 КАРТ · 10 РАУНДОВ · 2 РЕЖИМА",
+    cta: "ИГРАТЬ",
+    theme: "cs2-map-guess",
+  },
+  {
+    href: "/reaction-test",
+    tag: "МИНИ-ИГРА · АРКАДА",
+    title: "REACTION TEST",
+    desc: "Жди зелёный сигнал и жми как можно быстрее. 5 попыток, лучший результат — твоё время реакции.",
+    footer: "5 ПОПЫТОК · МЫШЬ / ТАП / SPACE",
+    cta: "ИГРАТЬ",
+    theme: "reaction-test",
+  },
 ];

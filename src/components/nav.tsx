@@ -31,6 +31,8 @@ const NAV_GAMES: NavGame[] = [
   { href: "/cs2", label: "CS2 КЕЙСЫ", icon: "grid", desc: "Симулятор кейсов" },
   { href: "/cs2/aim", label: "CS2 AIM", match: "/cs2/aim", icon: "crosshair", desc: "Тренировка реакции" },
   { href: "/cs2/higher-lower", label: "CS2 HIGHER/LOWER", match: "/cs2/higher-lower", icon: "swap", desc: "Угадай, что дороже" },
+  { href: "/cs2/map-guess", label: "CS2 MAP GUESS", match: "/cs2/map-guess", icon: "map", desc: "Угадай карту по скриншоту" },
+  { href: "/reaction-test", label: "REACTION TEST", match: "/reaction-test", icon: "zap", desc: "Тест реакции · 5 попыток" },
   { href: "/quiz/geo", label: "ВИКТОРИНА", match: "/quiz/geo", icon: "trophy", desc: "География · до 5 игроков" },
   { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
 ];
@@ -51,7 +53,12 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "КИБЕРСПОРТ",
     icon: "gamepad",
-    hrefs: ["/cs2", "/cs2/aim", "/cs2/higher-lower"],
+    hrefs: ["/cs2", "/cs2/aim", "/cs2/higher-lower", "/cs2/map-guess"],
+  },
+  {
+    title: "АРКАДА",
+    icon: "zap",
+    hrefs: ["/reaction-test"],
   },
   {
     title: "ГЕОГРАФИЯ",
@@ -168,6 +175,20 @@ function GameIcon({ name, className = "w-5 h-5" }: { name: string; className?: s
           <path d="M9 10h.01" />
           <path d="M15 10h.01" />
           <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8" />
+        </svg>
+      );
+    case "map":
+      return (
+        <svg {...common}>
+          <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
+          <path d="M15 5.764v15" />
+          <path d="M9 3.236v15" />
+        </svg>
+      );
+    case "zap":
+      return (
+        <svg {...common}>
+          <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
         </svg>
       );
     default:

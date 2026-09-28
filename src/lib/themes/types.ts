@@ -13,6 +13,8 @@ export type GameThemeId =
   | "cs2-higher-lower"
   | "akinator"
   | "geoguessr"
+  | "cs2-map-guess"
+  | "reaction-test"
   | "neutral";
 
 export interface GameTheme {

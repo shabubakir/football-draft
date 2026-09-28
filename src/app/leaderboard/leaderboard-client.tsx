@@ -19,13 +19,14 @@ interface LeaderboardEntry {
   created_at: string;
 }
 
-type Category = "all" | "football" | "cs2" | "geoguessr";
+type Category = "all" | "football" | "cs2" | "geoguessr" | "reaction";
 
 const CATEGORIES: { id: Category; label: string; icon: string }[] = [
   { id: "all", label: "Все", icon: "🌐" },
   { id: "football", label: "Футбол", icon: "⚽" },
   { id: "cs2", label: "CS2", icon: "🔫" },
   { id: "geoguessr", label: "География", icon: "🌍" },
+  { id: "reaction", label: "Реакция", icon: "⚡" },
 ];
 
 export default function LeaderboardPage() {
@@ -104,8 +105,9 @@ export default function LeaderboardPage() {
         {category !== "all" && (
           <p className="mt-3 text-xs text-stone-500">
             {category === "football" && "⚽ Футбольные игры: Draft, Grid Day, Guess, Career, Quiz, Akinator"}
-            {category === "cs2" && "🔫 CS2 игры: Cases, Aim, Higher/Lower"}
+            {category === "cs2" && "🔫 CS2 игры: Cases, Aim, Higher/Lower, Map Guess"}
             {category === "geoguessr" && "🌍 GeoGuessr — угадай место по фото"}
+            {category === "reaction" && "⚡ Reaction Test — скорость реакции"}
             {" · Сортировка: общий XP"}
           </p>
         )}

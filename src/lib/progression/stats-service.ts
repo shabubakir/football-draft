@@ -108,6 +108,34 @@ export async function updateGameStats(
       }
       break;
 
+    case "cs2-map-guess":
+      update.totalScore = (current.totalScore ?? 0) + (score ?? 0);
+      if ((score ?? 0) > (current.bestScore ?? 0)) {
+        update.bestScore = score ?? 0;
+      }
+      update.correctAnswers =
+        (current.correctAnswers ?? 0) + (metadata?.correct ?? 0);
+      update.wrongAnswers =
+        (current.wrongAnswers ?? 0) + (metadata?.wrong ?? 0);
+      if ((metadata?.streak ?? 0) > (current.bestStreak ?? 0)) {
+        update.bestStreak = metadata!.streak;
+      }
+      break;
+
+    case "reaction-test":
+      update.totalAttempts = (current.totalAttempts ?? 0) + 1;
+      if (
+        (metadata?.best ?? 0) > 0 &&
+        ((current.bestReaction ?? 0) === 0 ||
+          (metadata?.best ?? 0) < (current.bestReaction ?? 0))
+      ) {
+        update.bestReaction = metadata!.best;
+      }
+      if ((metadata?.streak ?? 0) > (current.bestStreak ?? 0)) {
+        update.bestStreak = metadata!.streak;
+      }
+      break;
+
     case "akinator":
       update.successfulGuesses =
         (current.successfulGuesses ?? 0) + (won ? 1 : 0);

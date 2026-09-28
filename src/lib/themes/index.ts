@@ -161,6 +161,44 @@ export const THEMES: Record<GameThemeId, GameTheme> = {
     fontStyle: "bold",
   },
 
+  // ---------- CS2 MAP GUESS — dark tactical / steel / cyan ----------
+  "cs2-map-guess": {
+    id: "cs2-map-guess",
+    background: "linear-gradient(180deg, #0b0d12 0%, #10141c 50%, #0b0d12 100%)",
+    backgroundPattern:
+      "repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(34,211,238,0.04) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(34,211,238,0.04) 40px)",
+    primary: "#22d3ee",
+    accent: "#f97316",
+    card: "rgba(255,255,255,0.04)",
+    cardBorder: "rgba(34,211,238,0.2)",
+    text: "#f1f5f9",
+    textMuted: "rgba(255,255,255,0.5)",
+    buttonBg: "linear-gradient(135deg, #0891b2, #0e7490)",
+    buttonText: "#ffffff",
+    buttonHover: "linear-gradient(135deg, #0e7490, #155e75)",
+    headerAccent: "#22d3ee",
+    fontStyle: "bold",
+  },
+
+  // ---------- REACTION TEST — arcade / minimal dark ----------
+  "reaction-test": {
+    id: "reaction-test",
+    background: "linear-gradient(180deg, #07090c 0%, #0d1117 50%, #07090c 100%)",
+    backgroundPattern:
+      "repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.025) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.025) 40px)",
+    primary: "#4ade80",
+    accent: "#ef4444",
+    card: "rgba(255,255,255,0.05)",
+    cardBorder: "rgba(255,255,255,0.1)",
+    text: "#f8fafc",
+    textMuted: "rgba(255,255,255,0.5)",
+    buttonBg: "linear-gradient(135deg, #16a34a, #15803d)",
+    buttonText: "#ffffff",
+    buttonHover: "linear-gradient(135deg, #15803d, #166534)",
+    headerAccent: "#4ade80",
+    fontStyle: "bold",
+  },
+
   // ---------- AKINATOR — mystical / deep violet ----------
   akinator: {
     id: "akinator",

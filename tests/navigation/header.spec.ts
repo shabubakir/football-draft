@@ -12,6 +12,8 @@ const NAV_LINKS: Array<[string, string, string]> = [
   ["CS2 КЕЙСЫ", "/cs2", "КИБЕРСПОРТ"],
   ["CS2 AIM", "/cs2/aim", "КИБЕРСПОРТ"],
   ["CS2 HIGHER/LOWER", "/cs2/higher-lower", "КИБЕРСПОРТ"],
+  ["CS2 MAP GUESS", "/cs2/map-guess", "КИБЕРСПОРТ"],
+  ["REACTION TEST", "/reaction-test", "АРКАДА"],
   ["ВИКТОРИНА", "/quiz/geo", "ГЕОГРАФИЯ"],
   ["GEOGUESSR", "/geoguessr", "ГЕОГРАФИЯ"],
 ];
