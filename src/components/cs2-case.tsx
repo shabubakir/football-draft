@@ -169,6 +169,7 @@ export function CS2CaseSimulator() {
     Record<string, { min: number; max: number; wears?: Record<string, number> }>
   >({});
   const [soundOn, setSoundOn] = useState(true);
+  const [pricesLoading, setPricesLoading] = useState(false);
 
   const { reportResult } = useProgression();
   const [offset, setOffset] = useState(0);
@@ -183,13 +184,17 @@ export function CS2CaseSimulator() {
   // Fetch live skin prices for the selected case (cached 7 days server-side)
   useEffect(() => {
     let cancelled = false;
+    setPricesLoading(true);
     fetch(`/api/cs2-prices?case=${encodeURIComponent(selectedCase.name)}`)
       .then((r) => r.json())
       .then((d) => {
-        if (!cancelled && d.prices) setSkinPrices(d.prices);
+        if (!cancelled) {
+          if (d.prices) setSkinPrices(d.prices);
+          setPricesLoading(false);
+        }
       })
       .catch(() => {
-        // Fallback: no prices shown
+        if (!cancelled) setPricesLoading(false);
       });
     return () => {
       cancelled = true;
@@ -626,8 +631,13 @@ export function CS2CaseSimulator() {
 
       {/* Items in case — full grid with per-skin odds */}
       <div className="bg-stone-900/50 rounded-xl border border-white/10 p-4">
-        <h3 className="text-sm font-bold text-stone-300 mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-stone-300 mb-3 uppercase tracking-wider flex items-center gap-2">
           Предметы в кейсе · {selectedCase.name}
+          {pricesLoading && (
+            <span className="text-[10px] font-normal text-stone-500 normal-case tracking-normal animate-pulse">
+              загружаем цены...
+            </span>
+          )}
         </h3>
 
         {/* Tier filter tabs */}
