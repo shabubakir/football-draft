@@ -182,6 +182,15 @@ export function GeoMultiplayer({
   const prevPlayersRef = useRef<GeoPlayer[] | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const supabaseRef = useRef<SupabaseClient | null>(null);
+  // Зеркало room в ref — нужно realtime-обработчику, чтобы сравнить
+  // round index до/после и сбросить локальное состояние при смене раунда.
+  const roomRef = useRef<GeoRoom | null>(null);
+  roomRef.current = room;
+  // MAX round index, seen so far (monotonic). Used to reject stale
+  // realtime events that would move the round BACKWARDS (out-of-order
+  // delivery). Without this guard, a late-arriving R1 event can
+  // overwrite R2 state and resurrect R1 markers (production bug).
+  const maxRoundIdxRef = useRef<number>(-1);
 
   const isHost = useMemo(
     () => (room?.players[0]?.id === myId),
@@ -262,6 +271,55 @@ export function GeoMultiplayer({
         (payload) => {
           const r = payload.new as unknown as GeoRoom;
           if (!r || !r.id) return;
+          // Если realtime-событие изменило раунд (roundIdx), сбрасываем
+          // локальное состояние (guess, myAnswered, revealPhase), чтобы
+          // новый инстанс карты (key remount) не создал маркер из прошлого
+          // раунда. Без этого маркер R1 остаётся на R2 (regression test:
+          // tests/multiplayer/geo-round-markers.spec.ts).
+          const prevRoom = roomRef.current;
+          let prevIdx = -1;
+          if (prevRoom?.rounds_data) {
+            for (let i = 0; i < prevRoom.rounds_data.length; i++)
+              if (prevRoom.rounds_data[i].location_id) prevIdx = i;
+          }
+          let evIdx = -1;
+          const evRounds = (r.rounds_data ?? []) as GeoRoomRound[];
+          for (let i = 0; i < evRounds.length; i++)
+            if (evRounds[i].location_id) evIdx = i;
+
+          // STALE EVENT GUARD: if the incoming event's round index is
+          // LOWER than the max we've seen, it's an out-of-order / stale
+          // event. Applying it would move the round backwards and
+          // resurrect old markers. Ignore the room-state patch but
+          // still update connection status and player list.
+          const isStaleRound =
+            r.status === "playing" &&
+            evIdx >= 0 &&
+            evIdx < maxRoundIdxRef.current;
+
+          if (isStaleRound) {
+            setConnected(true);
+            // Update player list (not room state)
+            const prevP = prevPlayersRef.current ?? [];
+            const newP = (r.players ?? []) as GeoPlayer[];
+            const gone = prevP.find(
+              (p) => p.id !== myId && !newP.some((n) => n.id === p.id)
+            );
+            if (gone) setLeftBy(gone.name);
+            prevPlayersRef.current = newP;
+            return; // ← DO NOT apply room state
+          }
+
+          // Update max round index
+          if (evIdx > maxRoundIdxRef.current) {
+            maxRoundIdxRef.current = evIdx;
+          }
+
+          if (r.status === "playing" && prevIdx !== -1 && evIdx !== prevIdx) {
+            setGuess(null);
+            setMyAnswered(false);
+            setRevealPhase(false);
+          }
           setConnected(true);
           setRoom((prev) => (prev ? ({ ...prev, ...r } as GeoRoom) : ({ ...(r as GeoRoom) })));
 
@@ -473,6 +531,7 @@ export function GeoMultiplayer({
     setCreating(true);
     try {
       const d = await api("create", { rounds: 5 });
+      maxRoundIdxRef.current = -1; // fresh room — reset guard
       setRoom(d.room);
       setPhase("lobby");
     } catch (e) {
@@ -505,6 +564,7 @@ export function GeoMultiplayer({
       setBusy(true);
       try {
         const d = await api("join", { code: clean });
+        maxRoundIdxRef.current = -1; // new session — reset guard
         setRoom(d.room);
         setPhase("lobby");
       } catch (e) {
@@ -524,6 +584,12 @@ export function GeoMultiplayer({
     setBusy(true);
     try {
       const d = await api("start", { code: room.code });
+      // Round 1 is now active — update guard
+      if (d.room?.rounds_data) {
+        for (let i = 0; i < d.room.rounds_data.length; i++) {
+          if (d.room.rounds_data[i].location_id) maxRoundIdxRef.current = Math.max(maxRoundIdxRef.current, i);
+        }
+      }
       setRoom(d.room);
       setPhase("play");
     } catch (e) {
@@ -561,6 +627,15 @@ export function GeoMultiplayer({
     setBusy(true);
     try {
       const d = await api("next", { code: room.code });
+      // Update max round index BEFORE setRoom so the stale-event guard
+      // in the realtime handler knows we've already advanced.
+      if (d.room?.rounds_data) {
+        for (let i = 0; i < d.room.rounds_data.length; i++) {
+          if (d.room.rounds_data[i].location_id && i > maxRoundIdxRef.current) {
+            maxRoundIdxRef.current = i;
+          }
+        }
+      }
       setRoom(d.room);
       // Сбрасываем локальное состояние НЕМЕДЛЕННО — realtime может быть
       // медленным, и без этого UI "залипает" на старом раунде.
@@ -592,6 +667,7 @@ export function GeoMultiplayer({
     setBusy(true);
     try {
       const d = await api("rematch", { code: room.code });
+      maxRoundIdxRef.current = -1; // fresh round cycle — reset guard
       setRoom(d.room);
       setPhase("lobby");
       setGuess(null);
@@ -1052,7 +1128,14 @@ export function GeoMultiplayer({
               roundKey={currentRoundIdx}
               center={[25, 10]}
               zoom={2}
-              guess={myAnswered ? (myGuessEntry ? [myGuessEntry.lat, myGuessEntry.lng] : guess) : guess}
+              // myGuessEntry — из ТЕКУЩЕГО раунда (rnd). При смене раунда
+              // myAnswered=false и myGuessEntry=undefined → guess=null →
+              // маркер прошлого раунда не создаётся (regression: R1 pin на R2).
+              guess={
+                myAnswered && myGuessEntry
+                  ? [myGuessEntry.lat, myGuessEntry.lng]
+                  : guess
+              }
               onGuessChange={(lat, lng) => {
                 if (!myAnswered && !revealPhase) setGuess([lat, lng]);
               }}

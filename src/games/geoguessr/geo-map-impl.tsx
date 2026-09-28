@@ -27,10 +27,11 @@ export interface GeoMapImplProps {
 }
 
 // Кастомные маркеры (SVG-данные, чтобы не зависеть от asset-пути)
-function pinIcon(color: string, label?: string) {
+function pinIcon(color: string, label?: string, dataKind?: string) {
+  const kindAttr = dataKind ? ` data-${dataKind}-pin="true"` : "";
   return L.divIcon({
-    className: "",
-    html: `<div style="position:relative;transform:translate(-50%,-100%);">
+    className: dataKind ? `geo-pin geo-pin-${dataKind}` : "",
+    html: `<div style="position:relative;transform:translate(-50%,-100%);"${kindAttr}>
       <svg width="34" height="46" viewBox="0 0 34 46" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))">
         <path d="M17 0C7.6 0 0 7.6 0 17c0 12 17 29 17 29s17-17 17-29C34 7.6 26.4 0 17 0z" fill="${color}"/>
         <circle cx="17" cy="17" r="7" fill="#fff"/>
@@ -71,13 +72,26 @@ export function GeoMapImpl({
       zoom,
       worldCopyJump: true,
     });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    // DEV-за корпоративным squid: прямой wss/https от браузера заблокирован —
+    // тайлы идут через наш локальный прокси (dev-only, NEXT_PUBLIC_USE_WS_PROXY).
+    // В prod (Vercel) — прямая плитка OSM.
+    const tileUrl =
+      process.env.NEXT_PUBLIC_USE_WS_PROXY === "1"
+        ? "/api/geo-tile?z={z}&x={x}&y={y}"
+        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+    L.tileLayer(tileUrl, {
       maxZoom: 18,
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
     mapRef.current = map;
+    // [DIAG] регистрируем инстанс карты для аудита извне (Playwright)
+    const w = window as unknown as { __GEO_MAP_INSTANCES__?: Map<number, L.Map> };
+    if (!w.__GEO_MAP_INSTANCES__) w.__GEO_MAP_INSTANCES__ = new Map();
+    const instanceId = (map as unknown as { _leafletId: number })._leafletId;
+    w.__GEO_MAP_INSTANCES__.set(instanceId, map);
     return () => {
+      w.__GEO_MAP_INSTANCES__?.delete(instanceId);
       map.remove();
       mapRef.current = null;
       guessMarkerRef.current = null;
@@ -152,7 +166,7 @@ export function GeoMapImpl({
       guessMarkerRef.current.setLatLng(guess);
     } else {
       guessMarkerRef.current = L.marker(guess, {
-        icon: pinIcon("#059669"),
+        icon: pinIcon("#059669", undefined, "guess"),
         draggable: !locked,
         zIndexOffset: 1000,
       }).addTo(map);
@@ -191,7 +205,7 @@ export function GeoMapImpl({
     // правильная точка (всегда показываем)
     if (correctMarkerRef.current) correctMarkerRef.current.remove();
     correctMarkerRef.current = L.marker(correct, {
-      icon: pinIcon("#dc2626", correctLabel),
+      icon: pinIcon("#dc2626", correctLabel, "reveal"),
       zIndexOffset: 900,
     }).addTo(map);
 

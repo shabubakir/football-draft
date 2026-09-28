@@ -13,7 +13,7 @@ export const isSupabaseConfigured = Boolean(url && key);
  */
 /** true, если серверные запросы должны идти через прокси-роут. */
 export function isProxied(): boolean {
-  return Boolean(process.env.HTTPS_PROXY || process.env.HTTP_PROXY);
+  return process.env.NEXT_PUBLIC_USE_WS_PROXY === "1";
 }
 
 /**

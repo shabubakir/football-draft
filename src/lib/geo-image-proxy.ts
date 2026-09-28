@@ -12,8 +12,68 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import http from "node:http";
 
 const MAX_AGE_7D = 7 * 24 * 60 * 60;
+
+/**
+ * Запрос к upstream через корпоративный HTTP-прокси (dev-машины за squid).
+ * В prod (Vercel) прокси нет — fetch идёт напрямую.
+ */
+function proxiedFetch(
+  u: URL,
+  headers: Record<string, string>
+): Promise<Response> {
+  const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+  if (!proxy) {
+    return fetch(u, { cache: "no-store", headers });
+  }
+  const p = new URL(proxy);
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        host: p.hostname,
+        port: Number(p.port) || 80,
+        method: "GET",
+        path: u.toString(),
+        headers: { ...headers, "Proxy-Connection": "keep-alive" },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => {
+          const body = Buffer.concat(chunks);
+          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400) {
+            // 30x от upstream (например, Special:FilePath → upload.wikimedia.org):
+            // следим за Location
+            const loc = res.headers.location;
+            if (loc) {
+              const lu = new URL(loc, u);
+              return proxiedFetch(lu, headers)
+                .then(resolve)
+                .catch(reject);
+            }
+          }
+          resolve(
+            new Response(body, {
+              status: res.statusCode ?? 0,
+              statusText: res.statusMessage,
+              headers: {
+                "content-type": res.headers["content-type"] ?? "image/jpeg",
+              },
+            })
+          );
+        });
+      }
+    );
+    req.setTimeout(30_000, () => {
+      req.destroy();
+      reject(new Error("upstream timeout via proxy"));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
@@ -44,9 +104,8 @@ export async function GET(req: NextRequest) {
   // Браузер игрока ходит к /api/geo-image (localhost) — ему не
   // нужен внешний выход, только до домена игры.
   try {
-    const upstream = await fetch(u, {
-      cache: "no-store",
-      headers: { "user-agent": "FootballDraftGeo/1.0 (image proxy)" },
+    const upstream = await proxiedFetch(u, {
+      "user-agent": "FootballDraftGeo/1.0 (image proxy)",
     });
     if (!upstream.ok) {
       return new NextResponse(upstream.statusText, { status: upstream.status });
