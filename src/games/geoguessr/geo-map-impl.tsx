@@ -127,25 +127,17 @@ export function GeoMapImpl({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guess, locked, onGuessChange]);
-
-  // СБРОС при смене раунда: убираем все маркеры и линию
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    if (guessMarkerRef.current) { guessMarkerRef.current.remove(); guessMarkerRef.current = null; }
-    if (correctMarkerRef.current) { correctMarkerRef.current.remove(); correctMarkerRef.current = null; }
-    if (lineRef.current) { lineRef.current.remove(); lineRef.current = null; }
-    if (guessLabelRef.current) { guessLabelRef.current.remove(); guessLabelRef.current = null; }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundKey]);
+  }, [guess, locked, onGuessChange, roundKey]);
 
   // reveal: правильная точка + линия + подпись
+  // roundKey в зависимостях: при смене раунда reveal сбрасывается до null,
+  // и этот эффект очищает маркеры (уже сделан эффектом roundKey выше).
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     if (!reveal) {
+      // reveal = null → убираем все маркеры (новый раунд)
       if (correctMarkerRef.current) {
         correctMarkerRef.current.remove();
         correctMarkerRef.current = null;
@@ -206,7 +198,7 @@ export function GeoMapImpl({
       map.setView(correct, Math.max(map.getZoom(), 5));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reveal, guess]);
+  }, [reveal, guess, roundKey]);
 
   return <div ref={containerRef} className={`h-full w-full ${className}`} />;
 }

@@ -1042,6 +1042,7 @@ export function GeoMultiplayer({
           <div className="h-[300px] sm:h-[340px]">
             <GeoMap
               key={`round-${currentRoundIdx}`}
+              roundKey={currentRoundIdx}
               center={[25, 10]}
               zoom={2}
               guess={myAnswered ? (myGuessEntry ? [myGuessEntry.lat, myGuessEntry.lng] : guess) : guess}
