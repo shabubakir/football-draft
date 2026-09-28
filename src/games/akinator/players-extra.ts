@@ -782,6 +782,106 @@ const RAW = `
 Айтор Осио|Aitor Ocio|spain|df|||2000s|0|0.05|185|1975|
 Пеп|Pep|spain|fw|||90s|0|0.3|178|1965|
 Хвича Кварцхелия|Khvicha Kvaratskhelia|georgia|fw|dynamo_batumi,rubin_kazan,napoli|napoli|2020s|1|0.3|176|1997|I
+
+# === MODERN TOP (2020s additions) ===
+Трент Александр-Арнолд|Trent Alexander-Arnold|england|df|liverpool|liverpool|2020s|1|0.05|188|1998|
+Кобби Майну|Kobbie Mainoo|england|mf|man_utd|man_utd|2020s|1|0.1|183|2005|
+Конор Брэдли|Conor Bradley|england|df|celtic,liverpool|liverpool|2020s|1|0.05|170|2004|
+Джейкоб Рэмси|Jacob Ramsey|england|mf|aston_villa|aston_villa|2020s|1|0.2|173|1995|
+Джаррод Боуэн|Jarrod Bowen|england|fw|brentford,west_ham|west_ham|2020s|1|0.4|178|1997|
+Мэтти Кэш|Matty Cash|england|df|brentford,aston_villa|aston_villa|2010s|0|0.05|180|1997|
+Эзри Конна|Ezri Konna|england|df|chelsea|chelsea|2020s|1|0.05|185|1998|
+Эшли Грей|Archie Gray|england|mf|aston_villa,everton|everton|2020s|1|0.15|175|2004|
+Педро Порро|Pedro Porro|spain|df|sevilla,tottenham|tottenham|2020s|1|0.1|188|2000|
+Фермин Лопес|Fermin Lopez|spain|mf|las_palmas,barcelona|barcelona|2020s|1|0.35|173|2001|
+Микель Мерино|Mikel Merino|spain|mf|real_sociedad,arsenal|arsenal|2020s|1|0.15|184|1996|
+Пау Кубарси|Pau Cubarsi|spain|df|barcelona|barcelona|2020s|1|0.05|185|2007|
+Иниго Мартинес|Iñigo Martinez|spain|df|real_sociedad,athletic_bilbao|athletic_bilbao|2010s|0|0.05|179|1988|
+Гонсало Гарсия|Gonzalo Garcia|spain|fw|real_madrid|real_madrid|2020s|1|0.35|183|2005|
+Марк Кукуrella|Marc Cucurella|spain|df|brentford,chelsea,paris|paris|2020s|1|0.05|173|1998|
+Хорхе Солер|Jorge Soler|spain|mf|valencia|valencia|2020s|1|0.25|185|1997|
+Рафинья|Raphinha|brazil|fw|lille,leeds,barcelona|barcelona|2010s|1|0.3|178|1996|
+Габриэл Мартинелли|Gabriel Martinelli|brazil|fw|tottenham,arsenal|arsenal|2020s|1|0.35|175|2001|
+Бруно Гимарайнш|Bruno Guimaraes|brazil|mf|lille,newcastle|newcastle|2020s|1|0.2|183|1997|
+Лукас Пакета|Lucas Paqueta|brazil|mf|flamengo,west_ham,arsenal|arsenal|2010s|1|0.2|182|1997|
+Эдер Милитао|Eder Militao|brazil|df|porto,real_madrid|real_madrid|2010s|1|0.05|190|1998|
+Матеус Кунья|Matheus Cunha|brazil|fw|atletico_madrid,wolves,man_utd|man_utd|2020s|1|0.4|183|1999|
+Жоао Педру|Joao Pedro|brazil|fw|fenerbahce,bristol_city,brighton|brighton|2010s|1|0.3|178|1999|
+Эстевео|Estevao|brazil|fw|palmeiras|palmeiras|2020s|1|0.35|180|2007|
+Эндрик|Endrick|brazil|fw|palmeiras,real_madrid|real_madrid|2020s|1|0.35|186|2005|
+Ричарлисон|Richarlison|brazil|fw|wolves,everton,tottenham,flamengo|flamengo|2010s|1|0.45|185|2000|
+Савиньо|Savinho|brazil|fw|palmeiras,benfica,man_city|man_city|2020s|1|0.35|168|2003|
+Маркус Тюрам|Marcus Thuram|france|fw|monaco,inter,psg|psg|2020s|1|0.4|188|2000|
+Адриен Рабио|Adrien Rabiot|france|mf|juventus,parma,inter|inter|2010s|0|0.15|185|1995|
+Варен Зайр-Эмери|Warren Zaire-Emery|france|mf|psg|psg|2020s|1|0.2|180|2006|
+Райан Шерки|Rayan Cherki|france|fw|lyon,juventus|juventus|2020s|1|0.35|173|2003|
+Брэдли Баркола|Bradley Barcola|france|fw|strasbourg,psg|psg|2020s|1|0.35|175|2002|
+Майкл Олисе|Michael Olise|france|mf|wolverhampton,psg,bayern|bayern|2020s|1|0.25|180|1998|
+Матис Тель|Mathys Tel|france|fw|psg,bayern|bayern|2020s|1|0.3|185|2005|
+Жоау Феликс|Joao Felix|portugal|fw|benfica,atletico_madrid,man_city,barcelona|barcelona|2010s|1|0.35|180|2000|
+Витинья|Vitinha|portugal|mf|sporting,psg|psg|2020s|1|0.2|175|2000|
+Гонсалу Рамуш|Goncalo Ramos|portugal|fw|benfica,psg|psg|2020s|1|0.35|184|2001|
+Нуну Мендеш|Nuno Mendes|portugal|df|sporting,psg|psg|2020s|1|0.05|180|1999|
+Педро Нету|Pedro Neto|portugal|fw|sporting,atletico_madrid|atletico_madrid|2020s|1|0.3|173|2000|
+Руй Патрисиу|Rui Patricio|portugal|gk|sporting,fulham,wolfsburg|wolfsburg|2010s|1|0|191|1988|
+Диго Далот|Diogo Dalot|portugal|df|sporting,man_utd|man_utd|2020s|1|0.05|180|1999|
+Жоау Невес|Joao Neves|portugal|mf|benfica,psg|psg|2020s|1|0.15|175|2004|
+Рафа Силва|Rafa Silva|portugal|mf|porto,benfica,wolfsburg|wolfsburg|2020s|1|0.2|188|2001|
+Рафаэль Гюррейро|Raphael Guerreiro|portugal|df|bremen,borussia_dortmund,barcelona|barcelona|2010s|1|0.1|185|1993|
+Арда Гюлер|Arda Guler|turkey|mf|fenerbahce,real_madrid|real_madrid|2020s|1|0.2|175|2005|
+Пауло Дибала|Paulo Dybala|argentina|fw|palermo,juventus,roma,west_ham|west_ham|2010s|1|0.4|177|1993|
+Хулиан Альварес|Julian Alvarez|argentina|fw|racing_club,man_city|man_city|2020s|1|0.45|182|2000|W
+Ляутаро Мартинес|Lautaro Martinez|argentina|fw|racing_club,inter|inter|2010s|1|0.5|174|1997|W
+Алексис Мак Аллистер|Alexis Mac Allister|argentina|mf|brighton,man_city|man_city|2020s|1|0.2|181|1998|W
+Ти아го Альмада|Thiago Almada|argentina|mf|racing_club,boca_juniors,atletico_madrid|atletico_madrid|2020s|1|0.25|178|2001|W
+Николас Гонсалес|Nicolas Gonzalez|argentina|fw|racing_club,inter,milan|milan|2020s|1|0.35|170|2001|W
+Валентин Барко|Valentin Barco|argentina|mf|platense,sevilla|sevilla|2020s|1|0.1|170|2007|
+Нико Пас|Nico Paz|argentina|fw|river_plate,juventus|juventus|2020s|1|0.35|178|2005|
+Франко Местантуоно|Franco Mastantuono|argentina|mf|river_plate,real_madrid,barcelona|barcelona|2020s|1|0.35|172|2007|
+Герман Пеццела|German Pezzella|argentina|df|ca_boca,sevilla|sevilla|2010s|1|0.05|180|1991|W
+Гонсало Монтиель|Gonzalo Montiel|argentina|df|ca_boca,sevilla,inter_miami|inter_miami|2020s|1|0.05|175|1999|W
+Джованни Ло Сельсо|Giovani Lo Celso|argentina|mf|sevilla,paris|paris|2020s|1|0.15|180|1996|W
+Родриго Де Пауль|Rodrigo De Paul|argentina|mf|uadi_ada,udinese,atletico_madrid|atletico_madrid|2010s|1|0.2|185|1994|W
+Леандро Паредес|Leandro Paredes|argentina|mf|ca_boca,zenit,paris,inter_miami|inter_miami|2010s|1|0.2|184|1994|W
+Николас Отаменди|Nicolas Otamendi|argentina|df|ca_boca,man_city,galatasaray|galatasaray|2010s|1|0.05|189|1988|W
+Лисандро Мартинес|Lisandro Martinez|argentina|df|ca_racing,benfica,man_utd|man_utd|2020s|1|0.05|187|1998|W
+Джакомо Распадори|Giacomo Raspadori|italy|fw|sampdoria,sassuolo,napoli|napoli|2020s|1|0.4|180|2000|
+Сандро Тонали|Sandro Tonali|italy|mf|brescia,ac_milan,newcastle|newcastle|2020s|1|0.2|187|2000|
+Доменико Беради|Domenico Berardi|italy|fw|sassuolo|sassuolo|2010s|1|0.4|182|1994|
+Андреа Камбьясо|Andrea Cambiaso|italy|df|sampdoria,juventus|juventus|2020s|1|0.05|170|1998|
+Маттео Ретеги|Matteo Retegui|italy|fw|atalanta|atalanta|2020s|1|0.45|186|2002|
+Николо Фаголи|Nicolo Fagioli|italy|mf|ac_milan,juventus|juventus|2020s|1|0.15|184|2001|
+Микеле Ди Григориа|Michele Di Gregorio|italy|gk|napoli|napoli|2020s|1|0|192|1995|
+Киран Триппиер|Kieran Trippier|england|df|newcastle,aston_villa|aston_villa|2010s|1|0.05|188|1990|
+Омар Мармуш|Omar Marmoush|egypt|fw|psv,mainz,man_city|man_city|2020s|1|0.4|180|2002|
+Коди Гакпо|Cody Gakpo|netherlands|fw|bayer_leverkusen,brentford,liverpool|liverpool|2020s|1|0.45|185|1999|
+Серлу Гайра|Serhou Guirassy|guinea|fw|stuttgart,borussia_dortmund|borussia_dortmund|2020s|1|0.5|193|1996|
+Виктор Бонифас|Victor Boniface|nigeria|fw|leeds,leipzig,bayern|bayern|2020s|1|0.4|188|2000|
+Дениз Андав|Deniz Undav|germany|fw|hoffenheim,stuttgart|stuttgart|2020s|1|0.45|177|1996|
+Карим Адеيمي|Karim Adeyemi|germany|fw|bayer_leverkusen,borussia_dortmund|borussia_dortmund|2020s|1|0.35|175|2002|
+Виктор Гьокирес|Victor Gyokeres|sweden|fw|sporting|sporting|2020s|1|0.5|188|1998|
+Юрген Странд Ларсен|Jorgen Strand Larsen|norway|fw|brann,burnley|burnley|2020s|1|0.35|195|2003|
+Фредрик Аурснес|Fredrik Aursnes|norway|mf|brann,borussia_mgladbach|borussia_mgladbach|2010s|1|0.1|190|1991|
+Антонио Нуса|Antonio Nusa|norway|mf|brann,celtic|celtic|2020s|1|0.25|175|2003|
+Сандер Берге|Sander Berge|norway|mf|brann,celtic|celtic|2020s|1|0.2|175|2000|
+Кристьян Аас|Kristian Aas|norway|fw|brann|brann|2020s|1|0.3|185|2005|
+Ватару Эндо|Wataru Endo|japan|mf|stuttgart|stuttgart|2020s|1|0.1|180|1999|
+Мая Йошида|Maya Yoshida|japan|df|sunderland,southampton|southampton|2010s|1|0.05|190|1988|
+Сота Ямада|Sota Yamada|japan|mf|vissel_kobe|vissel_kobe|2020s|1|0.25|180|1998|
+Ким Мин-Дже|Kim Min-jae|south_korea|df|galatasaray,bayern|bayern|2020s|1|0.05|190|1996|
+Исмаэль Беннасер|Ismael Bennacer|morocco|mf|genoa,napoli|napoli|2010s|1|0.15|180|1997|
+Анес Хуссем|Anes Houssem|morocco|mf|lille,lens|lens|2020s|1|0.15|175|2002|
+Азедину Унахи|Azzedine Ounahi|morocco|mf|lens,om,atletico_madrid|atletico_madrid|2020s|1|0.2|173|2000|
+Нуссир Мазрауи|Noussair Mazraoui|morocco|df|ajax,borussia_dortmund,bayern|bayern|2020s|1|0.05|175|1997|W
+Мехди Бенатиа|Mehdi Benatia|morocco|df|wolverhampton,juventus|juventus|2010s|0|0.05|190|1989|W
+Пабло Барриос|Pablo Barrios|uruguay|mf|boca_juniors,galatasaray|galatasaray|2010s|1|0.15|178|1993|
+Николас Домингес|Nicolas Dominguez|uruguay|mf|penarol,barcelona|barcelona|2020s|1|0.3|178|2002|
+Алексия Путелас|Alexia Putellas|spain|mf|barcelona|barcelona|2020s|1|0.4|163|1994|L
+Сальма Параллюэло|Salma Paralluelo|spain|fw|barcelona|barcelona|2020s|1|0.5|170|2005|
+Ивана Андрес|Ivana Andres|spain|mf|barcelona|barcelona|2020s|1|0.25|170|2003|
+Эсти Гонсалес|Esti Gonzalez|spain|mf|barcelona|barcelona|2020s|1|0.2|165|2005|
+Айтана Бонмати|Aitana Bonmati|spain|mf|barcelona|barcelona|2020s|1|0.35|160|1998|L
+Александер Гарначо|Alejandro Garnacho|argentina|fw|man_utd|man_utd|2020s|1|0.35|175|2004|
 `;
 
 export interface ExtraPlayerRaw {

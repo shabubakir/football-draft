@@ -95,7 +95,7 @@ const NATION_COLORS: Record<string, { bg: string; fg: string }> = {
   albania:    { bg: "#d72828", fg: "#ffffff" },
   slovenia:   { bg: "#005da4", fg: "#ffffff" },
   mozambique: { bg: "#009639", fg: "#ffffff" },
-  guinea:     { bg: "#fdd835", fg: "#ffffff" },
+  guinea:     { bg: "#fdd835", fg: "#003399" },
   congo:      { bg: "#007f54", fg: "#ffffff" },
   finland:    { bg: "#003580", fg: "#ffffff" },
   togo:       { bg: "#006a4e", fg: "#ffffff" },

@@ -87,6 +87,7 @@ const CONT: Record<string, string> = {
   peru: "sa", ecuador: "sa", paraguay: "sa", venezuela: "sa",
   cote_divoire: "af", egypt: "af", senegal: "af", nigeria: "af", ghana: "af",
   cameroon: "af", algeria: "af", morocco: "af", togo: "af", liberia: "af",
+  guinea: "af",
   armenia: "eu", new_zealand: "oce",
   mexico: "na", usa: "na", belize: "na",
   japan: "asia", south_korea: "asia", iran: "asia", iraq: "asia",
