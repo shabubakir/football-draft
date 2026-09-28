@@ -107,16 +107,14 @@ const SCREENSHOT_POOLS: Record<string, string[]> = {
   ],
 };
 
-// Deterministic per-map screenshot assignment: the Nth location of a
-// map gets the Nth screenshot in its pool (cycling). This guarantees
-// every location on the same map shows a DIFFERENT screenshot.
-const screenshotCounter: Record<string, number> = {};
+// Random screenshot selection per round. Screenshots are general map
+// views (not location-specific), so any screenshot from the map's pool
+// is valid. Randomness prevents players from memorizing which image
+// corresponds to which location.
 export function getScreenshot(map: string): string {
   const pool = SCREENSHOT_POOLS[map];
   if (!pool || pool.length === 0) return "";
-  const idx = screenshotCounter[map] ?? 0;
-  screenshotCounter[map] = idx + 1;
-  return pool[idx % pool.length];
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 // ---------- Scoring: Where Exactly mode ----------
