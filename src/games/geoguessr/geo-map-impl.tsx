@@ -16,9 +16,9 @@ export interface GeoMapImplProps {
   reveal?: {
     correct: [number, number];
     correctLabel: string;
-    guessLabel: string;
-    distanceText: string;
-    points: number;
+    guessLabel?: string | null;
+    distanceText?: string | null;
+    points?: number | null;
   } | null;
   locked?: boolean;
   className?: string;
@@ -148,43 +148,49 @@ export function GeoMapImpl({
     }
 
     const { correct, correctLabel, guessLabel, distanceText, points } = reveal;
-    if (!guess) return;
 
-    // линия между точками
-    if (lineRef.current) lineRef.current.remove();
-    lineRef.current = L.polyline([guess, correct], {
-      color: "#f59e0b",
-      weight: 3,
-      dashArray: "8 6",
-      opacity: 0.9,
-    }).addTo(map);
-
-    // правильная точка
+    // правильная точка (всегда показываем)
     if (correctMarkerRef.current) correctMarkerRef.current.remove();
     correctMarkerRef.current = L.marker(correct, {
       icon: pinIcon("#dc2626", correctLabel),
       zIndexOffset: 900,
     }).addTo(map);
 
-    // подпись у точки игрока: расстояние + очки
-    if (guessLabelRef.current) {
-      guessLabelRef.current.remove();
-      guessLabelRef.current = null;
-    }
-    guessLabelRef.current = L.marker(guess, {
-      icon: L.divIcon({
-        className: "",
-        html: `<div style="transform:translate(-50%,10px);white-space:nowrap;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3)">${guessLabel} · ${distanceText} · ${points} очк.</div>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      }),
-      interactive: false,
-      zIndexOffset: 950,
-    }).addTo(map);
+    if (guess) {
+      // линия между точками
+      if (lineRef.current) lineRef.current.remove();
+      lineRef.current = L.polyline([guess, correct], {
+        color: "#f59e0b",
+        weight: 3,
+        dashArray: "8 6",
+        opacity: 0.9,
+      }).addTo(map);
 
-    // подогнать вид на обе точки
-    const bounds = L.latLngBounds([guess, correct]);
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
+      // подпись у точки игрока: расстояние + очки
+      if (guessLabelRef.current) {
+        guessLabelRef.current.remove();
+        guessLabelRef.current = null;
+      }
+      if (guessLabel && distanceText !== null && points !== null) {
+        guessLabelRef.current = L.marker(guess, {
+          icon: L.divIcon({
+            className: "",
+            html: `<div style="transform:translate(-50%,10px);white-space:nowrap;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3)">${guessLabel} · ${distanceText} · ${points} очк.</div>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          }),
+          interactive: false,
+          zIndexOffset: 950,
+        }).addTo(map);
+      }
+
+      // подогнать вид на обе точки
+      const bounds = L.latLngBounds([guess, correct]);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
+    } else {
+      // нет своей точки — центрируем на правильной
+      map.setView(correct, Math.max(map.getZoom(), 5));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reveal, guess]);
 

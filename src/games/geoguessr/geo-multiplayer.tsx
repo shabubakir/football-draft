@@ -357,28 +357,48 @@ export function GeoMultiplayer({
     null;
   const currentLocation = currentLocationId ? getLocationById(currentLocationId) : null;
 
-  // ---------- Таймер раунда (30 сек на ответ) ----------
-  const ROUND_TIME = 30;
+  // ---------- Фазы раунда: "answering" → "reveal" → авто-next ----------
+  // answering: 30 сек на ответ (или пока все онлайн не ответят)
+  // reveal: показываем правильный ответ + баллы (10 сек)
+  // затем автоматически next
+  const ROUND_ANSWER_TIME = 30; // сек на ответ
+  const REVEAL_TIME = 10; // сек показа результата
+  const [revealPhase, setRevealPhase] = useState(false); // true = показываем результат
+  const [revealLeft, setRevealLeft] = useState<number | null>(null); // отсчёт reveal
   const guessRef = useRef<[number, number] | null>(null);
   guessRef.current = guess;
+  const doNextRef = useRef<(() => void) | null>(null);
+
+  // Определяем, все ли онлайн ответили
+  const allOnlineAnswered = useMemo(() => {
+    if (!room || !currentRoundData) return false;
+    const online = room.players.filter((p) => p.online);
+    if (online.length === 0) return false;
+    return online.every((p) => currentRoundData.guesses.some((g) => g.playerId === p.id));
+  }, [room, currentRoundData]);
+
+  // Фаза 1: таймер ответа (30 сек)
   useEffect(() => {
-    if (phase !== "play" || myAnswered) {
+    if (phase !== "play" || myAnswered || revealPhase) {
       setTimeLeft(null);
       return;
     }
     if (!currentLocation) return;
-    setTimeLeft(ROUND_TIME);
+    setTimeLeft(ROUND_ANSWER_TIME);
     const iv = setInterval(() => {
       setTimeLeft((t) => {
         if (t === null) return null;
         if (t <= 1) {
           clearInterval(iv);
-          // Таймер истёк: если точка уже стоит — отправляем, если нет — показываем подсказку
+          // Время вышло: если точка есть — отправляем, если нет — auto-skip (0 очков)
           if (guessRef.current) {
             doGuessRef.current?.();
           } else {
-            setError("⏰ Время вышло — поставь точку на карте и нажми «Подтвердить»");
+            // Не успел ответить → сервер записывает 0 очков
+            geoApi(myId, apiMyName.current, "auto-skip", { code: room?.code ?? "" }).catch(() => {});
           }
+          // В любом случае → reveal (покажем результат)
+          setRevealPhase(true);
           return 0;
         }
         return t - 1;
@@ -386,28 +406,31 @@ export function GeoMultiplayer({
     }, 1000);
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentRoundIdx, phase, myAnswered, currentLocation?.id]);
+  }, [currentRoundIdx, phase, myAnswered, revealPhase, currentLocation?.id]);
 
-  // ---------- Авто-переход: все онлайн ответили → через 3 сек следующий раунд ----------
-  const doNextRef = useRef<(() => void) | null>(null);
-  const allAnsweredRef = useRef(false);
-  allAnsweredRef.current =
-    phase === "play" &&
-    myAnswered &&
-    room !== null &&
-    (() => {
-      const rnd = room.rounds_data[currentRoundIdx];
-      if (!rnd) return false;
-      const online = room.players.filter((p) => p.online);
-      return online.length > 0 && online.every((p) => rnd.guesses.some((g) => g.playerId === p.id));
-    })();
+  // Фаза 2: все онлайн ответили ДО 30 сек → сразу reveal
   useEffect(() => {
-    if (!allAnsweredRef.current) return;
-    const t = setTimeout(() => {
-      if (allAnsweredRef.current) doNextRef.current?.();
-    }, 3_000);
-    return () => clearTimeout(t);
-  }, [allAnsweredRef.current, currentRoundIdx]);
+    if (phase !== "play" || !allOnlineAnswered || revealPhase) return;
+    setRevealPhase(true);
+  }, [allOnlineAnswered, phase, revealPhase]);
+
+  // Фаза 3: reveal — 10 сек, затем auto-next
+  useEffect(() => {
+    if (!revealPhase || phase !== "play") return;
+    setRevealLeft(REVEAL_TIME);
+    const iv = setInterval(() => {
+      setRevealLeft((t) => {
+        if (t === null) return null;
+        if (t <= 1) {
+          clearInterval(iv);
+          doNextRef.current?.();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [revealPhase, currentRoundIdx, phase]);
 
   const myScore = useMemo(() => {
     if (!room) return 0;
@@ -535,6 +558,8 @@ export function GeoMultiplayer({
       setGuess(null);
       setMyAnswered(false);
       setTimeLeft(null);
+      setRevealPhase(false);
+      setRevealLeft(null);
       setMpImgFailed(false);
       if (d.room.status === "finished") {
         setPhase("end");
@@ -1014,17 +1039,25 @@ export function GeoMultiplayer({
               zoom={2}
               guess={myAnswered ? (myGuessEntry ? [myGuessEntry.lat, myGuessEntry.lng] : guess) : guess}
               onGuessChange={(lat, lng) => {
-                if (!myAnswered) setGuess([lat, lng]);
+                if (!myAnswered && !revealPhase) setGuess([lat, lng]);
               }}
-              locked={myAnswered}
+              locked={myAnswered || revealPhase}
               reveal={
-                myAnswered && allAnswered && myGuessEntry
+                revealPhase && myGuessEntry
                   ? {
                       correct: [currentLocation.latitude, currentLocation.longitude],
                       correctLabel: `${currentLocation.city}, ${currentLocation.country}`,
                       guessLabel: "Твой ответ",
                       distanceText: formatDistance(myGuessEntry.distanceKm),
                       points: myGuessEntry.points,
+                    }
+                  : revealPhase
+                  ? {
+                      correct: [currentLocation.latitude, currentLocation.longitude],
+                      correctLabel: `${currentLocation.city}, ${currentLocation.country}`,
+                      guessLabel: null,
+                      distanceText: null,
+                      points: null,
                     }
                   : null
               }
@@ -1036,7 +1069,8 @@ export function GeoMultiplayer({
         <div className="mt-3">
           {error && <p className="mb-2 text-sm text-rose-600 text-center">{error}</p>}
 
-          {!myAnswered && (
+          {/* Фаза ответа: ставим точку */}
+          {!myAnswered && !revealPhase && (
             <div className="flex flex-col items-stretch gap-2">
               <PrimaryButton
                 onClick={doGuess}
@@ -1053,13 +1087,13 @@ export function GeoMultiplayer({
             </div>
           )}
 
-          {myAnswered && !allAnswered && (
+          {/* Фаза: я ответил, жду остальных (до 30 сек) */}
+          {myAnswered && !revealPhase && (
             <div className="rounded-2xl border border-stone-200 bg-white p-5 text-center">
               <div className="text-lg font-black text-stone-900">ОТВЕТ ПРИНЯТ ✓</div>
               <p className="mt-1 text-sm text-stone-500">
                 Ждём остальных… {answeredCount} / {onlineCount} онлайн ответили
               </p>
-              {/* компактный счётчик ответивших */}
               <div className="mt-3 flex items-center justify-center gap-2">
                 {room.players.map((p) => {
                   const done = rnd.guesses.some((g) => g.playerId === p.id);
@@ -1080,7 +1114,8 @@ export function GeoMultiplayer({
             </div>
           )}
 
-          {myAnswered && allAnswered && (
+          {/* Фаза reveal: показываем результат + таймер до следующего раунда */}
+          {revealPhase && (
             <div className="rounded-2xl border border-stone-200 bg-white p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -1130,11 +1165,16 @@ export function GeoMultiplayer({
                 ))}
               </div>
 
-              <div className="mt-4">
-                {error && <p className="mb-2 text-xs text-rose-600">{error}</p>}
-                <PrimaryButton onClick={doNext} disabled={busy} variant="dark">
-                  {busy ? "Переход…" : isLastRound ? "ИТОГИ ИГРЫ" : "СЛЕДУЮЩИЙ РАУНД"}
-                </PrimaryButton>
+              {/* Авто-переход: таймер обратного отсчёта */}
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <div className="flex items-center gap-2 rounded-xl bg-stone-100 px-4 py-2">
+                  <span className="text-xs text-stone-500">
+                    {isLastRound ? "Итоги через" : "Следующий раунд через"}
+                  </span>
+                  <span className="text-lg font-black text-stone-900 tabular-nums">
+                    {revealLeft ?? "…"}с
+                  </span>
+                </div>
               </div>
             </div>
           )}

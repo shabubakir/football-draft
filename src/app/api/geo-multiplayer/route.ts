@@ -368,13 +368,13 @@ export async function POST(req: NextRequest) {
       const onlinePlayers = allPlayers.filter((p) => p.online);
       const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
 
-      // АВТО-ПЕРЕХОД: если раунд висит > 60 сек и есть хотя бы один ответ —
-      // не блокируем, переходим дальше (игрок завис/закрыл вкладку).
+      // АВТО-ПЕРЕХОД: если раунд висит > 35 сек (30 сек таймер + 5 сек запас)
+      // и есть хотя бы один ответ — не блокируем, переходим дальше.
       const isStuck =
         pendingHere.length > 0 &&
         activeRound.guesses.length > 0 &&
         activeRound.last_activity &&
-        Date.now() - new Date(activeRound.last_activity).getTime() > 60_000;
+        Date.now() - new Date(activeRound.last_activity).getTime() > 35_000;
 
       if (pendingHere.length > 0 && !isStuck) {
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
@@ -539,6 +539,56 @@ export async function POST(req: NextRequest) {
         p.id === deviceId ? { ...p, online: false, last_seen: 0 } : p
       );
       const { error: upE } = await sb.from("geo_rooms").update({ players }).eq("id", room.id);
+      if (upE) return err(upE.message, 500);
+      return ok({ ok: true });
+    }
+
+    // ================= auto-skip (таймер истёк, игрок не ответил → 0 очков) =================
+    case "auto-skip": {
+      if (!code) return err("code required");
+      const found = await fetchRoom(code);
+      if ("error" in found) return err(found.error, found.status);
+      const room = found.room;
+      if (room.status !== "playing") return ok({ ok: true });
+      const me = room.players.find((p) => p.id === deviceId);
+      if (!me) return ok({ ok: true });
+
+      // Читаем свежее rounds_data
+      const { data: cur, error: curErr } = await sb
+        .from("geo_rooms")
+        .select("rounds_data")
+        .eq("id", room.id)
+        .maybeSingle();
+      if (curErr || !cur) return ok({ ok: true });
+      const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
+
+      // Текущий раунд = последний с location_id
+      let roundIdx = -1;
+      for (let i = 0; i < rounds.length; i++) {
+        if (rounds[i].location_id) roundIdx = i;
+      }
+      if (roundIdx < 0) return ok({ ok: true });
+
+      const rnd = rounds[roundIdx];
+      // Уже ответил? — не пишем повторно
+      if (rnd.guesses.some((g) => g.playerId === deviceId)) return ok({ ok: true });
+
+      // Пишем 0 очков (максимальное расстояние = 20000 км)
+      const newRounds = [...rounds];
+      newRounds[roundIdx] = {
+        ...rnd,
+        guesses: [...rnd.guesses, {
+          playerId: deviceId,
+          lat: 0, lng: 0,
+          distanceKm: 20000,
+          points: 0,
+        }],
+        last_activity: new Date().toISOString(),
+      };
+      const { error: upE } = await sb
+        .from("geo_rooms")
+        .update({ rounds_data: newRounds })
+        .eq("id", room.id);
       if (upE) return err(upE.message, 500);
       return ok({ ok: true });
     }

@@ -36,9 +36,9 @@ export interface GeoMapProps {
   reveal?: {
     correct: [number, number];
     correctLabel: string;
-    guessLabel: string;
-    distanceText: string;
-    points: number;
+    guessLabel?: string | null;
+    distanceText?: string | null;
+    points?: number | null;
   } | null;
 
   // блокировка кликов (во время показа результата)
