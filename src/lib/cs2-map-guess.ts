@@ -427,13 +427,29 @@ export const LOCATIONS: MapLocation[] = [
     0.7,
     0.4,
     [
-      // Cold steel blue (Nuke A)
-      { type: "rect", x: 0.61, y: 0.33, w: 0.22, h: 0.16, fill: "#1e3e5c", rx: 2 },
-      { type: "rect", x: 0.64, y: 0.36, w: 0.09, h: 0.09, fill: "#2e4e6c" },
-      // Industrial pipe markers (Nuke is a nuclear facility)
-      { type: "circle", cx: 0.7, cy: 0.5, r: 0.02, fill: "#22d3ee" },
-      { type: "circle", cx: 0.7, cy: 0.5, r: 0.012, fill: "#67e8f9" },
-      { type: "text", x: 0.72, y: 0.3, text: "A SITE", size: 6, fill: "#a5f3fc", anchor: "middle" },
+      // Industrial sky (cold grey-blue)
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.25, fill: "#1e3a4a" },
+      // Concrete ground
+      { type: "rect", x: 0, y: 0.5, w: 1, h: 0.5, fill: "#2e4a5a" },
+      { type: "rect", x: 0, y: 0.5, w: 1, h: 0.02, fill: "#3e5a6a" },
+      // Industrial building (left)
+      { type: "rect", x: 0.1, y: 0.2, w: 0.35, h: 0.3, fill: "#2e4e5e" },
+      { type: "rect", x: 0.15, y: 0.25, w: 0.08, h: 0.12, fill: "#3e5e6e" },
+      { type: "rect", x: 0.3, y: 0.3, w: 0.06, h: 0.15, fill: "#3e5e6e" },
+      // Industrial windows (small, square)
+      { type: "rect", x: 0.17, y: 0.27, w: 0.03, h: 0.03, fill: "#22d3ee", opacity: 0.6 },
+      { type: "rect", x: 0.23, y: 0.27, w: 0.03, h: 0.03, fill: "#22d3ee", opacity: 0.6 },
+      { type: "rect", x: 0.32, y: 0.33, w: 0.02, h: 0.02, fill: "#67e8f9", opacity: 0.5 },
+      // Pipes (industrial)
+      { type: "rect", x: 0.5, y: 0.45, w: 0.02, h: 0.15, fill: "#4a6a7a" },
+      { type: "rect", x: 0.55, y: 0.45, w: 0.02, h: 0.15, fill: "#4a6a7a" },
+      // A Site (industrial platform)
+      { type: "rect", x: 0.6, y: 0.35, w: 0.3, h: 0.15, fill: "#3e5a6a" },
+      { type: "rect", x: 0.6, y: 0.35, w: 0.3, h: 0.02, fill: "#4e6a7a" },
+      // Site marker
+      { type: "circle", cx: 0.75, cy: 0.42, r: 0.03, fill: "none", stroke: "#22d3ee", width: 0.004 },
+      { type: "circle", cx: 0.75, cy: 0.42, r: 0.015, fill: "#67e8f9" },
+      { type: "text", x: 0.75, y: 0.32, text: "A SITE", size: 5, fill: "#cffafe", anchor: "middle" },
     ],
     "#22d3ee"
   ),
