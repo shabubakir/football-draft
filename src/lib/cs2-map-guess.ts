@@ -114,15 +114,32 @@ export const LOCATIONS: MapLocation[] = [
     0.72,
     0.35,
     [
-      // Distinctive purple pyramid shape (triangle-like)
-      { type: "rect", x: 0.62, y: 0.26, w: 0.28, h: 0.2, fill: "#3b1a5c", rx: 2 },
-      { type: "rect", x: 0.66, y: 0.29, w: 0.1, h: 0.09, fill: "#4d2775" },
-      { type: "rect", x: 0.79, y: 0.29, w: 0.08, h: 0.08, fill: "#5d3590" },
-      // Egyptian column markers (distinctive to Mirage)
-      { type: "circle", cx: 0.68, cy: 0.42, r: 0.012, fill: "#a78bfa" },
-      { type: "circle", cx: 0.72, cy: 0.42, r: 0.012, fill: "#a78bfa" },
-      { type: "circle", cx: 0.76, cy: 0.42, r: 0.012, fill: "#a78bfa" },
-      { type: "text", x: 0.76, y: 0.22, text: "A SITE", size: 6, fill: "#c4b5fd", anchor: "middle" },
+      // Sky gradient background (purple twilight)
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.35, fill: "#2d1b4e" },
+      { type: "rect", x: 0, y: 0.3, w: 1, h: 0.1, fill: "#3d2b5e", opacity: 0.5 },
+      // Ground (sandy floor)
+      { type: "rect", x: 0, y: 0.6, w: 1, h: 0.4, fill: "#4a3572" },
+      { type: "rect", x: 0, y: 0.6, w: 1, h: 0.02, fill: "#5d4590" },
+      // Main building structure (left side)
+      { type: "rect", x: 0.15, y: 0.25, w: 0.3, h: 0.35, fill: "#3b2a5c" },
+      { type: "rect", x: 0.18, y: 0.28, w: 0.1, h: 0.15, fill: "#4d3a70" },
+      { type: "rect", x: 0.32, y: 0.35, w: 0.08, h: 0.2, fill: "#4d3a70" },
+      // Windows (glowing)
+      { type: "rect", x: 0.2, y: 0.3, w: 0.04, h: 0.06, fill: "#a78bfa", opacity: 0.8 },
+      { type: "rect", x: 0.28, y: 0.3, w: 0.04, h: 0.06, fill: "#a78bfa", opacity: 0.8 },
+      { type: "rect", x: 0.34, y: 0.4, w: 0.03, h: 0.05, fill: "#c4b5fd", opacity: 0.6 },
+      // A Site platform (raised area)
+      { type: "rect", x: 0.55, y: 0.45, w: 0.35, h: 0.15, fill: "#4a3572" },
+      { type: "rect", x: 0.55, y: 0.45, w: 0.35, h: 0.02, fill: "#5d4590" },
+      // Site marker (glowing circle)
+      { type: "circle", cx: 0.72, cy: 0.5, r: 0.03, fill: "none", stroke: "#a78bfa", width: 0.004 },
+      { type: "circle", cx: 0.72, cy: 0.5, r: 0.015, fill: "#c4b5fd" },
+      // Egyptian pillars
+      { type: "rect", x: 0.58, y: 0.48, w: 0.03, h: 0.1, fill: "#5d4590" },
+      { type: "rect", x: 0.65, y: 0.48, w: 0.03, h: 0.1, fill: "#5d4590" },
+      { type: "rect", x: 0.72, y: 0.48, w: 0.03, h: 0.1, fill: "#5d4590" },
+      { type: "rect", x: 0.79, y: 0.48, w: 0.03, h: 0.1, fill: "#5d4590" },
+      { type: "text", x: 0.72, y: 0.42, text: "A SITE", size: 5, fill: "#e0d5f5", anchor: "middle" },
     ],
     "#a78bfa"
   ),
@@ -134,13 +151,26 @@ export const LOCATIONS: MapLocation[] = [
     0.28,
     0.62,
     [
-      // Blue-teal palette (distinctive to Mirage B)
-      { type: "rect", x: 0.16, y: 0.53, w: 0.26, h: 0.22, fill: "#1e3a5f", rx: 2 },
-      { type: "rect", x: 0.19, y: 0.56, w: 0.09, h: 0.09, fill: "#2d5a7a" },
-      { type: "rect", x: 0.31, y: 0.58, w: 0.09, h: 0.11, fill: "#2d5a7a" },
-      // Water/river marker (Mirage has distinctive water areas)
-      { type: "line", x1: 0.16, y1: 0.76, x2: 0.42, y2: 0.76, stroke: "#3b82f6", width: 0.008 },
-      { type: "text", x: 0.29, y: 0.5, text: "B SITE", size: 6, fill: "#93c5fd", anchor: "middle" },
+      // Sky (dusk blue)
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.4, fill: "#1e3a5f" },
+      { type: "rect", x: 0, y: 0.35, w: 1, h: 0.1, fill: "#2d5a7a", opacity: 0.6 },
+      // Ground (concrete)
+      { type: "rect", x: 0, y: 0.65, w: 1, h: 0.35, fill: "#2d4a5e" },
+      // Water area (bottom)
+      { type: "rect", x: 0.1, y: 0.75, w: 0.5, h: 0.2, fill: "#3b82f6", opacity: 0.3 },
+      { type: "line", x1: 0.1, y1: 0.78, x2: 0.6, y2: 0.78, stroke: "#60a5fa", width: 0.003, opacity: 0.5 },
+      { type: "line", x1: 0.1, y1: 0.82, x2: 0.6, y2: 0.82, stroke: "#60a5fa", width: 0.003, opacity: 0.4 },
+      // B Site building
+      { type: "rect", x: 0.2, y: 0.35, w: 0.25, h: 0.3, fill: "#1e4a5f" },
+      { type: "rect", x: 0.23, y: 0.4, w: 0.08, h: 0.1, fill: "#2d6a7a" },
+      { type: "rect", x: 0.35, y: 0.45, w: 0.06, h: 0.15, fill: "#2d6a7a" },
+      // Windows
+      { type: "rect", x: 0.25, y: 0.42, w: 0.04, h: 0.05, fill: "#60a5fa", opacity: 0.7 },
+      { type: "rect", x: 0.36, y: 0.48, w: 0.03, h: 0.04, fill: "#93c5fd", opacity: 0.6 },
+      // Site marker
+      { type: "circle", cx: 0.32, cy: 0.55, r: 0.03, fill: "none", stroke: "#60a5fa", width: 0.004 },
+      { type: "circle", cx: 0.32, cy: 0.55, r: 0.015, fill: "#93c5fd" },
+      { type: "text", x: 0.32, y: 0.32, text: "B SITE", size: 5, fill: "#bfdbfe", anchor: "middle" },
     ],
     "#60a5fa"
   ),
@@ -203,14 +233,25 @@ export const LOCATIONS: MapLocation[] = [
     0.75,
     0.3,
     [
-      // Warm sand tones (distinctive to Dust2)
-      { type: "rect", x: 0.66, y: 0.23, w: 0.26, h: 0.16, fill: "#6b5a3b", rx: 2 },
-      { type: "rect", x: 0.69, y: 0.26, w: 0.09, h: 0.09, fill: "#7d6b4a" },
-      { type: "rect", x: 0.81, y: 0.26, w: 0.07, h: 0.07, fill: "#8d7b5a" },
-      // Sand dune lines (distinctive to Dust2)
-      { type: "line", x1: 0.66, y1: 0.41, x2: 0.92, y2: 0.41, stroke: "#d4a574", width: 0.008 },
-      { type: "line", x1: 0.66, y1: 0.43, x2: 0.92, y2: 0.43, stroke: "#c49a6a", width: 0.006 },
-      { type: "text", x: 0.79, y: 0.2, text: "A SITE", size: 6, fill: "#fde68a", anchor: "middle" },
+      // Desert sky (warm orange sunset)
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.3, fill: "#8b6b4a" },
+      { type: "rect", x: 0, y: 0.25, w: 1, h: 0.08, fill: "#a67b5a", opacity: 0.6 },
+      // Sand ground
+      { type: "rect", x: 0, y: 0.55, w: 1, h: 0.45, fill: "#c49a6a" },
+      { type: "rect", x: 0, y: 0.55, w: 1, h: 0.02, fill: "#d4a574" },
+      // Sand dunes (wavy lines)
+      { type: "path", d: "M0.1,0.65 Q0.2,0.62 0.3,0.65 Q0.4,0.68 0.5,0.65", fill: "none", stroke: "#a67b5a", width: 0.003 },
+      { type: "path", d: "M0.5,0.72 Q0.6,0.7 0.7,0.72 Q0.8,0.75 0.9,0.72", fill: "none", stroke: "#a67b5a", width: 0.003 },
+      // A Site building (sandstone)
+      { type: "rect", x: 0.6, y: 0.3, w: 0.3, h: 0.25, fill: "#8b6b4a" },
+      { type: "rect", x: 0.63, y: 0.35, w: 0.08, h: 0.12, fill: "#a67b5a" },
+      { type: "rect", x: 0.75, y: 0.4, w: 0.06, h: 0.1, fill: "#a67b5a" },
+      // Window (dark)
+      { type: "rect", x: 0.65, y: 0.37, w: 0.04, h: 0.06, fill: "#4a3a2a" },
+      // A Site marker
+      { type: "circle", cx: 0.75, cy: 0.45, r: 0.03, fill: "none", stroke: "#fbbf24", width: 0.004 },
+      { type: "circle", cx: 0.75, cy: 0.45, r: 0.015, fill: "#fde68a" },
+      { type: "text", x: 0.75, y: 0.27, text: "A SITE", size: 5, fill: "#fef3c7", anchor: "middle" },
     ],
     "#fbbf24"
   ),
@@ -222,13 +263,29 @@ export const LOCATIONS: MapLocation[] = [
     0.25,
     0.65,
     [
-      // Olive-green sand (Dust2 B site has more vegetation)
-      { type: "rect", x: 0.16, y: 0.57, w: 0.24, h: 0.2, fill: "#5a6b3b", rx: 2 },
-      { type: "rect", x: 0.19, y: 0.6, w: 0.09, h: 0.09, fill: "#6a7b4a" },
-      // Palm tree markers (distinctive to Dust2)
-      { type: "line", x1: 0.32, y1: 0.62, x2: 0.32, y2: 0.72, stroke: "#8b7355", width: 0.008 },
-      { type: "circle", cx: 0.32, cy: 0.62, r: 0.015, fill: "#4ade80" },
-      { type: "text", x: 0.28, y: 0.54, text: "B SITE", size: 6, fill: "#86efac", anchor: "middle" },
+      // Desert sky
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.35, fill: "#a67b5a" },
+      // Sand ground with vegetation
+      { type: "rect", x: 0, y: 0.6, w: 1, h: 0.4, fill: "#b8956a" },
+      // Vegetation patches (green)
+      { type: "rect", x: 0.15, y: 0.62, w: 0.15, h: 0.08, fill: "#4ade80", opacity: 0.4 },
+      { type: "rect", x: 0.35, y: 0.68, w: 0.12, h: 0.06, fill: "#4ade80", opacity: 0.3 },
+      // Palm tree 1
+      { type: "line", x1: 0.25, y1: 0.65, x2: 0.25, y2: 0.5, stroke: "#8b6b4a", width: 0.006 },
+      { type: "path", d: "M0.25,0.5 Q0.2,0.45 0.18,0.42", fill: "none", stroke: "#4ade80", width: 0.004 },
+      { type: "path", d: "M0.25,0.5 Q0.3,0.45 0.32,0.42", fill: "none", stroke: "#4ade80", width: 0.004 },
+      { type: "path", d: "M0.25,0.5 Q0.22,0.43 0.2,0.4", fill: "none", stroke: "#22c55e", width: 0.003 },
+      // Palm tree 2
+      { type: "line", x1: 0.4, y1: 0.7, x2: 0.4, y2: 0.55, stroke: "#8b6b4a", width: 0.005 },
+      { type: "path", d: "M0.4,0.55 Q0.36,0.5 0.34,0.48", fill: "none", stroke: "#4ade80", width: 0.003 },
+      { type: "path", d: "M0.4,0.55 Q0.44,0.5 0.46,0.48", fill: "none", stroke: "#4ade80", width: 0.003 },
+      // B Site building
+      { type: "rect", x: 0.5, y: 0.4, w: 0.2, h: 0.2, fill: "#7d6b4a" },
+      { type: "rect", x: 0.53, y: 0.45, w: 0.06, h: 0.08, fill: "#8d7b5a" },
+      // Site marker
+      { type: "circle", cx: 0.28, cy: 0.62, r: 0.03, fill: "none", stroke: "#4ade80", width: 0.004 },
+      { type: "circle", cx: 0.28, cy: 0.62, r: 0.015, fill: "#86efac" },
+      { type: "text", x: 0.28, y: 0.57, text: "B SITE", size: 5, fill: "#dcfce7", anchor: "middle" },
     ],
     "#4ade80"
   ),
@@ -288,12 +345,26 @@ export const LOCATIONS: MapLocation[] = [
     0.7,
     0.35,
     [
-      // Warm red-brown (Inferno A)
-      { type: "rect", x: 0.61, y: 0.28, w: 0.24, h: 0.16, fill: "#5c2e2e", rx: 2 },
-      { type: "rect", x: 0.64, y: 0.31, w: 0.09, h: 0.09, fill: "#6d3e3e" },
-      // Italian archway (distinctive to Inferno)
-      { type: "circle", cx: 0.73, cy: 0.45, r: 0.035, fill: "none", stroke: "#f87171", width: 0.006 },
-      { type: "text", x: 0.73, y: 0.25, text: "A SITE", size: 6, fill: "#fca5a5", anchor: "middle" },
+      // Italian sky (warm sunset)
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.3, fill: "#5c2e2e" },
+      { type: "rect", x: 0, y: 0.25, w: 1, h: 0.08, fill: "#6d3e3e", opacity: 0.5 },
+      // Ground (cobblestone)
+      { type: "rect", x: 0, y: 0.55, w: 1, h: 0.45, fill: "#4a3535" },
+      // Italian building (left)
+      { type: "rect", x: 0.1, y: 0.25, w: 0.3, h: 0.3, fill: "#5c3535" },
+      { type: "rect", x: 0.15, y: 0.3, w: 0.08, h: 0.1, fill: "#6d4545" },
+      { type: "rect", x: 0.28, y: 0.35, w: 0.06, h: 0.15, fill: "#6d4545" },
+      // Arched window
+      { type: "path", d: "M0.16,0.38 L0.16,0.42 Q0.19,0.44 0.22,0.42 L0.22,0.38", fill: "#3e2525" },
+      // A Site (raised platform)
+      { type: "rect", x: 0.5, y: 0.4, w: 0.35, h: 0.15, fill: "#5c3e3e" },
+      { type: "rect", x: 0.5, y: 0.4, w: 0.35, h: 0.02, fill: "#6d4e4e" },
+      // Archway (distinctive)
+      { type: "path", d: "M0.65,0.45 L0.65,0.55 Q0.7,0.58 0.75,0.55 L0.75,0.45", fill: "#4a2e2e" },
+      // Site marker
+      { type: "circle", cx: 0.68, cy: 0.48, r: 0.03, fill: "none", stroke: "#f87171", width: 0.004 },
+      { type: "circle", cx: 0.68, cy: 0.48, r: 0.015, fill: "#fca5a5" },
+      { type: "text", x: 0.68, y: 0.37, text: "A SITE", size: 5, fill: "#fee2e2", anchor: "middle" },
     ],
     "#f87171"
   ),
