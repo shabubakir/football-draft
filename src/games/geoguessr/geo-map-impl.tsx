@@ -88,6 +88,41 @@ export function GeoMapImpl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ---------- СБРОС ВСЕХ маркеров при смене раунда (roundKey) ----------
+  // ВАЖНО: effect объявлен ПЕРВЫМ среди эффектов, зависящих от roundKey.
+  // React вызывает effects строго в порядке их объявления в компоненте,
+  // поэтому при смене roundKey (render "reveal раунда N" → "ответ раунда N+1",
+  // когда guess и roundKey меняются В ТОМ ЖЕ render) порядок такой:
+  //   1. reset effect → удаляет ВСЕ маркеры/линии, null-ит все refs
+  //   2. click handler → переподключается с новым locked
+  //   3. guess-marker effect → видит пустые refs + (guess=null в новом раунде
+  //      ИЛИ новый guess — в любом случае маркер не из прошлого раунда)
+  //   4. reveal effect → reveal=null в новом раунде → ничего не создаёт
+  // Если бы reset-эффект стоял ПОСЛЕ guess/reveal-эффектов, старый зелёный
+  // маркер создавался бы заново ДО сброса — и у одного из игроков оставался
+  // бы маркер из прошлого раунда (регрессия b72f7ac: порядок эффектов).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (guessMarkerRef.current) {
+      guessMarkerRef.current.remove();
+      guessMarkerRef.current = null;
+    }
+    if (correctMarkerRef.current) {
+      correctMarkerRef.current.remove();
+      correctMarkerRef.current = null;
+    }
+    if (lineRef.current) {
+      lineRef.current.remove();
+      lineRef.current = null;
+    }
+    if (guessLabelRef.current) {
+      guessLabelRef.current.remove();
+      guessLabelRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roundKey]);
+
   // клик по карте → точка игрока (пока не заперто)
   useEffect(() => {
     const map = mapRef.current;
@@ -102,7 +137,7 @@ export function GeoMapImpl({
     };
   }, [locked, onGuessChange]);
 
-  // маркер игрока
+  // маркер игрока (создаётся только ПЕРВЫМ после reset-эффекта)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -128,34 +163,6 @@ export function GeoMapImpl({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guess, locked, onGuessChange, roundKey]);
-
-  // СБРОС ВСЕХ маркеров при смене раунда (roundKey).
-  // React executes effects in declaration order:
-  //   1. this effect runs FIRST → removes all markers, sets refs to null
-  //   2. guess-marker effect runs → guess is null (new round) → no-op
-  //   3. reveal effect runs LAST → reveal is null (new round) → no-op
-  // So the reveal effect can NEVER recreate the old markers on round change.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    if (guessMarkerRef.current) {
-      guessMarkerRef.current.remove();
-      guessMarkerRef.current = null;
-    }
-    if (correctMarkerRef.current) {
-      correctMarkerRef.current.remove();
-      correctMarkerRef.current = null;
-    }
-    if (lineRef.current) {
-      lineRef.current.remove();
-      lineRef.current = null;
-    }
-    if (guessLabelRef.current) {
-      guessLabelRef.current.remove();
-      guessLabelRef.current = null;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundKey]);
 
   // reveal: правильная точка + линия + подпись
   useEffect(() => {

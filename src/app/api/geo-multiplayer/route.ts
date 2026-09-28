@@ -13,7 +13,7 @@
 //   GET  /api/geo-multiplayer?code=XXXXXX → состояние комнаты
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase";
+import { getSupabaseServer, proxiedSupabaseCall } from "@/lib/supabase";
 import {
   computeScores,
   computeWinner,
@@ -290,22 +290,21 @@ export async function POST(req: NextRequest) {
         last_activity: new Date().toISOString(),
       };
 
-      // Записываем через raw fetch к PostgREST
+      // Записываем через raw fetch к PostgREST (через прокси, если dev
+      // машина за корпоративным squid — см. proxiedSupabaseCall)
       const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-      const restRes = await fetch(
-        sbUrl + "/rest/v1/geo_rooms?id=eq." + room.id,
-        {
-          method: "PATCH",
-          headers: {
-            "apikey": sbKey,
-            "Authorization": "Bearer " + sbKey,
-            "Content-Type": "application/json",
-            "Prefer": "return=representation",
-          },
-          body: JSON.stringify({ code: room.code, rounds_data: newRounds }),
-        }
-      );
+      const restRes = await proxiedSupabaseCall({
+        url: sbUrl + "/rest/v1/geo_rooms?id=eq." + room.id,
+        method: "PATCH",
+        headers: {
+          apikey: sbKey,
+          Authorization: "Bearer " + sbKey,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ code: room.code, rounds_data: newRounds }),
+      });
       const restText = await restRes.text();
       if (!restRes.ok) {
         return err("Не удалось сохранить ответ: " + restRes.status + " " + restText.slice(0, 300), 500);

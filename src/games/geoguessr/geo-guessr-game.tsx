@@ -205,6 +205,7 @@ export function GeoGuessrGame() {
       <div className="mt-3 rounded-2xl overflow-hidden border border-white/10 bg-black/20 relative">
         <div className="h-[300px] sm:h-[340px]">
           <GeoMap
+            roundKey={round}
             center={[25, 10]}
             zoom={2}
             guess={guess}
