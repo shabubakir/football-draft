@@ -781,6 +781,7 @@ const RAW = `
 Кандела|Candela|spain|df|||90s|0|0.05|180|1970|
 Айтор Осио|Aitor Ocio|spain|df|||2000s|0|0.05|185|1975|
 Пеп|Pep|spain|fw|||90s|0|0.3|178|1965|
+Хвича Кварцхелия|Khvicha Kvaratskhelia|georgia|fw|dynamo_batumi,rubin_kazan,napoli|napoli|2020s|1|0.3|176|1997|I
 `;
 
 export interface ExtraPlayerRaw {

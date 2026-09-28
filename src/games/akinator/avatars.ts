@@ -90,6 +90,7 @@ const NATION_COLORS: Record<string, { bg: string; fg: string }> = {
   ecuador:    { bg: "#ffdd00", fg: "#00247d" },
   paraguay:   { bg: "#d52b1e", fg: "#ffffff" },
   venezuela:  { bg: "#ffcc00", fg: "#00247d" },
+  georgia:    { bg: "#003399", fg: "#d90012" },
   kosovo:     { bg: "#005ce6", fg: "#ffffff" },
   albania:    { bg: "#d72828", fg: "#ffffff" },
   slovenia:   { bg: "#005da4", fg: "#ffffff" },
