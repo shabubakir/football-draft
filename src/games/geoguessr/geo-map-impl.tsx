@@ -21,6 +21,8 @@ export interface GeoMapImplProps {
     points?: number | null;
   } | null;
   locked?: boolean;
+  /** при смене — сбрасываем все маркеры и линию (новый раунд) */
+  roundKey?: string | number;
   className?: string;
 }
 
@@ -51,6 +53,7 @@ export function GeoMapImpl({
   onGuessChange,
   reveal,
   locked = false,
+  roundKey,
   className = "",
 }: GeoMapImplProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -125,6 +128,17 @@ export function GeoMapImpl({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guess, locked, onGuessChange]);
+
+  // СБРОС при смене раунда: убираем все маркеры и линию
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (guessMarkerRef.current) { guessMarkerRef.current.remove(); guessMarkerRef.current = null; }
+    if (correctMarkerRef.current) { correctMarkerRef.current.remove(); correctMarkerRef.current = null; }
+    if (lineRef.current) { lineRef.current.remove(); lineRef.current = null; }
+    if (guessLabelRef.current) { guessLabelRef.current.remove(); guessLabelRef.current = null; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roundKey]);
 
   // reveal: правильная точка + линия + подпись
   useEffect(() => {

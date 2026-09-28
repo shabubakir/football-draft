@@ -44,6 +44,9 @@ export interface GeoMapProps {
   // блокировка кликов (во время показа результата)
   locked?: boolean;
 
+  /** при смене — сбрасываем все маркеры (новый раунд) */
+  roundKey?: string | number;
+
   className?: string;
 }
 

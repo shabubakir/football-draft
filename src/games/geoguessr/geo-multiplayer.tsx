@@ -368,6 +368,8 @@ export function GeoMultiplayer({
   const guessRef = useRef<[number, number] | null>(null);
   guessRef.current = guess;
   const doNextRef = useRef<(() => void) | null>(null);
+  const revealPhaseRef = useRef(false);
+  revealPhaseRef.current = revealPhase;
 
   // Определяем, все ли онлайн ответили
   const allOnlineAnswered = useMemo(() => {
@@ -565,8 +567,12 @@ export function GeoMultiplayer({
         setPhase("end");
       }
     } catch (e) {
-      // Если «ещё не все ответили» — молча показываем статус ожидания
-      setError((e as Error).message);
+      // Если сервер не пропустил (ещё не все ответили / таймаут не прошёл) —
+      // НЕ сбрасываем revealPhase, чтобы таймер продолжал идти.
+      // Повторяем попытку через 5 сек (серверный isStuck отпустит через 35 сек).
+      setTimeout(() => {
+        if (revealPhaseRef.current) doNextRef.current?.();
+      }, 5_000);
     } finally {
       setBusy(false);
     }
@@ -1035,6 +1041,7 @@ export function GeoMultiplayer({
         <div className="mt-3 rounded-2xl overflow-hidden border border-stone-200 bg-white relative">
           <div className="h-[300px] sm:h-[340px]">
             <GeoMap
+              key={`round-${currentRoundIdx}`}
               center={[25, 10]}
               zoom={2}
               guess={myAnswered ? (myGuessEntry ? [myGuessEntry.lat, myGuessEntry.lng] : guess) : guess}
