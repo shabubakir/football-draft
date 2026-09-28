@@ -218,9 +218,12 @@ function isCompatibleWithHardAnswers(
     const q = QUESTIONS.find((x) => x.id === qid);
     if (!q || !q.hard) continue;
     const res = q.check(entity);
-    if (res === null) continue; // нет данных — противоречия нет
-    if (ans === "yes" && res !== true) return false;
-    if (ans === "no" && res !== false) return false;
+    if (res === null) continue; // нет данных — противоречия нет (не знаем)
+    // У сущности ЕСТЬ данные: жёсткий ответ не совпадает → противоречие.
+    // Важно: res === false на вопрос с ответом «Да» — это прямое
+    // противоречие (игрок НЕ играл за этот клуб), а не «нет данных».
+    if (ans === "yes" && res === false) return false;
+    if (ans === "no" && res === true) return false;
   }
   return true;
 }

@@ -413,7 +413,7 @@ const RAW = `
 # === MORE ENGLAND ===
 Джордан Хендерсон|Jordan Henderson|england|mf|liverpool|liverpool|2010s|1|0.1|183|1990|I
 Эшли Янг|Ashley Young|england|df|aston_villa,man_utd,psv|psv|2000s|0|0.15|178|1985|
-Джеймс Милнер|James Milner|england|mf|leicester,liverpool,man_utd|man_utd|2010s|0|0.1|180|1986|I
+Джеймс Милнер|James Milner|england|mf|leeds,newcastle,aston_villa,man_city,liverpool,brighton|brighton|2020s|1|0.1|180|1986|I
 Аарон Рэмси|Aaron Ramsey|england|mf|arsenal,juventus|juventus|2010s|0|0.2|183|1990|
 Делли Алли|Dele Alli|england|mf|tottenham,aston_villa|aston_villa|2010s|0|0.25|180|1993|
 Росс Баркли|Ross Barkley|england|mf|everton,napoli,chelsea|chelsea|2010s|0|0.2|178|1993|
