@@ -90,7 +90,7 @@ function ShapeEl({ s }: { s: MapShape }) {
           r={s.r}
           fill={s.fill}
           stroke={s.stroke}
-          strokeWidth={s.width ? s.width / 100 : undefined}
+          strokeWidth={s.width ? s.width : undefined}
         />
       );
     case "line":
