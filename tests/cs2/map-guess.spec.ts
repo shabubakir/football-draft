@@ -62,8 +62,9 @@ test.describe("CS2 MAP GUESS", () => {
     for (const m of MAPS) {
       await expect(page.getByRole("button", { name: m, exact: true })).toBeVisible();
     }
-    // SVG-скриншот присутствует
-    await expect(page.locator("svg").first()).toBeVisible();
+    // Скриншот присутствует (реальная картинка или SVG-fallback)
+    const shot = page.locator("img[alt='CS2 map screenshot'], svg").first();
+    await expect(shot).toBeVisible();
   });
 
   test("режим GUESS: ответ даёт фидбек и очки", async ({ page }) => {
@@ -269,40 +270,42 @@ test.describe("CS2 MAP GUESS", () => {
     await page.getByRole("button", { name: /НАЧАТЬ/i }).click();
     await page.waitForTimeout(400);
 
-    const seenShapes: string[] = [];
+    const seenLocs: string[] = [];
     for (let i = 0; i < 10; i++) {
-      // Извлекаем позицию маркера локации из SVG (cx/cy акцентного круга)
-      const markerPos = await page.evaluate(() => {
+      // Извлекаем id локации через data-атрибут или src картинки
+      const locId = await page.evaluate(() => {
+        // Реальный скриншот: <img> в блоке TACTICAL FEED
+        const img = document.querySelector("img[alt='CS2 map screenshot']");
+        if (img) return img.getAttribute("src") ?? "";
+        // Fallback: SVG маркер
         const svgs = document.querySelectorAll("svg");
         for (const s of svgs) {
           const rect = s.getBoundingClientRect();
           if (rect.width > 200 && rect.height > 100) {
-            // Найди circle с r="0.018" (маркер локации)
             const circles = s.querySelectorAll("circle");
             for (const c of circles) {
               if (c.getAttribute("r") === "0.018") {
                 return c.getAttribute("cx") + "," + c.getAttribute("cy");
               }
             }
-            // Fallback: количество и размеры элементов
             return s.innerHTML.length + ":" + s.querySelectorAll("*").length;
           }
         }
         return "";
       });
-      seenShapes.push(markerPos);
+      seenLocs.push(locId);
       // Отвечаем
       await clickMap(page, "DUST 2");
       await page.waitForTimeout(300);
       await page.getByRole("button", { name: /ДАЛЬШЕ|РЕЗУЛЬТ/ }).click();
       await page.waitForTimeout(300);
     }
-    // Все 10 скриншоты должны быть разными (разные локации)
-    const unique = new Set(seenShapes).size;
+    // Все 10 раундов должны быть разными локациями
+    const unique = new Set(seenLocs).size;
     expect(
       unique,
-      "уникальных скриншотов " + unique + " из " + seenShapes.length
-    ).toBe(seenShapes.length);
+      "уникальных раундов " + unique + " из " + seenLocs.length
+    ).toBe(seenLocs.length);
   });
 
   test("сложность HARD выбирает hard-локации", async ({ page }) => {

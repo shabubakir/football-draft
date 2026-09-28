@@ -26,14 +26,16 @@ export interface MapLocation {
   shapes: MapShape[];
   /** Accent color for the location highlight */
   accent: string;
+  /** Real CS2 in-game screenshot path (e.g. /images/cs2-map-guess/mirage/1.jpg) */
+  screenshot: string;
 }
 
 export type MapShape =
-  | { type: "rect"; x: number; y: number; w: number; h: number; fill: string; rx?: number }
-  | { type: "circle"; cx: number; cy: number; r: number; fill: string; stroke?: string; width?: number }
-  | { type: "line"; x1: number; y1: number; x2: number; y2: number; stroke: string; width: number }
-  | { type: "path"; d: string; fill?: string; stroke?: string; width?: number }
-  | { type: "text"; x: number; y: number; text: string; size: number; fill: string; anchor?: "start" | "middle" | "end" };
+  | { type: "rect"; x: number; y: number; w: number; h: number; fill: string; rx?: number; opacity?: number }
+  | { type: "circle"; cx: number; cy: number; r: number; fill: string; stroke?: string; width?: number; opacity?: number }
+  | { type: "line"; x1: number; y1: number; x2: number; y2: number; stroke: string; width: number; opacity?: number }
+  | { type: "path"; d: string; fill?: string; stroke?: string; width?: number; opacity?: number }
+  | { type: "text"; x: number; y: number; text: string; size: number; fill: string; anchor?: "start" | "middle" | "end"; opacity?: number };
 
 export const MAP_NAMES = [
   "MIRAGE",
@@ -47,6 +49,75 @@ export const MAP_NAMES = [
 ] as const;
 
 export type MapName = (typeof MAP_NAMES)[number];
+
+// ---------- Screenshot pools ----------
+// Real in-game CS2 screenshots per map (from official game files).
+// Each entry is a static path under /images/cs2-map-guess/<map>/N.jpg
+
+const SCREENSHOT_POOLS: Record<string, string[]> = {
+  MIRAGE: [
+    "/images/cs2-map-guess/mirage/1.jpg",
+    "/images/cs2-map-guess/mirage/2.jpg",
+    "/images/cs2-map-guess/mirage/3.jpg",
+    "/images/cs2-map-guess/mirage/4.jpg",
+  ],
+  "DUST 2": [
+    "/images/cs2-map-guess/dust2/1.jpg",
+    "/images/cs2-map-guess/dust2/2.jpg",
+    "/images/cs2-map-guess/dust2/3.jpg",
+    "/images/cs2-map-guess/dust2/4.jpg",
+  ],
+  INFERNO: [
+    "/images/cs2-map-guess/inferno/1.jpg",
+    "/images/cs2-map-guess/inferno/2.jpg",
+    "/images/cs2-map-guess/inferno/3.jpg",
+    "/images/cs2-map-guess/inferno/4.jpg",
+  ],
+  NUKE: [
+    "/images/cs2-map-guess/nuke/1.jpg",
+    "/images/cs2-map-guess/nuke/2.jpg",
+    "/images/cs2-map-guess/nuke/3.jpg",
+    "/images/cs2-map-guess/nuke/4.jpg",
+  ],
+  ANCIENT: [
+    "/images/cs2-map-guess/ancient/1.jpg",
+    "/images/cs2-map-guess/ancient/2.jpg",
+    "/images/cs2-map-guess/ancient/3.jpg",
+    "/images/cs2-map-guess/ancient/4.jpg",
+  ],
+  ANUBIS: [
+    "/images/cs2-map-guess/anubis/1.jpg",
+    "/images/cs2-map-guess/anubis/2.jpg",
+    "/images/cs2-map-guess/anubis/3.jpg",
+    "/images/cs2-map-guess/anubis/4.jpg",
+    "/images/cs2-map-guess/anubis/5.jpg",
+  ],
+  VERTIGO: [
+    "/images/cs2-map-guess/vertigo/1.jpg",
+    "/images/cs2-map-guess/vertigo/2.jpg",
+    "/images/cs2-map-guess/vertigo/3.jpg",
+    "/images/cs2-map-guess/vertigo/4.jpg",
+  ],
+  OVERPASS: [
+    "/images/cs2-map-guess/overpass/1.jpg",
+    "/images/cs2-map-guess/overpass/2.jpg",
+    "/images/cs2-map-guess/overpass/3.jpg",
+    "/images/cs2-map-guess/overpass/4.jpg",
+    "/images/cs2-map-guess/overpass/5.jpg",
+  ],
+};
+
+// Deterministic per-map screenshot assignment: the Nth location of a
+// map gets the Nth screenshot in its pool (cycling). This guarantees
+// every location on the same map shows a DIFFERENT screenshot.
+const screenshotCounter: Record<string, number> = {};
+export function getScreenshot(map: string): string {
+  const pool = SCREENSHOT_POOLS[map];
+  if (!pool || pool.length === 0) return "";
+  const idx = screenshotCounter[map] ?? 0;
+  screenshotCounter[map] = idx + 1;
+  return pool[idx % pool.length];
+}
 
 // ---------- Scoring: Where Exactly mode ----------
 // Distance in normalized units → points
@@ -92,7 +163,7 @@ function loc(
   shapes: MapShape[],
   accent: string
 ): MapLocation {
-  return { id, map, location, difficulty, x, y, shapes, accent };
+  return { id, map, location, difficulty, x, y, shapes, accent, screenshot: getScreenshot(map) };
 }
 
 // Helper for building stylized "screenshot" shapes
@@ -461,13 +532,21 @@ export const LOCATIONS: MapLocation[] = [
     0.3,
     0.55,
     [
-      // Warm rust-orange (Nuke B - contrast to cold A)
-      { type: "rect", x: 0.21, y: 0.49, w: 0.2, h: 0.16, fill: "#5c3e1e", rx: 2 },
-      { type: "rect", x: 0.24, y: 0.52, w: 0.08, h: 0.09, fill: "#6c4e2e" },
-      // Radiation warning stripes (Nuke theme)
-      { type: "line", x1: 0.21, y1: 0.66, x2: 0.25, y2: 0.66, stroke: "#fb923c", width: 0.01 },
-      { type: "line", x1: 0.35, y1: 0.66, x2: 0.39, y2: 0.66, stroke: "#fbbf24", width: 0.01 },
-      { type: "text", x: 0.31, y: 0.46, text: "B SITE", size: 6, fill: "#fed7aa", anchor: "middle" },
+      // Industrial sky
+      { type: "rect", x: 0, y: 0, w: 1, h: 0.3, fill: "#2a3a4a" },
+      // Concrete ground
+      { type: "rect", x: 0, y: 0.55, w: 1, h: 0.45, fill: "#3a4a5a" },
+      // Industrial building
+      { type: "rect", x: 0.15, y: 0.3, w: 0.25, h: 0.25, fill: "#4a5a6a" },
+      { type: "rect", x: 0.2, y: 0.35, w: 0.08, h: 0.1, fill: "#5a6a7a" },
+      // Warning stripes (radiation)
+      { type: "rect", x: 0.5, y: 0.6, w: 0.05, h: 0.03, fill: "#fbbf24" },
+      { type: "rect", x: 0.6, y: 0.6, w: 0.05, h: 0.03, fill: "#fb923c" },
+      { type: "rect", x: 0.7, y: 0.6, w: 0.05, h: 0.03, fill: "#fbbf24" },
+      // Site marker
+      { type: "circle", cx: 0.3, cy: 0.5, r: 0.03, fill: "none", stroke: "#fb923c", width: 0.004 },
+      { type: "circle", cx: 0.3, cy: 0.5, r: 0.015, fill: "#fed7aa" },
+      { type: "text", x: 0.3, y: 0.45, text: "B SITE", size: 5, fill: "#ffedd5", anchor: "middle" },
     ],
     "#fb923c"
   ),

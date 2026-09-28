@@ -132,44 +132,24 @@ function ShapeEl({ s }: { s: MapShape }) {
 function ScreenshotView({ loc }: { loc: MapLocation }) {
   return (
     <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border border-cyan-500/30 bg-[#0b0d12]">
-      <svg viewBox="0 0 1 1" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-        <rect x="0" y="0" width="1" height="1" fill="#0b0d12" />
-        {/* Tactical grid */}
-        {Array.from({ length: 9 }).map((_, i) => (
-          <line
-            key={`v${i}`}
-            x1={(i + 1) * 0.1}
-            y1="0"
-            x2={(i + 1) * 0.1}
-            y2="1"
-            stroke="rgba(34,211,238,0.06)"
-            strokeWidth="0.002"
-          />
-        ))}
-        {Array.from({ length: 4 }).map((_, i) => (
-          <line
-            key={`h${i}`}
-            x1="0"
-            y1={(i + 1) * 0.2}
-            x2="1"
-            y2={(i + 1) * 0.2}
-            stroke="rgba(34,211,238,0.06)"
-            strokeWidth="0.002"
-          />
-        ))}
-        {loc.shapes.map((s, i) => (
-          <ShapeEl key={i} s={s} />
-        ))}
-        {/* Location marker */}
-        <circle cx={loc.x} cy={loc.y} r="0.018" fill="none" stroke={loc.accent} strokeWidth="0.004" />
-        <circle cx={loc.x} cy={loc.y} r="0.007" fill={loc.accent} />
-        {/* Crosshair at center */}
-        <g stroke={loc.accent} strokeWidth="0.003" opacity="0.9">
-          <line x1="0.47" y1="0.5" x2="0.53" y2="0.5" />
-          <line x1="0.5" y1="0.47" x2="0.5" y2="0.53" />
-        </g>
-        <circle cx="0.5" cy="0.5" r="0.012" fill="none" stroke={loc.accent} strokeWidth="0.002" opacity="0.7" />
-      </svg>
+      {loc.screenshot ? (
+        // Real in-game CS2 screenshot
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={loc.screenshot}
+          alt="CS2 map screenshot"
+          className="w-full h-full object-cover"
+          loading="eager"
+        />
+      ) : (
+        // Fallback: stylized SVG (if screenshot missing)
+        <svg viewBox="0 0 1 1" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
+          <rect x="0" y="0" width="1" height="1" fill="#0b0d12" />
+          {loc.shapes.map((s, i) => (
+            <ShapeEl key={i} s={s} />
+          ))}
+        </svg>
+      )}
       {/* HUD corner labels */}
       <div className="absolute top-2 left-2 text-[10px] font-mono text-cyan-400/70 uppercase tracking-widest">
         TACTICAL FEED
