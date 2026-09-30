@@ -369,11 +369,13 @@ export async function POST(req: NextRequest) {
 
       // АВТО-ПЕРЕХОД: если раунд висит > 35 сек (30 сек таймер + 5 сек запас)
       // и есть хотя бы один ответ — не блокируем, переходим дальше.
+      // Фолбэк на started_at, если last_activity не задан.
+      const roundAnchor = activeRound.last_activity ?? room.started_at ?? "";
       const isStuck =
         pendingHere.length > 0 &&
         activeRound.guesses.length > 0 &&
-        activeRound.last_activity &&
-        Date.now() - new Date(activeRound.last_activity).getTime() > 35_000;
+        roundAnchor &&
+        Date.now() - new Date(roundAnchor).getTime() > 35_000;
 
       if (pendingHere.length > 0 && !isStuck) {
         return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);

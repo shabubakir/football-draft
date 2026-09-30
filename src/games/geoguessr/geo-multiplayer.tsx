@@ -398,6 +398,10 @@ export function GeoMultiplayer({
   const doNextRef = useRef<(() => void) | null>(null);
   const revealPhaseRef = useRef(false);
   revealPhaseRef.current = revealPhase;
+  // Реф для myAnswered — нужен дедлайн-таймеру (эффект не пересоздаётся
+  // при ответе, поэтому читает актуальное значение из рефа).
+  const myAnsweredRef = useRef(false);
+  myAnsweredRef.current = myAnswered;
 
   // Определяем, все ли онлайн ответили
   const allOnlineAnswered = useMemo(() => {
@@ -407,9 +411,16 @@ export function GeoMultiplayer({
     return online.every((p) => currentRoundData.guesses.some((g) => g.playerId === p.id));
   }, [room, currentRoundData]);
 
-  // Фаза 1: таймер ответа (30 сек)
+  // Фаза 1: дедлайн раунда (30 сек)
+  // ВАЖНО: таймер НЕ зависит от myAnswered/revealPhase. Раньше эффект
+  // отменялся, как только я отвечал (myAnswered=true), и дедлайн «замерзал»
+  // у игрока, который уже ответил. Тогда переход в reveal срабатывал только
+  // у того клиента, который ещё НЕ ответил — а если он медленный / вкладка в
+  // фоне / застаревший экран, игра зависала навсегда на «Ждём остальных».
+  // Теперь дедлайн тикает до конца раунда: либо все онлайн ответили (фаза 2
+  // сразу в reveal), либо время вышло → auto-skip + reveal.
   useEffect(() => {
-    if (phase !== "play" || myAnswered || revealPhase) {
+    if (phase !== "play") {
       setTimeLeft(null);
       return;
     }
@@ -420,15 +431,17 @@ export function GeoMultiplayer({
         if (t === null) return null;
         if (t <= 1) {
           clearInterval(iv);
-          // Время вышло: если точка есть — отправляем, если нет — auto-skip (0 очков)
-          if (guessRef.current) {
-            doGuessRef.current?.();
-          } else {
-            // Не успел ответить → сервер записывает 0 очков
-            geoApi(myId, apiMyName.current, "auto-skip", { code: room?.code ?? "" }).catch(() => {});
+          // Время вышло. Если я ещё НЕ ответил и есть точка — отправляем,
+          // если нет — auto-skip (0 очков). Если уже ответил — ничего не пишем.
+          if (!myAnsweredRef.current) {
+            if (guessRef.current) {
+              doGuessRef.current?.();
+            } else {
+              geoApi(myId, apiMyName.current, "auto-skip", { code: room?.code ?? "" }).catch(() => {});
+            }
           }
           // В любом случае → reveal (покажем результат)
-          setRevealPhase(true);
+          if (!revealPhaseRef.current) setRevealPhase(true);
           return 0;
         }
         return t - 1;
@@ -436,7 +449,13 @@ export function GeoMultiplayer({
     }, 1000);
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentRoundIdx, phase, myAnswered, revealPhase, currentLocation?.id]);
+  }, [currentRoundIdx, phase, currentLocation?.id]);
+
+  // Фаза 2: все онлайн ответили ДО 30 сек → сразу reveal
+  useEffect(() => {
+    if (phase !== "play" || !allOnlineAnswered || revealPhase) return;
+    setRevealPhase(true);
+  }, [allOnlineAnswered, phase, revealPhase]);
 
   // Фаза 2: все онлайн ответили ДО 30 сек → сразу reveal
   useEffect(() => {
