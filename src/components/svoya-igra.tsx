@@ -521,6 +521,32 @@ export function SvoyaIgra() {
           >
             СОЗДАТЬ КОМНАТУ
           </button>
+          {room && (
+            <button
+              onClick={handleLeave}
+              className="mt-2 w-full text-xs text-white/25 hover:text-red-300 transition"
+            >
+              ✕ Выйти из комнаты
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ---------- Вы не в этой комнате (убраны / вышли на другом табе) ---------- */}
+      {room && !iAmIn && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 backdrop-blur p-5 max-w-md text-center">
+          <h3 className="font-bold text-lg text-amber-300">Вы не в этой комнате</h3>
+          <p className="mt-2 text-sm text-white/50">
+            {room.status === "lobby"
+              ? "Возможно, вас убрали из комнаты или вы вышли на другом устройстве."
+              : "Вы вышли из игры. Комната продолжает без вас."}
+          </p>
+          <button
+            onClick={handleLeave}
+            className="mt-4 rounded-xl bg-white/10 text-white/70 px-6 py-2.5 text-sm font-semibold hover:bg-white/15 transition"
+          >
+            ↩ Выйти
+          </button>
         </div>
       )}
 
