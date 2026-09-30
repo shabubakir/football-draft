@@ -9,6 +9,7 @@ import { useProgression } from "@/lib/progression/use-progression";
 // ============================================================
 
 type MonsterState = "IDLE" | "STALKING" | "CHASE" | "SEARCHING" | "RETREAT";
+type GuardianState = "WATCHING" | "ATTACK";
 
 interface Monster {
   x: number;
@@ -21,6 +22,15 @@ interface Monster {
   spawnTimer: number;
   seen: number;
   searchTimer: number;
+}
+
+interface Guardian {
+  x: number;
+  y: number;
+  state: GuardianState;
+  angle: number; // facing direction
+  fuseIdx: number; // which fuse it guards
+  attackCooldown: number;
 }
 
 interface Fuse {
@@ -36,23 +46,26 @@ interface Exit {
 
 const MAP = [
   "################",
-  "#......#....F..#",
-  "#.####.#.####.##",
-  "#.#..#....#....#",
-  "#.#..##.##.#.###",
-  "#.#...#...#....#",
-  "###.###.##.###.#",
-  "#F....#.......#.",
-  "#.#####.#####.#.",
-  "#S.......#..#..#",
-  "#.#####..#..#.##",
-  "#.#....#..#....#",
-  "###.##.#..##.#.#",
-  "#....#.#......#.",
-  "###.#.#.####.#.#",
-  "#....#...F..#..#",
-  "#.##.##.###.#.##",
-  "#............E.#",
+  "#..........#...#",
+  "#.######.##..###",
+  "#.#......#.#...#",
+  "#.#..F..#.#.#.##",
+  "#.#......#.#...#",
+  "#.######.##..###",
+  "#..........#...#",
+  "#.######.#####.#",
+  "#.#......#.#...#",
+  "#.#..F..#.#.#..#",
+  "#.#......#.#...#",
+  "#.######.##..###",
+  "#S.....#...#..##",
+  "#.####.#..#....#",
+  "#.####.#..#....#",
+  "#.####.#..#....#",
+  "#..F..#..#....##",
+  "#..........#...#",
+  "###..####.#..###",
+  "#..........E...#",
   "################",
 ];
 
@@ -126,13 +139,13 @@ function findPath(
 }
 
 function zoneAt(x: number, y: number) {
-  if (y >= 14)
+  if (y >= 18)
     return { name: "ЗОНА E · ВЫХОД", base: [25, 53, 38], accent: [50, 150, 88] };
-  if (y <= 3)
+  if (y <= 6)
     return { name: "ЗОНА D · ГЕНЕРАТОРНАЯ", base: [64, 28, 29], accent: [165, 38, 35] };
-  if (y >= 10 && y <= 13)
+  if (y >= 14 && y <= 17)
     return { name: "ЗОНА C · МЕДБЛОК", base: [35, 54, 43], accent: [77, 128, 91] };
-  if (y >= 6 && y <= 9)
+  if (y >= 8 && y <= 13)
     return { name: "ЗОНА B · СКЛАД", base: [61, 48, 35], accent: [177, 132, 52] };
   return {
     name: "ЗОНА A · ТЕХНИЧЕСКИЙ КОРИДОР",
@@ -529,6 +542,7 @@ export default function LastShift() {
     let ambientTimer = 5;
     let heartTimer = 0;
     const fuseSpots: Fuse[] = [];
+    const guardians: Guardian[] = [];
     let exit: Exit = { x: 14.5, y: 13.5 };
 
     for (let y = 0; y < grid.length; y++) {
@@ -546,6 +560,18 @@ export default function LastShift() {
       }
     }
     setTotalFuses(fuseSpots.length);
+
+    // Create a guardian for each fuse
+    fuseSpots.forEach((f, idx) => {
+      guardians.push({
+        x: f.x + 0.8,
+        y: f.y + 0.5,
+        state: "WATCHING",
+        angle: 0,
+        fuseIdx: idx,
+        attackCooldown: 0,
+      });
+    });
 
     const w = (x: number, y: number) => wall(grid, x, y, doorOpen);
 
@@ -944,7 +970,106 @@ export default function LastShift() {
           }
         }
       }
-      
+
+      // Render guardians
+      for (const g of guardians) {
+        const gdx = g.x - px;
+        const gdy = g.y - py;
+        const gd = Math.hypot(gdx, gdy);
+        let ga = Math.atan2(gdy, gdx) - ang;
+        while (ga > Math.PI) ga -= 2 * Math.PI;
+        while (ga < -Math.PI) ga += 2 * Math.PI;
+        const fov = Math.PI / 2.9;
+        if (Math.abs(ga) < fov * 0.65 && gd < 12) {
+          const gsx = ((ga + fov / 2) / fov) * W;
+          const gidx = Math.max(0, Math.min(zbuf.length - 1, Math.floor((gsx / W) * zbuf.length)));
+          if (gd < zbuf[gidx] + 0.3) {
+            const gsh = Math.min(H * 1.0, H / (Math.max(0.3, gd) * 0.85));
+            ctx.save();
+            const gsw = gsh * 0.38;
+            const gsy = H / 2 - gsh * 0.5;
+            const attacking = g.state === "ATTACK";
+            const gBob = Math.sin(animTime * (attacking ? 6 : 2.5)) * gsh * 0.015;
+
+            // Shadow
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.beginPath();
+            ctx.ellipse(gsx, H / 2 + gsh * 0.4, gsw * 0.25, gsh * 0.05, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body — hunched, bulky, dark greenish
+            const gGlow = attacking ? 0.7 + Math.sin(animTime * 8) * 0.3 : 0.3;
+            ctx.shadowBlur = 30 * gGlow;
+            ctx.shadowColor = attacking ? "#44ff22" : "#1a3311";
+            ctx.fillStyle = "#0a0f08";
+            ctx.strokeStyle = `rgba(40,${attacking ? 100 : 50},20,${0.4 + gGlow * 0.3})`;
+            ctx.lineWidth = Math.max(1, gsh * 0.007);
+
+            // Bulky torso
+            ctx.beginPath();
+            ctx.ellipse(gsx, gsy + gsh * 0.45 + gBob, gsw * 0.3, gsh * 0.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Head (small, low, with horns)
+            ctx.fillStyle = "#0c120a";
+            ctx.beginPath();
+            ctx.ellipse(gsx, gsy + gsh * 0.15 + gBob, gsw * 0.16, gsh * 0.1, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Horns
+            ctx.fillStyle = "#1a2a15";
+            ctx.fillRect(gsx - gsw * 0.18, gsy + gsh * 0.06 + gBob, gsw * 0.04, gsh * 0.1);
+            ctx.fillRect(gsx + gsw * 0.14, gsy + gsh * 0.06 + gBob, gsw * 0.04, gsh * 0.1);
+
+            // Massive arms
+            const gArmSwing = attacking ? Math.sin(animTime * 8) * gsh * 0.05 : 0;
+            const gArmW = Math.max(2, gsw * 0.09);
+            ctx.fillStyle = "#0a0f08";
+            ctx.fillRect(gsx - gsw * 0.3 - gArmSwing, gsy + gsh * 0.3 + gBob, gArmW, gsh * 0.45);
+            ctx.fillRect(gsx + gsw * 0.3 - gArmW + gArmSwing, gsy + gsh * 0.3 + gBob, gArmW, gsh * 0.45);
+
+            // Thick legs
+            const gLegSwing = attacking ? Math.sin(animTime * 6) * gsh * 0.03 : 0;
+            const gLegW = Math.max(2, gsw * 0.12);
+            ctx.fillRect(gsx - gsw * 0.18 - gLegSwing, gsy + gsh * 0.65, gLegW, gsh * 0.3);
+            ctx.fillRect(gsx + gsw * 0.06 + gLegSwing, gsy + gsh * 0.65, gLegW, gsh * 0.3);
+
+            // Eyes — pale yellow, always visible (watching)
+            const eyePulse = attacking ? 0.8 + Math.sin(animTime * 12) * 0.2 : 0.5 + Math.sin(animTime * 3) * 0.15;
+            ctx.fillStyle = `rgba(220,255,100,${eyePulse})`;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#ccff44";
+            const gEyeSize = Math.max(2, gsh * 0.02);
+            const gEyeY = gsy + gsh * 0.13 + gBob;
+            ctx.beginPath();
+            ctx.ellipse(gsx - gsw * 0.08, gEyeY, gEyeSize, gEyeSize * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(gsx + gsw * 0.08, gEyeY, gEyeSize, gEyeSize * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth — wide, grimacing when attacking
+            if (attacking) {
+              ctx.fillStyle = "#1a1100";
+              const mOpen = 0.4 + Math.sin(animTime * 6) * 0.3;
+              ctx.beginPath();
+              ctx.ellipse(gsx, gsy + gsh * 0.2 + gBob, gsw * 0.14, Math.max(2, gsh * 0.03 * mOpen), 0, 0, Math.PI * 2);
+              ctx.fill();
+              // Teeth
+              ctx.fillStyle = "#d4c896";
+              for (let ti = 0; ti < 5; ti++) {
+                const tx = gsx - gsw * 0.12 + (gsw * 0.24 / 4) * ti;
+                ctx.fillRect(tx - 1, gsy + gsh * 0.18 + gBob, 2, Math.max(2, gsh * 0.018 * mOpen));
+              }
+            }
+
+            ctx.restore();
+          }
+        }
+      }
+
       // Vignette effect
       ctx.fillStyle = "rgba(0,0,0,.08)";
       for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
@@ -1126,6 +1251,41 @@ export default function LastShift() {
         }
       } else {
         tension = Math.max(0, tension - dt * 0.15);
+      }
+
+      // Guardian logic
+      for (const g of guardians) {
+        const gdx = px - g.x;
+        const gdy = py - g.y;
+        const gd = Math.hypot(gdx, gdy);
+        // Face the player
+        g.angle = Math.atan2(gdy, gdx);
+        g.attackCooldown = Math.max(0, g.attackCooldown - dt);
+        if (g.state === "WATCHING") {
+          // Attack if player is very close (< 2 tiles)
+          if (gd < 2.0) {
+            g.state = "ATTACK";
+            g.attackCooldown = 0.8;
+            soundRef.current(85, 0.5, "sawtooth", 0.08);
+          }
+        } else if (g.state === "ATTACK") {
+          // Move toward player at moderate speed
+          const gsp = 1.2 * dt;
+          const nxx = g.x + (gdx / (gd || 1)) * gsp;
+          const nyy = g.y + (gdy / (gd || 1)) * gsp;
+          if (!w(nxx, g.y)) g.x = nxx;
+          if (!w(g.x, nyy)) g.y = nyy;
+          // Stop attacking if player moves far away
+          if (gd > 4.5) g.state = "WATCHING";
+          // Kill player on contact
+          if (gd < 0.55 && g.attackCooldown <= 0) {
+            dead = true;
+            runningRef.current = false;
+            soundRef.current(42, 0.8, "sawtooth", 0.15);
+            finishGameRef.current(false, elapsed);
+            setTimeout(() => setPhase("dead"), 1700);
+          }
+        }
       }
 
       ambientTimer -= dt;
