@@ -56,6 +56,20 @@ function getMyId(): string {
   return id;
 }
 
+/** Сохранить id текущей комнаты (переживает перезагрузку вкладки). */
+function saveRoomIdToStorage(roomId: string): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem("svoya_room_id", roomId); } catch { /* ignore */ }
+}
+function getRoomIdFromStorage(): string | null {
+  if (typeof window === "undefined") return null;
+  try { return localStorage.getItem("svoya_room_id"); } catch { return null; }
+}
+function clearRoomIdFromStorage(): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.removeItem("svoya_room_id"); } catch { /* ignore */ }
+}
+
 export function SvoyaIgra() {
   const params = useParams<{ code?: string }>();
   const joinCodeParam = params.code as string | undefined;
@@ -148,6 +162,7 @@ export function SvoyaIgra() {
         return;
       }
       setRoom(saved.room);
+      saveRoomIdToStorage(saved.room.id);
       setInviteLink(`${window.location.origin}/svoya/join/${finalCode}`);
       setMsg(`Комната ${finalCode} создана! Отправь ссылку друзьям (2–6 игроков).`);
     } catch (e) {
@@ -172,6 +187,7 @@ export function SvoyaIgra() {
       if (r.players.some((p) => p.id === myId)) {
         // Rejoin — уже в комнате
         setRoom(r);
+        saveRoomIdToStorage(r.id);
         setInviteLink(`${window.location.origin}/svoya/join/${r.code}`);
         setMsg(`С возвращением, ${name}!`);
         return;
@@ -179,6 +195,7 @@ export function SvoyaIgra() {
       const res = await applyAndSave(sb, r.id, { type: "join", playerId: myId, name });
       if (!res.ok || !res.room) { setErr(res.error ?? "Не удалось подключиться."); return; }
       setRoom(res.room);
+      saveRoomIdToStorage(res.room.id);
       setInviteLink(`${window.location.origin}/svoya/join/${res.room.code}`);
       setMsg(`Вы в игре как «${name}»! Ждите старта.`);
     } catch (e) {
@@ -222,6 +239,7 @@ export function SvoyaIgra() {
     const r = roomRef.current;
     if (!r || !sb) return;
     await applyAndSave(sb, r.id, { type: "leave", playerId: myId });
+    clearRoomIdFromStorage();
     setRoom(null);
     setMsg("");
     setInviteLink("");
@@ -249,6 +267,33 @@ export function SvoyaIgra() {
       .subscribe();
     return () => { sb.removeChannel(ch); };
   }, [sb, room?.id]);
+
+  // ---------- Auto-reconnect: подхватить комнату после перезагрузки ----------
+  useEffect(() => {
+    if (!sb || room) return; // уже в комнате
+    const savedId = getRoomIdFromStorage();
+    if (!savedId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await loadRoom(sb, savedId);
+        if (cancelled) return;
+        if (r) {
+          // Комната найдена — проверяем, что мы ещё в ней
+          if (r.players.some((p) => p.id === myId)) {
+            setRoom(r);
+          } else {
+            clearRoomIdFromStorage();
+          }
+        } else {
+          clearRoomIdFromStorage();
+        }
+      } catch {
+        if (!cancelled) clearRoomIdFromStorage();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sb, room, myId]);
 
   // ---------- Polling + серверный таймер (1с) ----------
   const advancingRef = useRef(false);
@@ -285,6 +330,7 @@ export function SvoyaIgra() {
     );
     const won = winners.length > 0 && winners.some((p) => p.id === myId);
     reportedRef.current = true;
+    clearRoomIdFromStorage();
     void reportResult({
       gameId: "svoya-igra",
       won,
