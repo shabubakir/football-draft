@@ -59,13 +59,13 @@ describe("банк вопросов: структура", () => {
 // ============================================================
 describe("validateQuestions: обнаружение ошибок", () => {
   const valid: SvoyaQuestion = {
-    id: "x-100", cat: "mixed", value: 100,
+    id: "x-500", cat: "mixed", value: 500,
     q: "Тестовый вопрос?", options: ["Да", "Нет", "Может", "Не знаю"],
     answer: ["да"], explanation: "Пояснение.",
   };
 
   it("ловит пустой ответ", () => {
-    const bad: SvoyaQuestion = { ...valid, id: "y-100", answer: [] };
+    const bad: SvoyaQuestion = { ...valid, id: "y-500", answer: [] };
     const errs = validateQuestions([valid, bad]);
     expect(errs.some((e) => e.code === "NO_ANSWER")).toBe(true);
   });
@@ -76,19 +76,19 @@ describe("validateQuestions: обнаружение ошибок", () => {
   });
 
   it("ловит дубль (cat, value)", () => {
-    const dup: SvoyaQuestion = { ...valid, id: "z-100" };
+    const dup: SvoyaQuestion = { ...valid, id: "z-500" };
     const errs = validateQuestions([valid, dup]);
     expect(errs.some((e) => e.code === "DUP_CAT_VALUE")).toBe(true);
   });
 
   it("ловит неизвестную категорию", () => {
-    const bad: SvoyaQuestion = { ...valid, id: "w-100", cat: "unknown" as SvoyaCategory };
+    const bad: SvoyaQuestion = { ...valid, id: "w-500", cat: "unknown" as SvoyaCategory };
     const errs = validateQuestions([bad]);
     expect(errs.some((e) => e.code === "UNKNOWN_CAT")).toBe(true);
   });
 
   it("ловит некорректный номинал", () => {
-    const bad: SvoyaQuestion = { ...valid, id: "v-100", value: 150 as 100 };
+    const bad: SvoyaQuestion = { ...valid, id: "v-500", value: 350 as 500 };
     const errs = validateQuestions([bad]);
     expect(errs.some((e) => e.code === "BAD_VALUE")).toBe(true);
   });
@@ -99,26 +99,26 @@ describe("validateQuestions: обнаружение ошибок", () => {
   });
 
   it("ловит неверное количество вариантов (≠ 4)", () => {
-    const bad3: SvoyaQuestion = { ...valid, id: "y-100", options: ["А", "Б", "В"] };
+    const bad3: SvoyaQuestion = { ...valid, id: "y-500", options: ["А", "Б", "В"] };
     const errs = validateQuestions([valid, bad3]);
     expect(errs.some((e) => e.code === "BAD_OPTIONS")).toBe(true);
   });
 
   it("ловит пустой вариант в options", () => {
-    const bad: SvoyaQuestion = { ...valid, id: "y-100", options: ["Да", "", "Нет", "Может"] };
+    const bad: SvoyaQuestion = { ...valid, id: "y-500", options: ["Да", "", "Нет", "Может"] };
     const errs = validateQuestions([valid, bad]);
     expect(errs.some((e) => e.code === "EMPTY_TEXT" && e.message.includes("[1]"))).toBe(true);
   });
 
   it("ловит дубликаты в options", () => {
-    const bad: SvoyaQuestion = { ...valid, id: "y-100", options: ["Да", "Нет", "Да", "Может"] };
+    const bad: SvoyaQuestion = { ...valid, id: "y-500", options: ["Да", "Нет", "Да", "Может"] };
     const errs = validateQuestions([valid, bad]);
     expect(errs.some((e) => e.code === "BAD_OPTIONS" && e.message.includes("Дубликаты"))).toBe(true);
   });
 
   it("ловит несоответствие options[0] и answer[0] (OPT_LEAK)", () => {
     const bad: SvoyaQuestion = {
-      ...valid, id: "y-100",
+      ...valid, id: "y-500",
       options: ["Совсем другое", "Да", "Нет", "Может"],
       answer: ["да"],
     };
@@ -145,10 +145,17 @@ describe("validateQuestions: обнаружение ошибок", () => {
 
 // ============================================================
 describe("findQuestion / toPublicQuestion", () => {
-  it("findQuestion находит по id", () => {
-    const q = findQuestion("fb-100");
+  it("findQuestion находит по id (fb-500)", () => {
+    const q = findQuestion("fb-500");
     expect(q).toBeTruthy();
     expect(q!.cat).toBe("football");
+    expect(q!.value).toBe(500);
+  });
+
+  it("findQuestion находит fb-2500", () => {
+    const q = findQuestion("fb-2500");
+    expect(q).toBeTruthy();
+    expect(q!.value).toBe(2500);
   });
 
   it("findQuestion возвращает undefined для неизвестного", () => {
@@ -156,11 +163,21 @@ describe("findQuestion / toPublicQuestion", () => {
   });
 
   it("toPublicQuestion скрывает answer, но сохраняет options", () => {
-    const q = findQuestion("fb-100")!;
+    const q = findQuestion("fb-500")!;
     const pub = toPublicQuestion(q);
     expect((pub as Record<string, unknown>).answer).toBeUndefined();
     expect(pub.options).toHaveLength(4);
     expect(pub.q).toBe(q.q);
     expect(pub.id).toBe(q.id);
+  });
+
+  it("все 40 вопросов в банке (8 категорий × 5)", () => {
+    expect(SVAYA_QUESTIONS).toHaveLength(40);
+  });
+
+  it("все значения в диапазоне 500–2500", () => {
+    for (const q of SVAYA_QUESTIONS) {
+      expect(SVAYA_VALUES).toContain(q.value);
+    }
   });
 });

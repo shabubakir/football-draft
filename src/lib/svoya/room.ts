@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "../supabase";
-import { applyAction, autoAdvance } from "./engine";
+import { applyAction, autoAdvance, normalizeRoom } from "./engine";
 import type { SvoyaRoom, SvoyaAction } from "./engine";
 
 // ---------- helpers ----------
@@ -75,7 +75,7 @@ export async function loadRoom(
     .eq("id", id)
     .maybeSingle();
   if (error || !data) return null;
-  return (data as { state: SvoyaRoom }).state;
+  return normalizeRoom((data as { state: SvoyaRoom }).state);
 }
 
 /** Прочитать комнату по коду. */
@@ -89,7 +89,7 @@ export async function loadRoomByCode(
     .eq("code", code.toUpperCase().trim())
     .maybeSingle();
   if (error || !data) return null;
-  return (data as { state: SvoyaRoom }).state;
+  return normalizeRoom((data as { state: SvoyaRoom }).state);
 }
 
 /**

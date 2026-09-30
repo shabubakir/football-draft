@@ -90,6 +90,7 @@ export function SvoyaIgra() {
   const [inviteLink, setInviteLink] = useState("");
   const [joinName, setJoinName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<15 | 25>(25);
 
   const roomRef = useRef<SvoyaRoom | null>(null);
   roomRef.current = room;
@@ -119,15 +120,16 @@ export function SvoyaIgra() {
     setErr("");
     setBusy(true);
     try {
-      // 5 случайных категорий из 8
+      const numCats = mode === 15 ? 3 : 5;
+      // Случайные категории из 8
       const allCats = Object.keys(SVAYA_CATEGORIES) as SvoyaCategory[];
       const cats: SvoyaCategory[] = [];
       const pool = [...allCats];
-      while (cats.length < 5 && pool.length > 0) {
+      while (cats.length < numCats && pool.length > 0) {
         const i = Math.floor(Math.random() * pool.length);
         cats.push(pool.splice(i, 1)[0]);
       }
-      // Доска: 25 ячеек, вопросы берутся из SVAYA_QUESTIONS
+      // Доска: numCats × 5 ячеек
       const board = cats.flatMap((cat) =>
         SVAYA_VALUES.map((value) => {
           const q = SVAYA_QUESTIONS.find((x) => x.cat === cat && x.value === value);
@@ -141,7 +143,7 @@ export function SvoyaIgra() {
       let finalCode = "";
       for (let attempt = 0; attempt < 5; attempt++) {
         const code = makeCode();
-        const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20 });
+        const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20, mode });
         const res = await saveRoom(sb, newRoom);
         if (res.ok && res.room) {
           saved = res;
@@ -169,7 +171,7 @@ export function SvoyaIgra() {
     } finally {
       setBusy(false);
     }
-  }, [sb, myId, setErr]);
+  }, [sb, myId, mode, setErr]);
 
   // ---------- Гость: подключиться ----------
   const handleJoin = useCallback(async () => {
@@ -423,6 +425,23 @@ export function SvoyaIgra() {
             placeholder="Ваше имя"
             className="mt-4 w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base text-white outline-none placeholder:text-white/25 focus:border-cyan-500/50"
           />
+          {/* Режим: 15 или 25 вопросов */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-xs text-white/40">Вопросов:</span>
+            {([15, 25] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition ${
+                  mode === m
+                    ? "bg-cyan-600 border-cyan-500 text-white"
+                    : "border-white/15 text-white/50 hover:border-cyan-500/50"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
           <button
             onClick={handleCreate}
             disabled={busy}
@@ -461,7 +480,7 @@ export function SvoyaIgra() {
         <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-white">Игроки ({room.players.length}/6)</h3>
-            <span className="text-xs text-white/40">Таймер ответа: {room.answerSeconds}с</span>
+            <span className="text-xs text-white/40">{room.mode} вопросов · Таймер: {room.answerSeconds}с</span>
           </div>
 
           {/* Таймер ответа (хост) */}
@@ -516,7 +535,7 @@ export function SvoyaIgra() {
 
           {/* Категории доски */}
           <div className="mt-4">
-            <div className="text-xs text-white/40">Категории (5 из 8):</div>
+            <div className="text-xs text-white/40">Категории ({room.mode === 15 ? "3" : "5"} из 8):</div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {room.categories.map((c) => (
                 <span key={c} className="text-xs px-2 py-1 rounded-full bg-white/8 border border-white/10 text-white/60">
@@ -553,7 +572,7 @@ export function SvoyaIgra() {
               disabled={room.players.length < 2}
               className="mt-5 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold py-3 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-30 transition active:scale-[0.98]"
             >
-              НАЧАТЬ ИГРУ (5×5)
+              НАЧАТЬ ИГРУ ({room.mode === 15 ? "3×5" : "5×5"})
             </button>
           ) : (
             <div className="mt-5 rounded-xl bg-white/5 border border-white/10 p-4 text-sm text-white/40 animate-pulse">
@@ -569,14 +588,14 @@ export function SvoyaIgra() {
         </div>
       )}
 
-      {/* ---------- Доска ---------- */}
+      {/* ---------- Доска (классическая «Своя игра») ---------- */}
       {room && room.status === "board" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-white/50">
               Ходит: <b className={myTurn ? "text-emerald-300" : "text-cyan-300"}>{turnPlayerName ?? "—"}</b>
             </span>
-            <span className="text-white/40">Выбрано: {takenCount}/25</span>
+            <span className="text-white/40">Выбрано: {takenCount}/{room.board.length}</span>
           </div>
 
           {myTurn && (
@@ -585,34 +604,55 @@ export function SvoyaIgra() {
             </div>
           )}
 
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-            {room.categories.map((cat, ci) => (
-              <div key={cat} className="space-y-1.5 sm:space-y-2">
-                {/* Заголовок категории */}
-                <div className="rounded-lg bg-white/10 border border-white/15 px-1 py-2 text-center text-[10px] sm:text-xs font-bold text-white/80 leading-tight">
-                  {SVAYA_CATEGORIES[cat]}
+          {/* Табло: категории слева (строки), номиналы сверху (столбцы) */}
+          <div className="overflow-x-auto rounded-2xl border-2 border-cyan-500/30 bg-[#070e1a]">
+            <div className="min-w-[540px] grid" style={{ gridTemplateColumns: `minmax(120px,1fr) repeat(5, minmax(72px,1fr))` }}>
+              {/* Шапка: угол + номиналы */}
+              <div className="bg-[#0a1628]" />
+              {SVAYA_VALUES.map((val) => (
+                <div
+                  key={val}
+                  className="h-11 flex items-center justify-center text-sm sm:text-base font-black text-cyan-200/90 border-b border-cyan-500/20 bg-[#0a1628]"
+                >
+                  {val}
                 </div>
-                {SVAYA_VALUES.map((val) => {
-                  const cell = room.board[ci * 5 + SVAYA_VALUES.indexOf(val)];
-                  return (
-                    <button
-                      key={val}
-                      disabled={!myTurn || !cell || cell.taken}
-                      onClick={() => handlePick(ci, val)}
-                      className={`w-full aspect-square sm:aspect-[4/3] rounded-lg text-sm sm:text-lg font-black transition active:scale-[0.96] ${
-                        cell?.taken
-                          ? "bg-white/3 border border-white/10 text-white/20 cursor-default"
-                          : myTurn
-                          ? "bg-gradient-to-br from-cyan-600/80 to-cyan-800/80 border border-cyan-500/40 text-white hover:from-cyan-500 hover:to-cyan-700 cursor-pointer"
-                          : "bg-white/8 border border-white/10 text-white/40 cursor-default"
-                      }`}
-                    >
-                      {val}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+              ))}
+
+              {/* Строки: категория + 5 ячеек */}
+              {room.categories.map((cat, ci) => (
+                <div key={cat} className="contents">
+                  {/* Название категории (слева) */}
+                  <div className={`flex items-center justify-center px-3 py-2.5 text-xs sm:text-sm font-bold text-white/90 border-b border-r border-cyan-500/20 leading-tight text-center bg-[#0d1f3c] ${
+                    ci === room.categories.length - 1 ? "border-b-0" : ""
+                  }`}>
+                    {SVAYA_CATEGORIES[cat]}
+                  </div>
+                  {/* 5 ячеек номиналов */}
+                  {SVAYA_VALUES.map((val, vi) => {
+                    const cell = room.board[ci * 5 + vi];
+                    return (
+                      <button
+                        key={val}
+                        disabled={!myTurn || !cell || cell.taken}
+                        onClick={() => handlePick(ci, val)}
+                        className={`h-14 sm:h-16 flex items-center justify-center text-sm sm:text-lg font-black transition active:scale-[0.96] border-b border-r border-cyan-500/20 ${
+                          ci === room.categories.length - 1 ? "border-b-0" : ""
+                        }
+                        ${
+                          cell?.taken
+                            ? "bg-[#060d18] text-white/10 cursor-default"
+                            : myTurn
+                            ? "bg-[#0d2a52] text-cyan-300 hover:bg-[#123d72] cursor-pointer"
+                            : "bg-[#0a1e3e] text-cyan-200/40 cursor-default"
+                        }`}
+                      >
+                        {cell?.taken ? "✓" : val}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

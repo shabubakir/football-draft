@@ -49,10 +49,17 @@ export interface SvoyaPlayer {
 
 export interface SvoyaCell {
   cat: SvoyaCategory;
-  value: number; // 100..500
+  value: number; // 500..2500
   qId: string;
   taken: boolean;
   takenBy?: string;
+}
+
+/** Режим игры: 15 или 25 вопросов. */
+export type SvoyaMode = 15 | 25;
+export const SVAYA_MODES: SvoyaMode[] = [15, 25];
+export function isSvoyaMode(m: unknown): m is SvoyaMode {
+  return m === 15 || m === 25;
 }
 
 /** Фиксированный ответ одного игрока на текущий вопрос. */
@@ -82,10 +89,12 @@ export interface SvoyaRoom {
   status: SvoyaPhase;
   hostId: string;
   answerSeconds: number;
+  /** Режим: 15 или 25 вопросов (по умолчанию 25). */
+  mode: SvoyaMode;
   seed: number;
-  categories: SvoyaCategory[]; // 5 категорий доски (порядок)
+  categories: SvoyaCategory[]; // категории доски (порядок)
   players: SvoyaPlayer[];
-  board: SvoyaCell[];          // 25 ячеек: [cat*5 + valueIdx]
+  board: SvoyaCell[];          // ячейки: [cat*5 + valueIdx]
   scores: Record<string, number>;
   turnQueue: string[];         // порядок ходов (playerId)
   turnIndex: number;
@@ -120,6 +129,21 @@ const PHASES: SvoyaPhase[] = ["lobby", "board", "question", "reveal", "finished"
 
 export function isValidPhase(p: unknown): p is SvoyaPhase {
   return typeof p === "string" && (PHASES as string[]).includes(p);
+}
+
+/**
+ * Нормализация комнаты из БД (backwards-compat):
+ * старые комнаты не имеют поля `mode` → считаем 25.
+ */
+export function normalizeRoom(raw: any): SvoyaRoom {
+  if (!raw) return raw;
+  const room = { ...raw } as SvoyaRoom;
+  if (room.mode !== 15 && room.mode !== 25) {
+    room.mode = 25;
+  }
+  // Старые комнаты с 5 категориями и 25 ячеек → корректно.
+  // Если категорий не хватает (15-режим) — ничего не чиним (данные в jsonb).
+  return room;
 }
 
 export function cloneRoom(r: SvoyaRoom): SvoyaRoom {
@@ -162,9 +186,12 @@ export function advanceTurn(r: SvoyaRoom): void {
   }
 }
 
-/** Числовой индекс номинала (0..4). */
+/** Числовой индекс номинала (0..4) для шкалы 500/1000/1500/2000/2500. */
 export function valueIndex(val: number): number {
-  return Math.floor(val / 100) - 1;
+  // Строгая проверка: только точные значения
+  const valid = [500, 1000, 1500, 2000, 2500];
+  const idx = valid.indexOf(val);
+  return idx; // -1 если не найдено
 }
 
 /** Индекс ячейки в board (cat*5 + valueIdx). */
@@ -182,17 +209,20 @@ export function createRoom(opts: {
   categories: SvoyaCategory[];
   board: SvoyaCell[];
   answerSeconds?: number;
+  mode?: SvoyaMode;
   now?: Date;
 }): SvoyaRoom {
   const now = opts.now ?? new Date();
+  const mode: SvoyaMode = opts.mode === 15 ? 15 : 25;
   return {
     id: opts.id,
     code: opts.code,
     status: "lobby",
     hostId: opts.hostId,
     answerSeconds: opts.answerSeconds ?? 20,
+    mode,
     seed: Math.floor(Math.random() * 1_000_000),
-    categories: opts.categories.slice(0, 5),
+    categories: opts.categories.slice(0, mode === 15 ? 3 : 5),
     players: [
       { id: opts.hostId, name: opts.hostName, isHost: true, joinedAt: now.getTime() },
     ],
@@ -330,8 +360,9 @@ function doPick(
   if (tp.id !== a.actorId) {
     return { room: r, ok: false, error: `Не ваш ход. Ход: ${tp.name}` };
   }
-  // Проверки координат
-  if (a.cat < 0 || a.cat >= 5) return { room: r, ok: false, error: "Некорректная категория" };
+  // Проверки координат (число категорий зависит от режима)
+  const maxCats = r.mode === 15 ? 3 : 5;
+  if (a.cat < 0 || a.cat >= maxCats) return { room: r, ok: false, error: "Некорректная категория" };
   const vIdx = valueIndex(a.val);
   if (vIdx < 0 || vIdx >= 5) return { room: r, ok: false, error: "Некорректный номинал" };
   const ci = cellIndex(a.cat, a.val);
@@ -536,6 +567,7 @@ export function toPublicRoom(r: SvoyaRoom) {
     status: r.status,
     hostId: r.hostId,
     answerSeconds: r.answerSeconds,
+    mode: r.mode,
     categories: r.categories,
     players: r.players,
     board: r.board.map((c) => ({
