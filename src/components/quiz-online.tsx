@@ -48,11 +48,13 @@ function makeCode() {
 }
 
 function uid() {
-  // Стабильный ID игрока (переживает перезагрузку страницы)
-  // ВАЖНО: ID генерируем каждый раз — чтобы в разных вкладках были разные игроки
-  // (для тестирования онлайн-игры в 2+ окнах)
+  // Стабильный ID игрока — переживает перезагрузку страницы.
+  // При первой генерации записывается в localStorage, при последующих
+  // загрузках читается оттуда. Для тестирования в 2+ окнах нужно
+  // вручную изменить quiz_player_id в DevTools → Application → Local Storage.
   if (typeof window !== "undefined") {
-    // Генерируем новый ID при каждой загрузке страницы
+    const existing = localStorage.getItem("quiz_player_id");
+    if (existing) return existing;
     const id = "p" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
     localStorage.setItem("quiz_player_id", id);
     return id;
@@ -137,15 +139,16 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
   const myNameRef = useRef(myName);
   myNameRef.current = myName;
 
-  const joinRoom = useCallback(async (codeArg?: string, nameArg?: string) => {
+  const joinRoom = useCallback(async (codeArg?: string, nameArg?: string, myIdArg?: string) => {
     setError("");
     const sb = initSb();
     if (!sb) { setError("Supabase не настроен."); return; }
     const code = (codeArg ?? joinCode).trim().toUpperCase();
     if (code.length < 4) { setError("Введите код из 5 символов."); return; }
+    const effectiveMyId = myIdArg ?? myId;
     const name = (nameArg ?? myNameRef.current).trim() ||
       (typeof window !== "undefined" && localStorage.getItem("quiz_player_name") || "").trim() ||
-      "Игрок " + myId.slice(0, 3);
+      "Игрок " + effectiveMyId.slice(0, 3);
 
     const { data, error: e } = await sb
       .from("quiz_rooms").select().eq("code", code).maybeSingle();
@@ -169,7 +172,7 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
       r.status === "finished" ? "end" :
       r.status === "playing" ? (r.q_state === "reveal" ? "reveal" : "playing") : "lobby";
 
-    const existing = r.players.find((p) => p.id === myId);
+    const existing = r.players.find((p) => p.id === effectiveMyId);
     if (existing) {
       // Уже подключены — просто показываем текущее состояние.
       // Роль берём из комнаты: isHost = true → host.
@@ -178,7 +181,7 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
       setJoinedByLink(true);
       setRoom(r);
       setPhase(phaseFromState());
-      saveSession(code, myId, roomRole);
+      saveSession(code, effectiveMyId, roomRole);
       setMsg(`Вы уже в игре как «${existing.name}».`);
       return;
     }
@@ -186,11 +189,8 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
     if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
     if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
 
-    if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
-    if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
-
-    const newPlayers = [...r.players, { id: myId, name, isHost: false }];
-    const newScores = { ...r.scores, [myId]: 0 };
+    const newPlayers = [...r.players, { id: effectiveMyId, name, isHost: false }];
+    const newScores = { ...r.scores, [effectiveMyId]: 0 };
     const newAnswers = { ...(r.answers ?? {}) };
     const { error: upE } = await sb
       .from("quiz_rooms")
@@ -203,7 +203,7 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
     setRoom({ ...r, players: newPlayers, scores: newScores });
     setPhase("lobby");
     setMsg(`Вы в игре как «${name}»! Ждите старта.`);
-    saveSession(code, myId, "guest");
+    saveSession(code, effectiveMyId, "guest");
   }, [initSb, joinCode, myName, myId, questions]);
 
   // ---------- Хост: старт ----------
@@ -609,10 +609,11 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
     didAutoReturnRef.current = true;
     const saved = loadSession();
     if (!saved) return;
-    // Подменяем myId на сохранённый — чтобы existing нашёлся
+    // Подменяем myId на сохранённый — чтобы existing нашёлся.
+    // Передаём saved.playerId как myIdArg, потому что setMyId асинхронный.
     autoReturnMyIdRef.current = saved.playerId;
     setMyId(saved.playerId);
-    void joinRoom(saved.code);
+    void joinRoom(saved.code, undefined, saved.playerId);
   }, []);
 
   // Сброс выбора при смене вопроса
