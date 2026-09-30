@@ -19,18 +19,37 @@ export function makeCode(): string {
   return s;
 }
 
-/** Сохранить комнату (insert или update по id). */
+/**
+ * Сохранить комнату.
+ * - Если room.id пустая → INSERT (Postgres сам сгенерит UUID через default gen_random_uuid()).
+ *   Возвращает сохранённую строку с реальным id.
+ * - Если room.id задан → UPSERT по id.
+ */
 export async function saveRoom(
   sb: SupabaseClient,
   room: SvoyaRoom
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; room?: SvoyaRoom }> {
   const payload = {
     code: room.code,
     state: room,
     next_at: room.nextAt,
   };
-  const { error } = await sb.from("svoya_rooms").upsert(payload, { onConflict: "id" }).eq("id", room.id);
-  return { ok: !error, error: error?.message };
+  if (!room.id) {
+    // INSERT: пусть БД сгенерит UUID
+    const { data, error } = await sb
+      .from("svoya_rooms")
+      .insert(payload)
+      .select("id, code, state, next_at")
+      .single();
+    if (error || !data) return { ok: false, error: error?.message ?? "insert failed" };
+    const savedRoom = { ...room, id: data.id as string };
+    return { ok: true, room: savedRoom };
+  }
+  const { error } = await sb
+    .from("svoya_rooms")
+    .upsert(payload, { onConflict: "id" })
+    .eq("id", room.id);
+  return { ok: !error, error: error?.message, room };
 }
 
 /** Прочитать комнату по id. */

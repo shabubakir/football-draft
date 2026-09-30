@@ -122,18 +122,19 @@ export function SvoyaIgra() {
         })
       );
       const code = makeCode();
-      const roomId = "r" + Math.random().toString(36).slice(2, 12);
       const name = myNameRef.current.trim().slice(0, 32) || "Хост";
-      const newRoom = createRoom({ id: roomId, code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20 });
+      // id: "" → saveRoom сделает INSERT, Postgres сгенерит UUID сам
+      const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20 });
 
       // Уникальность кода (крайне маловероятно, но проверяем)
       const existing = await loadRoomByCode(sb, code);
       if (existing) { setErr("Конфликт кода — попробуйте ещё раз."); return; }
 
       const saved = await saveRoom(sb, newRoom);
-      if (!saved.ok) { setErr("Ошибка сохранения: " + (saved.error ?? "?")); return; }
+      if (!saved.ok || !saved.room) { setErr("Ошибка сохранения: " + (saved.error ?? "insert failed")); return; }
 
-      setRoom(newRoom);
+      // saved.room.id — реальный UUID из БД
+      setRoom(saved.room);
       setInviteLink(`${window.location.origin}/svoya/join/${code}`);
       setMsg(`Комната ${code} создана! Отправь ссылку друзьям (2–6 игроков).`);
     } catch (e) {
