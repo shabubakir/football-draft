@@ -153,7 +153,7 @@ export function SvoyaIgra() {
 
   const roomRef = useRef<SvoyaRoom | null>(null);
   roomRef.current = room;
-  const realtimeChannelRef = useRef<ReturnType<SupabaseClient["channel"]> | null>(null);
+  const isLeavingRef = useRef(false);
   const { reportResult } = useProgression();
   const reportedRef = useRef(false);
 
@@ -226,6 +226,7 @@ export function SvoyaIgra() {
         setErr("Ошибка сохранения: " + (saved?.error ?? "не удалось создать комнату"));
         return;
       }
+      isLeavingRef.current = false;
       setRoom(saved.room);
       saveRoomIdToStorage(saved.room.id);
       setInviteLink(`${window.location.origin}/svoya/join/${finalCode}`);
@@ -251,6 +252,7 @@ export function SvoyaIgra() {
 
       if (r.players.some((p) => p.id === myId)) {
         // Rejoin — уже в комнате
+        isLeavingRef.current = false;
         setRoom(r);
         saveRoomIdToStorage(r.id);
         setInviteLink(`${window.location.origin}/svoya/join/${r.code}`);
@@ -259,6 +261,7 @@ export function SvoyaIgra() {
       }
       const res = await applyAndSave(sb, r.id, { type: "join", playerId: myId, name });
       if (!res.ok || !res.room) { setErr(res.error ?? "Не удалось подключиться."); return; }
+      isLeavingRef.current = false;
       setRoom(res.room);
       saveRoomIdToStorage(res.room.id);
       setInviteLink(`${window.location.origin}/svoya/join/${res.room.code}`);
@@ -304,11 +307,8 @@ export function SvoyaIgra() {
   const handleLeave = useCallback(async () => {
     const r = roomRef.current;
     if (!r || !sb) return;
-    // Отписаться от realtime-канала, чтобы не подтянуть комнату обратно
-    if (realtimeChannelRef.current) {
-      sb.removeChannel(realtimeChannelRef.current);
-      realtimeChannelRef.current = null;
-    }
+    // Блокируем realtime-события, чтобы не подтянуть комнату обратно
+    isLeavingRef.current = true;
     // Применяем leave и сохраняем
     await applyAndSave(sb, r.id, { type: "leave", playerId: myId });
     clearRoomIdFromStorage();
@@ -327,16 +327,14 @@ export function SvoyaIgra() {
         "postgres_changes",
         { event: "*", schema: "public", table: "svoya_rooms", filter: `id=eq.${roomId}` },
         (payload) => {
+          // Игрок вышел — не подтягиваем комнату обратно
+          if (isLeavingRef.current) return;
           const row = payload.new as { state?: SvoyaRoom } | null;
           if (row?.state) setRoom(row.state);
         }
       )
       .subscribe();
-    realtimeChannelRef.current = ch;
-    return () => {
-      sb.removeChannel(ch);
-      realtimeChannelRef.current = null;
-    };
+    return () => { sb.removeChannel(ch); };
   }, [sb, room?.id]);
 
   // ---------- Auto-reconnect: подхватить комнату после перезагрузки ----------
