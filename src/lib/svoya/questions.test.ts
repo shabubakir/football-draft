@@ -24,12 +24,13 @@ describe("банк вопросов: структура", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("у каждого вопроса есть cat, value, q, answer, explanation", () => {
+  it("у каждого вопроса есть cat, value, q, options, answer, explanation", () => {
     for (const q of SVAYA_QUESTIONS) {
       expect(q.id).toBeTruthy();
       expect(Object.keys(SVAYA_CATEGORIES)).toContain(q.cat);
       expect(SVAYA_VALUES).toContain(q.value);
       expect(q.q.trim().length).toBeGreaterThan(2);
+      expect(q.options).toHaveLength(4);
       expect(q.answer.length).toBeGreaterThan(0);
       expect(q.explanation.trim().length).toBeGreaterThan(2);
     }
@@ -59,7 +60,8 @@ describe("банк вопросов: структура", () => {
 describe("validateQuestions: обнаружение ошибок", () => {
   const valid: SvoyaQuestion = {
     id: "x-100", cat: "mixed", value: 100,
-    q: "Тестовый вопрос?", answer: ["да"], explanation: "Пояснение.",
+    q: "Тестовый вопрос?", options: ["Да", "Нет", "Может", "Не знаю"],
+    answer: ["да"], explanation: "Пояснение.",
   };
 
   it("ловит пустой ответ", () => {
@@ -95,6 +97,50 @@ describe("validateQuestions: обнаружение ошибок", () => {
     const errs = validateQuestions([valid], ["football"]);
     expect(errs.filter((e) => e.code === "MISSING_CAT_VALUE")).toHaveLength(5);
   });
+
+  it("ловит неверное количество вариантов (≠ 4)", () => {
+    const bad3: SvoyaQuestion = { ...valid, id: "y-100", options: ["А", "Б", "В"] };
+    const errs = validateQuestions([valid, bad3]);
+    expect(errs.some((e) => e.code === "BAD_OPTIONS")).toBe(true);
+  });
+
+  it("ловит пустой вариант в options", () => {
+    const bad: SvoyaQuestion = { ...valid, id: "y-100", options: ["Да", "", "Нет", "Может"] };
+    const errs = validateQuestions([valid, bad]);
+    expect(errs.some((e) => e.code === "EMPTY_TEXT" && e.message.includes("[1]"))).toBe(true);
+  });
+
+  it("ловит дубликаты в options", () => {
+    const bad: SvoyaQuestion = { ...valid, id: "y-100", options: ["Да", "Нет", "Да", "Может"] };
+    const errs = validateQuestions([valid, bad]);
+    expect(errs.some((e) => e.code === "BAD_OPTIONS" && e.message.includes("Дубликаты"))).toBe(true);
+  });
+
+  it("ловит несоответствие options[0] и answer[0] (OPT_LEAK)", () => {
+    const bad: SvoyaQuestion = {
+      ...valid, id: "y-100",
+      options: ["Совсем другое", "Да", "Нет", "Может"],
+      answer: ["да"],
+    };
+    const errs = validateQuestions([valid, bad]);
+    expect(errs.some((e) => e.code === "OPT_LEAK")).toBe(true);
+  });
+
+  it("полный банк: все вопросы имеют ровно 4 уникальных варианта", () => {
+    for (const q of SVAYA_QUESTIONS) {
+      expect(q.options, `${q.id}: options.length`).toHaveLength(4);
+      const norm = q.options.map((o) => o.trim().toLowerCase());
+      expect(new Set(norm).size, `${q.id}: дубликаты`).toBe(4);
+    }
+  });
+
+  it("полный банк: options[0] соответствует answer[0]", () => {
+    for (const q of SVAYA_QUESTIONS) {
+      const opt0 = q.options[0].trim().toLowerCase();
+      const ans0 = q.answer[0].trim().toLowerCase();
+      expect(opt0.includes(ans0) || ans0.includes(opt0), `${q.id}: options[0]="${q.options[0]}" vs answer[0]="${q.answer[0]}"`).toBe(true);
+    }
+  });
 });
 
 // ============================================================
@@ -109,10 +155,11 @@ describe("findQuestion / toPublicQuestion", () => {
     expect(findQuestion("нет-такого")).toBeUndefined();
   });
 
-  it("toPublicQuestion скрывает answer", () => {
+  it("toPublicQuestion скрывает answer, но сохраняет options", () => {
     const q = findQuestion("fb-100")!;
     const pub = toPublicQuestion(q);
     expect((pub as Record<string, unknown>).answer).toBeUndefined();
+    expect(pub.options).toHaveLength(4);
     expect(pub.q).toBe(q.q);
     expect(pub.id).toBe(q.id);
   });

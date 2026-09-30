@@ -11,8 +11,7 @@
 //   leave       — игрок выходит (хост → передача хоста)
 //   start       — хост начинает игру (≥2 игроков)
 //   pick        — игрок со своего хода выбирает ячейку
-//   answer      — игрок даёт ответ (текст)
-//   verdict     — хост выносит вердикт (верно/неверно)
+//   answer      — игрок выбирает вариант (optionIndex 0..3), движок сам проверяет
 //   skip        — хост пропускает вопрос (таймаут авто-вердикта)
 //   transfer    — хост передаёт хоста
 //   finish      — хост завершает игру досрочно
@@ -47,7 +46,8 @@ export interface SvoyaCurrent {
   val: number;      // 100..500
   qId: string;
   pickedBy: string;
-  answer?: string;
+  /** Индекс выбранного варианта (0..3). 0 = правильный. */
+  chosenOption?: number;
   correct?: boolean;
   revealed?: boolean;
 }
@@ -77,8 +77,7 @@ export type SvoyaAction =
   | { type: "leave"; playerId: string }
   | { type: "start"; actorId: string }
   | { type: "pick"; actorId: string; cat: number; val: number }
-  | { type: "answer"; actorId: string; text: string }
-  | { type: "verdict"; actorId: string; correct: boolean }
+  | { type: "answer"; actorId: string; optionIndex: number }
   | { type: "skip"; actorId: string }
   | { type: "transfer"; actorId: string; toPlayerId: string }
   | { type: "finish"; actorId: string };
@@ -209,8 +208,6 @@ export function applyAction(
       return doPick(r, action, questions);
     case "answer":
       return doAnswer(r, action);
-    case "verdict":
-      return doVerdict(r, action);
     case "skip":
       return doSkip(r, action);
     case "transfer":
@@ -330,39 +327,40 @@ function doPick(
   return { room: r, ok: true, events: ["picked"] };
 }
 
-function doAnswer(r: SvoyaRoom, a: { actorId: string; text: string }): EngineResult {
+/**
+ * Ответ на вопрос: игрок выбирает один из 4 вариантов (optionIndex 0..3).
+ * Движок САМ проверяет правильность:
+ *   - optionIndex === 0 → правильный (options[0] — всегда верный)
+ *   - optionIndex !== 0 → неправильный
+ * Очки начисляются/снимаются автоматически, фаза → reveal.
+ * Клиенту НЕ доверяется определение правильного ответа.
+ */
+function doAnswer(r: SvoyaRoom, a: { actorId: string; optionIndex: number }): EngineResult {
   if (r.status !== "question") return { room: r, ok: false, error: "Нет активного вопроса" };
   if (!r.current) return { room: r, ok: false, error: "Нет активного вопроса" };
   // Двойной ответ
-  if (r.current.answer !== undefined) {
+  if (r.current.chosenOption !== undefined) {
     return { room: r, ok: false, error: "Ответ уже дан" };
   }
-  const text = a.text.trim().slice(0, 500);
-  if (!text) return { room: r, ok: false, error: "Пустой ответ" };
-  // Любой игрок может ответить (как в настоящей игре — голосует любой)
-  r.current.answer = text;
-  return { room: r, ok: true, events: ["answered"] };
-}
-
-function doVerdict(r: SvoyaRoom, a: { actorId: string; correct: boolean }): EngineResult {
-  if (r.status !== "question") return { room: r, ok: false, error: "Нет активного вопроса" };
-  if (!r.current) return { room: r, ok: false, error: "Нет активного вопроса" };
-  // Только хост
-  if (r.players.find((p) => p.id === a.actorId)?.isHost !== true) {
-    return { room: r, ok: false, error: "Только хост выносит вердикт" };
+  // Валидация индекса
+  if (!Number.isInteger(a.optionIndex) || a.optionIndex < 0 || a.optionIndex > 3) {
+    return { room: r, ok: false, error: "Некорректный вариант ответа" };
   }
+  // Любой игрок может ответить (как в настоящей игре — голосует любой)
+  const correct = a.optionIndex === 0; // options[0] — всегда правильный
   const val = r.current.val;
   const who = r.current.pickedBy;
-  if (a.correct) {
+  if (correct) {
     r.scores[who] = (r.scores[who] ?? 0) + val;
   } else {
     r.scores[who] = (r.scores[who] ?? 0) - val;
   }
-  r.current.correct = a.correct;
+  r.current.chosenOption = a.optionIndex;
+  r.current.correct = correct;
   r.current.revealed = true;
   r.status = "reveal";
   r.nextAt = new Date(Date.now() + 10_000).toISOString(); // 10 c на REVEAL
-  return { room: r, ok: true, events: ["verdict"] };
+  return { room: r, ok: true, events: ["answered"] };
 }
 
 function doSkip(r: SvoyaRoom, a: { actorId: string }): EngineResult {
@@ -500,9 +498,9 @@ export function toPublicRoom(r: SvoyaRoom) {
       val: r.current.val,
       qId: r.current.qId,
       pickedBy: r.current.pickedBy,
-      // answer виден только после REVEAL
-      answer: r.current.revealed ? r.current.answer : undefined,
-      correct: r.current.revealed ? r.current.correct : undefined,
+      chosenOption: r.current.chosenOption,
+      correct: r.current.correct,
+      revealed: r.current.revealed,
     } : null,
     nextAt: r.nextAt,
   };

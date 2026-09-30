@@ -205,78 +205,94 @@ describe("pick (выбор ячейки)", () => {
 });
 
 // ============================================================
-describe("answer (ответ)", () => {
-  it("игрок отвечает на вопрос", () => {
+describe("answer (выбор варианта — серверная проверка)", () => {
+  it("правильный вариант (index 0) → очки + фаза reveal", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 100, qId: "football-100", pickedBy: "h1" },
+      current: { cat: 0, val: 300, qId: "football-100", pickedBy: "h1" },
     });
-    const res = applyAction(r, { type: "answer", actorId: "p2", text: "90" });
+    const res = applyAction(r, { type: "answer", actorId: "p2", optionIndex: 0 });
     expect(res.ok).toBe(true);
-    expect(res.room.current?.answer).toBe("90");
+    expect(res.room.status).toBe("reveal");
+    expect(res.room.current?.chosenOption).toBe(0);
+    expect(res.room.current?.correct).toBe(true);
+    expect(res.room.scores.h1).toBe(300);
   });
 
-  it("двойной ответ отклоняется", () => {
+  it("неправильный вариант (index 1) → штраф + фаза reveal", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 100, qId: "football-100", pickedBy: "h1", answer: "уже" },
+      current: { cat: 0, val: 400, qId: "football-100", pickedBy: "h1" },
     });
-    const res = applyAction(r, { type: "answer", actorId: "p2", text: "ещё" });
+    const res = applyAction(r, { type: "answer", actorId: "p2", optionIndex: 1 });
+    expect(res.ok).toBe(true);
+    expect(res.room.status).toBe("reveal");
+    expect(res.room.current?.chosenOption).toBe(1);
+    expect(res.room.current?.correct).toBe(false);
+    expect(res.room.scores.h1).toBe(-400);
+  });
+
+  it("неправильный вариант (index 2) → штраф", () => {
+    const r = makeRoom({
+      status: "question",
+      current: { cat: 0, val: 200, qId: "x", pickedBy: "p2" },
+      scores: { h1: 0, p2: 100 },
+    });
+    const res = applyAction(r, { type: "answer", actorId: "h1", optionIndex: 2 });
+    expect(res.ok).toBe(true);
+    expect(res.room.current?.correct).toBe(false);
+    expect(res.room.scores.p2).toBe(-100); // 100 - 200
+  });
+
+  it("неправильный вариант (index 3) → штраф", () => {
+    const r = makeRoom({
+      status: "question",
+      current: { cat: 0, val: 500, qId: "x", pickedBy: "h1" },
+    });
+    const res = applyAction(r, { type: "answer", actorId: "p2", optionIndex: 3 });
+    expect(res.ok).toBe(true);
+    expect(res.room.current?.correct).toBe(false);
+    expect(res.room.scores.h1).toBe(-500);
+  });
+
+  it("двойной ответ отклоняется (chosenOption уже задан)", () => {
+    const r = makeRoom({
+      status: "question",
+      current: { cat: 0, val: 100, qId: "football-100", pickedBy: "h1", chosenOption: 0 },
+    });
+    const res = applyAction(r, { type: "answer", actorId: "p2", optionIndex: 1 });
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/уже дан/i);
   });
 
   it("ответ вне question-фазы отклоняется", () => {
     const r = makeRoom({ status: "board" });
-    const res = applyAction(r, { type: "answer", actorId: "h1", text: "hi" });
+    const res = applyAction(r, { type: "answer", actorId: "h1", optionIndex: 0 });
     expect(res.ok).toBe(false);
   });
 
-  it("пустой ответ отклоняется", () => {
+  it("некорректный optionIndex (-1) отклоняется", () => {
     const r = makeRoom({
       status: "question",
       current: { cat: 0, val: 100, qId: "x", pickedBy: "h1" },
     });
-    const res = applyAction(r, { type: "answer", actorId: "h1", text: "   " });
+    const res = applyAction(r, { type: "answer", actorId: "h1", optionIndex: -1 });
+    expect(res.ok).toBe(false);
+    expect(res.error).toMatch(/некорректн/i);
+  });
+
+  it("некорректный optionIndex (4) отклоняется", () => {
+    const r = makeRoom({
+      status: "question",
+      current: { cat: 0, val: 100, qId: "x", pickedBy: "h1" },
+    });
+    const res = applyAction(r, { type: "answer", actorId: "h1", optionIndex: 4 });
     expect(res.ok).toBe(false);
   });
-});
 
-// ============================================================
-describe("verdict (вердикт хоста)", () => {
-  it("хост выносит вердикт, очки начисляются", () => {
-    const r = makeRoom({
-      status: "question",
-      current: { cat: 0, val: 300, qId: "x", pickedBy: "h1", answer: "да" },
-    });
-    const res = applyAction(r, { type: "verdict", actorId: "h1", correct: true });
-    expect(res.ok).toBe(true);
-    expect(res.room.status).toBe("reveal");
-    expect(res.room.scores.h1).toBe(300);
-  });
-
-  it("неверный вердикт — штраф", () => {
-    const r = makeRoom({
-      status: "question",
-      current: { cat: 0, val: 300, qId: "x", pickedBy: "h1", answer: "нет" },
-    });
-    const res = applyAction(r, { type: "verdict", actorId: "h1", correct: false });
-    expect(res.room.scores.h1).toBe(-300);
-  });
-
-  it("не-хост не может вынести вердикт", () => {
-    const r = makeRoom({
-      status: "question",
-      current: { cat: 0, val: 300, qId: "x", pickedBy: "h1", answer: "да" },
-    });
-    const res = applyAction(r, { type: "verdict", actorId: "p2", correct: true });
-    expect(res.ok).toBe(false);
-    expect(res.error).toMatch(/хост/i);
-  });
-
-  it("вердикт без ответа — ошибка", () => {
-    const r = makeRoom({ status: "question" });
-    const res = applyAction(r, { type: "verdict", actorId: "h1", correct: true });
+  it("ответ вне question (current=null) отклоняется", () => {
+    const r = makeRoom({ status: "question", current: null });
+    const res = applyAction(r, { type: "answer", actorId: "h1", optionIndex: 0 });
     expect(res.ok).toBe(false);
   });
 });
@@ -417,24 +433,24 @@ describe("computeResults", () => {
 
 // ============================================================
 describe("toPublicRoom (анти-утечка)", () => {
-  it("до reveal не отдаёт answer", () => {
+  it("до reveal не отдаёт correct/chosenOption", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 100, qId: "x", pickedBy: "h1", answer: "секрет" },
+      current: { cat: 0, val: 100, qId: "x", pickedBy: "h1" },
     });
     const pub = toPublicRoom(r);
-    expect(pub.current?.answer).toBeUndefined();
     expect(pub.current?.correct).toBeUndefined();
+    expect(pub.current?.chosenOption).toBeUndefined();
   });
 
-  it("после reveal — отдаёт", () => {
+  it("после reveal — отдаёт chosenOption + correct", () => {
     const r = makeRoom({
       status: "reveal",
-      current: { cat: 0, val: 100, qId: "x", pickedBy: "h1", answer: "секрет", correct: true, revealed: true },
+      current: { cat: 0, val: 100, qId: "x", pickedBy: "h1", chosenOption: 1, correct: false, revealed: true },
     });
     const pub = toPublicRoom(r);
-    expect(pub.current?.answer).toBe("секрет");
-    expect(pub.current?.correct).toBe(true);
+    expect(pub.current?.chosenOption).toBe(1);
+    expect(pub.current?.correct).toBe(false);
   });
 });
 
@@ -469,13 +485,11 @@ describe("интеграция: полный игровой цикл", () => {
     res = applyAction(r, { type: "pick", actorId: "h1", cat: 0, val: 100 });
     expect(res.ok).toBe(true);
     r = res.room;
-    // p2 отвечает
-    res = applyAction(r, { type: "answer", actorId: "p2", text: "90" });
+    // p2 выбирает правильный вариант (index 0)
+    res = applyAction(r, { type: "answer", actorId: "p2", optionIndex: 0 });
     expect(res.ok).toBe(true);
-    r = res.room;
-    // h1 вердикт: верно
-    res = applyAction(r, { type: "verdict", actorId: "h1", correct: true });
     expect(res.room.scores.h1).toBe(100);
+    expect(res.room.status).toBe("reveal");
     r = res.room;
     // autoAdvance: reveal → board (p2 ход)
     const past = new Date(Date.now() - 1000);
@@ -484,5 +498,21 @@ describe("интеграция: полный игровой цикл", () => {
     r = adv.room;
     expect(r.status).toBe("board");
     expect(turnPlayer(r)?.id).toBe("p2");
+  });
+
+  it("2 игрока: неправильный ответ → штраф, следующий ход", () => {
+    let r = makeRoom();
+    r = applyAction(r, { type: "start", actorId: "h1" }).room;
+    r = applyAction(r, { type: "pick", actorId: "h1", cat: 0, val: 200 }).room;
+    // p2 выбирает неправильный вариант (index 2)
+    r = applyAction(r, { type: "answer", actorId: "p2", optionIndex: 2 }).room;
+    expect(r.scores.h1).toBe(-200);
+    expect(r.status).toBe("reveal");
+    // autoAdvance: reveal → board
+    const past = new Date(Date.now() - 1000);
+    const adv = autoAdvance({ ...r, nextAt: past.toISOString() }, new Date());
+    expect(adv.advanced).toBe(true);
+    expect(adv.room.status).toBe("board");
+    expect(adv.room.turnIndex).toBe(1); // ход p2
   });
 });

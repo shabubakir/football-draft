@@ -74,9 +74,9 @@ export function SvoyaIgra() {
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [inviteLink, setInviteLink] = useState("");
-  const [answerText, setAnswerText] = useState("");
   const [joinName, setJoinName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   const roomRef = useRef<SvoyaRoom | null>(null);
   roomRef.current = room;
@@ -198,16 +198,17 @@ export function SvoyaIgra() {
     await act({ type: "pick", actorId: myId, cat, val }, { silent: true });
   }, [act, myId]);
 
-  const handleAnswer = useCallback(async () => {
-    const text = answerText.trim();
-    if (!text) return;
-    const res = await act({ type: "answer", actorId: myId, text });
-    if (res?.ok) setAnswerText("");
-  }, [act, myId, answerText]);
-
-  const handleVerdict = useCallback(async (correct: boolean) => {
-    await act({ type: "verdict", actorId: myId, correct });
-  }, [act, myId]);
+  const handleOption = useCallback(async (idx: number) => {
+    // Блокируем повторные нажатия: если уже выбран вариант — игнорируем
+    if (selectedOption !== null) return;
+    setSelectedOption(idx);
+    const res = await act({ type: "answer", actorId: myId, optionIndex: idx });
+    // Сбрасываем локальный выбор после обновления комнаты (новое question)
+    // Если act вернул ошибку — сбрасываем, чтобы можно было попробовать снова
+    if (!res?.ok) {
+      setSelectedOption(null);
+    }
+  }, [act, myId, selectedOption]);
 
   const handleSkip = useCallback(async () => {
     await act({ type: "skip", actorId: myId });
@@ -225,6 +226,11 @@ export function SvoyaIgra() {
     setMsg("");
     setInviteLink("");
   }, [sb, myId]);
+
+  // Сбрасываем локальный выбор варианта при смене вопроса/фазы
+  useEffect(() => {
+    setSelectedOption(null);
+  }, [room?.current?.qId, room?.status]);
 
   // ---------- Realtime ----------
   useEffect(() => {
@@ -585,52 +591,39 @@ export function SvoyaIgra() {
             <h2 className="text-xl sm:text-2xl font-bold">{currentQuestion?.q ?? "Загрузка вопроса…"}</h2>
           </div>
 
-          {/* Ответ — любой игрок (пока вопрос активен) */}
-          {!room.current.answer && iAmIn && (
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                value={answerText}
-                onChange={(e) => setAnswerText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAnswer()}
-                placeholder="Ваш ответ…"
-                className="flex-1 rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-white outline-none placeholder:text-white/25 focus:border-cyan-500/50"
-              />
-              <button
-                onClick={handleAnswer}
-                disabled={!answerText.trim()}
-                className="rounded-xl bg-cyan-600 text-white font-bold px-6 py-3 hover:bg-cyan-500 transition active:scale-[0.98] disabled:opacity-40"
-              >
-                ОТВЕТИТЬ
-              </button>
+          {/* 4 варианта ответа — крупные кнопки */}
+          {currentQuestion && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options.map((opt, idx) => (
+                <button
+                  key={idx}
+                  disabled={selectedOption !== null || !iAmIn}
+                  onClick={() => handleOption(idx)}
+                  className={`rounded-2xl border-2 px-5 py-4 text-base sm:text-lg font-bold text-left transition active:scale-[0.97] ${
+                    selectedOption !== null
+                      ? "border-white/10 bg-white/5 text-white/30 cursor-default"
+                      : iAmIn
+                      ? "border-cyan-500/40 bg-gradient-to-br from-cyan-600/60 to-cyan-800/60 text-white hover:from-cyan-500 hover:to-cyan-700 cursor-pointer"
+                      : "border-white/10 bg-white/5 text-white/40 cursor-default"
+                  }`}
+                >
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black/30 text-sm font-black mr-3">
+                    {String.fromCharCode(65 + idx)}
+                  </span>
+                  {opt}
+                </button>
+              ))}
             </div>
           )}
 
-          {room.current.answer && (
-            <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 text-sm">
-              <span className="text-white/40">Ответ: </span>
-              <b className="text-cyan-200">«{room.current.answer}»</b>
-              <span className="text-white/40 ml-2">— ждём вердикта хоста…</span>
+          {selectedOption !== null && (
+            <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 text-sm text-white/60">
+              ⏳ Ответ отправлен…
             </div>
           )}
 
-          {/* Кнопки хоста */}
-          {iAmHost && room.current.answer && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleVerdict(true)}
-                className="flex-1 rounded-xl bg-emerald-600 text-white font-bold py-3 hover:bg-emerald-500 transition active:scale-[0.98]"
-              >
-                ✓ ВЕРНО (+{room.current.val})
-              </button>
-              <button
-                onClick={() => handleVerdict(false)}
-                className="flex-1 rounded-xl bg-red-600 text-white font-bold py-3 hover:bg-red-500 transition active:scale-[0.98]"
-              >
-                ✗ НЕВЕРНО (−{room.current.val})
-              </button>
-            </div>
-          )}
-          {iAmHost && !room.current.answer && (
+          {/* Кнопка пропуска (хост) */}
+          {iAmHost && selectedOption === null && (
             <button
               onClick={handleSkip}
               className="w-full rounded-xl bg-stone-600/60 text-white font-semibold py-2.5 hover:bg-stone-500/60 transition"
@@ -654,10 +647,26 @@ export function SvoyaIgra() {
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 space-y-4">
             <h2 className="text-xl sm:text-2xl font-bold">{currentQuestion?.q ?? "—"}</h2>
 
-            {room.current.answer && (
-              <div className="text-sm text-white/60">
-                <span className="text-white/40">Дан ответ: </span>
-                <b>«{room.current.answer}»</b>
+            {/* Показываем все 4 варианта с подсветкой */}
+            {currentQuestion && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {currentQuestion.options.map((opt, idx) => {
+                  const isCorrect = idx === 0; // options[0] всегда правильный
+                  const isChosen = room.current!.chosenOption === idx;
+                  let cls = "border-white/10 bg-white/5 text-white/30";
+                  if (isCorrect) cls = "border-emerald-500/60 bg-emerald-500/15 text-emerald-200";
+                  else if (isChosen) cls = "border-red-500/60 bg-red-500/15 text-red-200";
+                  return (
+                    <div key={idx} className={`rounded-xl border-2 px-4 py-3 text-sm font-semibold ${cls}`}>
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black/30 text-[11px] font-black mr-2">
+                        {String.fromCharCode(65 + idx)}
+                      </span>
+                      {opt}
+                      {isCorrect && <span className="ml-2 text-emerald-300">✓</span>}
+                      {isChosen && !isCorrect && <span className="ml-2 text-red-300">✗ ваш выбор</span>}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -675,10 +684,6 @@ export function SvoyaIgra() {
                 <span className="text-white/40 font-normal ml-auto">
                   ({room.players.find((p) => p.id === room.current!.pickedBy)?.name})
                 </span>
-              </div>
-              {/* Правильный ответ + пояснение */}
-              <div className="mt-2 text-sm text-white/70">
-                <b className="text-white/90">Правильный ответ:</b> {currentQuestionFull?.answer?.join(" / ")}
               </div>
               <div className="mt-1 text-sm text-white/50">
                 💡 {currentQuestion?.explanation}
