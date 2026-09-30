@@ -932,13 +932,13 @@ export default function LastShift() {
             ctx.fillRect(sx - sw * 0.14 - legSwing, sy + sh * 0.68, legW, sh * 0.34);
             ctx.fillRect(sx + sw * 0.06 + legSwing, sy + sh * 0.68, legW, sh * 0.34);
 
-            // GLOWING EYES — the key feature, very visible
-            const eyeGlow = chasing ? 0.9 + Math.sin(animTime * 15) * 0.1 : stalker ? 0.65 : 0.4;
-            const eyeColor = chasing ? "#ff1a1a" : "#ffb3b3";
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = eyeColor;
+            // GLOWING RED EYES — always bright red, very visible
+            const eyeGlow = chasing ? 0.95 + Math.sin(animTime * 15) * 0.05 : 0.7 + Math.sin(animTime * 6) * 0.15;
+            const eyeColor = chasing ? "#ff0000" : "#cc2200";
+            ctx.shadowBlur = 35;
+            ctx.shadowColor = "#ff0000";
             ctx.fillStyle = eyeColor;
-            const eyeSize = Math.max(3, sh * 0.025);
+            const eyeSize = Math.max(4, sh * 0.03);
             const eyeY = sy + sh * 0.11;
             ctx.beginPath();
             ctx.ellipse(sx - sw * 0.1, eyeY, eyeSize, eyeSize * 0.55, -0.3, 0, Math.PI * 2);
