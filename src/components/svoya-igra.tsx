@@ -22,13 +22,14 @@ import { useProgression } from "@/lib/progression/use-progression";
 import {
   createRoom,
   toPublicRoom,
+  roundForCell,
+  findQuestionForCell,
   type SvoyaRoom,
   type SvoyaAction,
 } from "@/lib/svoya/engine";
 import {
   SVAYA_CATEGORIES,
   SVAYA_VALUES,
-  SVAYA_QUESTIONS,
   findQuestion,
   type SvoyaCategory,
   type PublicQuestion,
@@ -41,8 +42,66 @@ import {
   makeCode,
   saveRoom,
 } from "@/lib/svoya/room";
+import { VoiceChatPanel } from "@/components/voice-chat-panel";
 
 const ANSWER_OPTIONS = [10, 20, 30, 60];
+
+/**
+ * Блок изображения фото-вопроса (над вариантами ответа).
+ * Состояния: loading (скелетон) → loaded (img) / error (эмодзи-фолбэк).
+ * Если imgUrl не задан — сразу показываем эмодзи-фолбэк (стабильно, без сети).
+ * Мобильная адаптивность: max-h с object-contain, ширина 100%.
+ */
+function QuestionImage({ imgUrl, emoji, alt }: { imgUrl?: string; emoji?: string; alt: string }) {
+  const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
+
+  // Если imgUrl не задан — сразу эмодзи (никаких запросов).
+  useEffect(() => {
+    setState(imgUrl ? "loading" : "error");
+  }, [imgUrl]);
+
+  // Если imgUrl не задан или ошибка — показываем эмодзи-фолбэк.
+  if (!imgUrl || state === "error") {
+    return (
+      <div className="flex items-center justify-center rounded-xl bg-black/30 border border-white/10 p-4 my-3">
+        <div className="text-center">
+          <div className="text-4xl sm:text-5xl leading-none mb-1" aria-hidden>
+            {emoji ?? "🎬"}
+          </div>
+          {imgUrl && (
+            <p className="text-xs text-white/40 mt-1">
+              Изображение недоступно — смотрите эмодзи
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Скелетон при загрузке
+  if (state === "loading") {
+    return (
+      <div className="rounded-xl bg-white/5 border border-white/10 p-4 my-3">
+        <div className="mx-auto max-w-[220px] aspect-[2/3] rounded-lg bg-white/10 animate-pulse" />
+      </div>
+    );
+  }
+
+  // Загруженное изображение
+  return (
+    <div className="flex items-center justify-center my-3">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imgUrl}
+        alt={alt}
+        loading="lazy"
+        onLoad={() => setState("loaded")}
+        onError={() => setState("error")}
+        className="max-h-[320px] w-auto max-w-full rounded-xl object-contain"
+      />
+    </div>
+  );
+}
 
 /** Стабильный ID игрока: один на вкладку (sessionStorage), переживает перезагрузку. */
 function getMyId(): string {
@@ -121,7 +180,7 @@ export function SvoyaIgra() {
     setBusy(true);
     try {
       const numCats = mode === 15 ? 3 : 5;
-      // Случайные категории из 8
+      // Случайные категории из 9
       const allCats = Object.keys(SVAYA_CATEGORIES) as SvoyaCategory[];
       const cats: SvoyaCategory[] = [];
       const pool = [...allCats];
@@ -129,13 +188,6 @@ export function SvoyaIgra() {
         const i = Math.floor(Math.random() * pool.length);
         cats.push(pool.splice(i, 1)[0]);
       }
-      // Доска: numCats × 5 ячеек
-      const board = cats.flatMap((cat) =>
-        SVAYA_VALUES.map((value) => {
-          const q = SVAYA_QUESTIONS.find((x) => x.cat === cat && x.value === value);
-          return { cat, value, qId: q?.id ?? `${cat}-${value}`, taken: false };
-        })
-      );
       const name = myNameRef.current.trim().slice(0, 32) || "Хост";
       // Retry-цикл: генерируем код, пробуем INSERT. Если код занят
       // (unique constraint) — берём новый код и пробуем снова (до 5 раз).
@@ -143,7 +195,18 @@ export function SvoyaIgra() {
       let finalCode = "";
       for (let attempt = 0; attempt < 5; attempt++) {
         const code = makeCode();
-        const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20, mode });
+        const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board: [], answerSeconds: 20, mode });
+        // Доска: numCats × 5 ячеек. Раунд (0..2) детерминирован seed'ом
+        // комнаты — одна и та же комната всегда имеет одну и ту же доску.
+        const seed = newRoom.seed;
+        const board = cats.flatMap((cat, catIdx) =>
+          SVAYA_VALUES.map((value) => {
+            const round = roundForCell(seed, catIdx, value);
+            const q = findQuestionForCell(cat, value, round);
+            return { cat, value, qId: q?.id ?? `${cat}-${value}-r${round}`, round, taken: false };
+          })
+        );
+        newRoom.board = board;
         const res = await saveRoom(sb, newRoom);
         if (res.ok && res.room) {
           saved = res;
@@ -588,6 +651,11 @@ export function SvoyaIgra() {
         </div>
       )}
 
+      {/* ---------- Голосовой чат (лобби) ---------- */}
+      {room && room.status === "lobby" && iAmIn && (
+        <VoiceChatPanel roomId={room.id} playerId={myId} playerName={myName} />
+      )}
+
       {/* ---------- Доска (классическая «Своя игра») ---------- */}
       {room && room.status === "board" && (
         <div className="space-y-4">
@@ -595,7 +663,16 @@ export function SvoyaIgra() {
             <span className="text-white/50">
               Ходит: <b className={myTurn ? "text-emerald-300" : "text-cyan-300"}>{turnPlayerName ?? "—"}</b>
             </span>
-            <span className="text-white/40">Выбрано: {takenCount}/{room.board.length}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-white/40">Выбрано: {takenCount}/{room.board.length}</span>
+              <button
+                onClick={handleLeave}
+                className="text-xs text-white/30 hover:text-red-300 transition"
+                title="Выйти из комнаты"
+              >
+                ✕ Выйти
+              </button>
+            </div>
           </div>
 
           {myTurn && (
@@ -658,6 +735,11 @@ export function SvoyaIgra() {
       )}
 
       {/* ---------- Вопрос ---------- */}
+      {room && room.status === "question" && !room.current && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 text-center">
+          <p className="text-white/40">Вопрос не найден. Подождите — состояние синхронизируется…</p>
+        </div>
+      )}
       {room && room.status === "question" && room.current && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm">
@@ -676,7 +758,24 @@ export function SvoyaIgra() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
-            <h2 className="text-xl sm:text-2xl font-bold">{currentQuestion?.q ?? "Загрузка вопроса…"}</h2>
+            {currentQuestion ? (
+              <>
+                {/* Фото-вопрос: изображение/эмодзи над текстом (только если есть) */}
+                {(currentQuestion.imgUrl || currentQuestion.emoji) && (
+                  <QuestionImage
+                    imgUrl={currentQuestion.imgUrl}
+                    emoji={currentQuestion.emoji}
+                    alt={currentQuestion.q}
+                  />
+                )}
+                <h2 className="text-xl sm:text-2xl font-bold">{currentQuestion.q}</h2>
+              </>
+            ) : (
+              <div className="text-white/40">
+                ⚠️ Вопрос не найден в банке (id: {room.current.qId}).
+                Проверьте, что банк вопросов актуален.
+              </div>
+            )}
           </div>
 
           {/* 4 варианта ответа — крупные кнопки */}
@@ -719,10 +818,24 @@ export function SvoyaIgra() {
               ⏭ Пропустить (−{room.current.val} тому, кто выбрал)
             </button>
           )}
+
+          <div className="text-center">
+            <button
+              onClick={handleLeave}
+              className="text-xs text-white/25 hover:text-red-300 transition"
+            >
+              ✕ Выйти из комнаты
+            </button>
+          </div>
         </div>
       )}
 
       {/* ---------- REVEAL ---------- */}
+      {room && room.status === "reveal" && !room.current && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 text-center">
+          <p className="text-white/40">Синхронизация…</p>
+        </div>
+      )}
       {room && room.status === "reveal" && room.current && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm">
@@ -788,6 +901,15 @@ export function SvoyaIgra() {
               </div>
             </div>
           </div>
+
+          <div className="text-center">
+            <button
+              onClick={handleLeave}
+              className="text-xs text-white/25 hover:text-red-300 transition"
+            >
+              ✕ Выйти из комнаты
+            </button>
+          </div>
         </div>
       )}
 
@@ -848,7 +970,17 @@ export function SvoyaIgra() {
               ↩ Выйти в лобби
             </button>
           </div>
+
+          {/* Голосовой чат в финале */}
+          <div className="mt-4 max-w-md mx-auto">
+            <VoiceChatPanel roomId={room.id} playerId={myId} playerName={myName} />
+          </div>
         </div>
+      )}
+
+      {/* ---------- Голосовой чат (board/question/reveal) ---------- */}
+      {room && (room.status === "board" || room.status === "question" || room.status === "reveal") && (
+        <VoiceChatPanel roomId={room.id} playerId={myId} playerName={myName} />
       )}
 
       {/* ---------- Таблица лидеров (на board/question/reveal) ---------- */}

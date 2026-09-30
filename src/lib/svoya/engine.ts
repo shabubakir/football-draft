@@ -29,7 +29,7 @@
 // частичных обновлений, нет подделки очков.
 // ============================================================
 
-import type { SvoyaCategory, SvoyaQuestion } from "./questions";
+import { findQuestion, SVAYA_QUESTIONS, SVAYA_ROUNDS, type SvoyaCategory, type SvoyaQuestion } from "./questions";
 
 /** Длительность REVEAL (показ итогов) в мс. */
 export const REVEAL_MS = 3000;
@@ -51,6 +51,8 @@ export interface SvoyaCell {
   cat: SvoyaCategory;
   value: number; // 500..2500
   qId: string;
+  /** Раунд вопроса (0..2) — детерминирован seed'ом комнаты. */
+  round?: number;
   taken: boolean;
   takenBy?: string;
 }
@@ -72,7 +74,7 @@ export interface SvoyaAnswer {
 
 export interface SvoyaCurrent {
   cat: number;      // индекс категории (0-4)
-  val: number;      // 100..500
+  val: number;      // 500..2500
   qId: string;
   pickedBy: string;
   /**
@@ -81,6 +83,12 @@ export interface SvoyaCurrent {
    * все активные игроки (или по идл-тайм-ауту).
    */
   answers: Record<string, SvoyaAnswer>;
+  /**
+   * Абсолютный дедлайн вопроса (epoch ms). Учитывает число игроков:
+   * answerSeconds + (players-1)*IDLE_AFTER_ANSWER_MS + REVEAL_MS.
+   * Не сбрасывается при каждом ответе — только продлевается при join.
+   */
+  deadlineMs: number;
 }
 
 export interface SvoyaRoom {
@@ -94,7 +102,7 @@ export interface SvoyaRoom {
   seed: number;
   categories: SvoyaCategory[]; // категории доски (порядок)
   players: SvoyaPlayer[];
-  board: SvoyaCell[];          // ячейки: [cat*5 + valueIdx]
+  board: SvoyaCell[];          // ячейки: [catIdx*5 + valueIdx]
   scores: Record<string, number>;
   turnQueue: string[];         // порядок ходов (playerId)
   turnIndex: number;
@@ -156,6 +164,7 @@ export function cloneRoom(r: SvoyaRoom): SvoyaRoom {
     current: r.current
       ? { ...r.current, answers: { ...r.current.answers } }
       : null,
+    nextAt: r.nextAt, // ISO string — immutable
   };
 }
 
@@ -197,6 +206,44 @@ export function valueIndex(val: number): number {
 /** Индекс ячейки в board (cat*5 + valueIdx). */
 export function cellIndex(cat: number, val: number): number {
   return cat * 5 + valueIndex(val);
+}
+
+/**
+ * Детерминированный выбор раунда для ячейки (seed + cat + value).
+ * Один и тот же seed даёт одно и то же распределение раундов —
+ * это хранится в room.seed и переживает перезагрузку/переподключение.
+ * (cat*31+value*7+seed) % 3 даёт 0..2.
+ */
+export function roundForCell(seed: number, cat: number, value: number): number {
+  const n = Math.abs(Math.trunc(seed)) * 31 + Math.trunc(cat) * 1009 + Math.trunc(value) * 7;
+  return ((n % 3) + 3) % 3;
+}
+
+/**
+ * Ищет вопрос в банке по (cat, value, round).
+ * Fallback: если раунд не найден (банк изменился) — берёт round 0,
+ * если и он не найден — первый вопрос категории с этим номиналом.
+ * Это гарантирует, что qId никогда не "висяк" при старте игры.
+ */
+export function findQuestionForCell(
+  cat: SvoyaCategory,
+  value: number,
+  round: number
+): SvoyaQuestion | undefined {
+  const r = ((round % 3) + 3) % 3;
+  // Пробуем в порядке: запрошенный раунд → остальные → fallback по (cat, value)
+  const order = [r, ...SVAYA_ROUNDS.filter((x) => x !== r)];
+  for (const rr of order) {
+    const q = findQuestion(`${cat}-${value}-r${rr}`);
+    if (q) return q;
+  }
+  // Fallback по (cat, value) — для старых qId вида "fb-500"
+  return findQuestionByCatValue(cat, value);
+}
+
+/** Fallback: найти вопрос по (cat, value) без учёта раунда (старые id). */
+function findQuestionByCatValue(cat: SvoyaCategory, value: number): SvoyaQuestion | undefined {
+  return SVAYA_QUESTIONS.find((q) => q.cat === cat && q.value === value);
 }
 
 // ---------- Создание комнаты ----------
@@ -373,15 +420,20 @@ function doPick(
   cell.taken = true;
   cell.takenBy = a.actorId;
   r.status = "question";
+  const nowMs = Date.now();
+  // Дедлайн = базовый таймер + время на ответы остальных игроков + reveal
+  const others = Math.max(0, r.players.length - 1);
+  const deadlineMs = nowMs + r.answerSeconds * 1000 + others * IDLE_AFTER_ANSWER_MS + REVEAL_MS;
   r.current = {
     cat: a.cat,
     val: a.val,
     qId: cell.qId,
     pickedBy: a.actorId,
     answers: {},
+    deadlineMs,
   };
-  // Таймер ответа
-  r.nextAt = new Date(Date.now() + r.answerSeconds * 1000).toISOString();
+  // Абсолютный дедлайн: вопрос не зависнет независимо от темпа ответов
+  r.nextAt = new Date(deadlineMs).toISOString();
   return { room: r, ok: true, events: ["picked"] };
 }
 
@@ -442,10 +494,11 @@ function doAnswer(
   if (allAnswered) {
     r.status = "reveal";
     r.nextAt = new Date(Date.now() + REVEAL_MS).toISOString();
-  } else {
-    // Идл-тайм-аут: 10 с без новых ответов → закроем
-    r.nextAt = new Date(Date.now() + IDLE_AFTER_ANSWER_MS).toISOString();
   }
+  // Иначе НЕ трогаем nextAt: абсолютный дедлайн deadlineMs уже стоит
+  // и гарантирует, что вопрос закроется, даже если кто-то не ответил.
+  // (Старое поведение сбрасывало nextAt на +10с после каждого ответа —
+  // при 4+ игроках вопрос "бесконечно" продлевался и выглядел зависшим.)
   return { room: r, ok: true, events: ["answered"] };
 }
 
@@ -504,9 +557,11 @@ export function autoAdvance(
   // Просрочено — продвигаем
   const r = cloneRoom(room);
   if (r.status === "question") {
-    // Таймаут: штраф тому, кто выбрал (как skip). Очки тех, кто уже
-    // ответил, уже начислены/сняты в doAnswer — не трогаем их.
-    if (r.current) {
+    // Таймаут. Штраф тому, кто выбрал, ТОЛЬКО если никто не ответил
+    // (как skip). Если кто-то уже ответил — просто завершаем вопрос:
+    // очки ответивших уже начислены/сняты в doAnswer, а повторный
+    // штраф пикера выглядел бы как "исчезающие" очки.
+    if (r.current && Object.keys(r.current.answers).length === 0) {
       const val = r.current.val;
       const who = r.current.pickedBy;
       r.scores[who] = (r.scores[who] ?? 0) - val;
@@ -583,6 +638,7 @@ export function toPublicRoom(r: SvoyaRoom) {
       qId: r.current.qId,
       pickedBy: r.current.pickedBy,
       answers: r.current.answers,
+      deadlineMs: r.current.deadlineMs,
     } : null,
     nextAt: r.nextAt,
   };

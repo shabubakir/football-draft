@@ -42,6 +42,19 @@ function makeBoard(cats: SvoyaCategory[] = CATS5): SvoyaCell[] {
   return cells;
 }
 
+/** Создать SvoyaCurrent с обязательным deadlineMs. */
+function makeCurrent(over: Partial<import("./engine").SvoyaCurrent> = {}): import("./engine").SvoyaCurrent {
+  return {
+    cat: 0,
+    val: 500,
+    qId: "x",
+    pickedBy: "h1",
+    answers: {},
+    deadlineMs: Date.now() + 60_000,
+    ...over,
+  };
+}
+
 function makeRoom(over: Partial<SvoyaRoom> = {}): SvoyaRoom {
   const cats = over.categories ?? CATS5;
   const mode = over.mode ?? 25;
@@ -247,7 +260,7 @@ describe("pick (выбор ячейки)", () => {
   });
 
   it("выбор вне board-фазы отклоняется", () => {
-    const r = makeRoom({ status: "question", current: { cat: 0, val: 500, qId: "x", pickedBy: "h1", answers: {} } });
+    const r = makeRoom({ status: "question", current: makeCurrent() });
     const res = applyAction(r, { type: "pick", actorId: "p2", cat: 1, val: 1000 });
     expect(res.ok).toBe(false);
   });
@@ -271,7 +284,7 @@ describe("answer (выбор варианта — серверная прове�
   it("правильный вариант (optionId 0) → +1500, вопрос остаётся открытым", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 1500, qId: "football-1500", pickedBy: "h1", answers: {} },
+      current: makeCurrent({ val: 1500, qId: "football-1500" }),
     });
     const res = applyAction(r, { type: "answer", actorId: "p2", optionId: 0 });
     expect(res.ok).toBe(true);
@@ -283,7 +296,7 @@ describe("answer (выбор варианта — серверная прове�
   it("неправильный вариант (optionId 1) → −2000", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 2000, qId: "football-2000", pickedBy: "h1", answers: {} },
+      current: makeCurrent({ val: 2000, qId: "football-2000" }),
     });
     const res = applyAction(r, { type: "answer", actorId: "p2", optionId: 1 });
     expect(res.ok).toBe(true);
@@ -300,7 +313,7 @@ describe("answer (выбор варианта — серверная прове�
         { id: "p3", name: "Игрок3", isHost: false, joinedAt: 3000 },
       ],
       scores: { h1: 0, p2: 0, p3: 0 },
-      current: { cat: 0, val: 1000, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent({ val: 1000 }),
     });
     let res = applyAction(r, { type: "answer", actorId: "h1", optionId: 0 });
     expect(res.room.status).toBe("question");
@@ -313,7 +326,7 @@ describe("answer (выбор варианта — серверная прове�
   it("двойной ответ от того же игрока отклоняется", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 500, qId: "football-500", pickedBy: "h1", answers: { h1: { optionId: 0, correct: true } } },
+      current: makeCurrent({ val: 500, qId: "football-500", answers: { h1: { optionId: 0, correct: true } } }),
     });
     const res = applyAction(r, { type: "answer", actorId: "h1", optionId: 2 });
     expect(res.ok).toBe(false);
@@ -324,7 +337,7 @@ describe("answer (выбор варианта — серверная прове�
   it("повторная отправка не меняет счёт", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 1500, qId: "x", pickedBy: "h1", answers: { p2: { optionId: 1, correct: false } } },
+      current: makeCurrent({ val: 1500, answers: { p2: { optionId: 1, correct: false } } }),
       scores: { h1: 0, p2: -1500 },
     });
     const res = applyAction(r, { type: "answer", actorId: "p2", optionId: 0 });
@@ -341,7 +354,7 @@ describe("answer (выбор варианта — серверная прове�
   it("игрок вне комнаты не может ответить", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent(),
     });
     const res = applyAction(r, { type: "answer", actorId: "ghost", optionId: 0 });
     expect(res.ok).toBe(false);
@@ -353,7 +366,7 @@ describe("skip / timeout", () => {
   it("skip = штраф −2500 тому, кто выбрал", () => {
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 2500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent({ val: 2500 }),
     });
     const res = applyAction(r, { type: "skip", actorId: "h1" });
     expect(res.room.scores.h1).toBe(-2500);
@@ -364,7 +377,7 @@ describe("skip / timeout", () => {
     const past = new Date(Date.now() - 1000);
     const r = makeRoom({
       status: "question",
-      current: { cat: 0, val: 1500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent({ val: 1500 }),
       nextAt: past.toISOString(),
     });
     const res = autoAdvance(r, new Date());
@@ -373,28 +386,26 @@ describe("skip / timeout", () => {
     expect(res.room.scores.h1).toBe(-1500);
   });
 
-  it("autoAdvance: question timeout с уже ответившими — их очки не трогаются", () => {
+  it("autoAdvance: question timeout с уже ответившими — их очки не трогаются, штраф пикеру НЕ выставляется", () => {
     const past = new Date(Date.now() - 1000);
     const r = makeRoom({
       status: "question",
-      current: {
-        cat: 0, val: 2000, qId: "x", pickedBy: "h1",
-        answers: { p2: { optionId: 0, correct: true } },
-      },
+      current: makeCurrent({ val: 2000, answers: { p2: { optionId: 0, correct: true } } }),
       scores: { h1: 0, p2: 2000 },
       nextAt: past.toISOString(),
     });
     const res = autoAdvance(r, new Date());
     expect(res.room.status).toBe("reveal");
     expect(res.room.scores.p2).toBe(2000);
-    expect(res.room.scores.h1).toBe(-2000);
+    // Пикер НЕ штрафуется, потому что кто-то уже ответил
+    expect(res.room.scores.h1).toBe(0);
   });
 
   it("autoAdvance: reveal → board (следующий ход)", () => {
     const past = new Date(Date.now() - 1000);
     const r = makeRoom({
       status: "reveal",
-      current: { cat: 0, val: 500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent(),
       nextAt: past.toISOString(),
       board: makeBoard().map((c, i) => i === 0 ? { ...c, taken: true, takenBy: "h1" } : c),
     });
@@ -408,7 +419,7 @@ describe("skip / timeout", () => {
     const past = new Date(Date.now() - 1000);
     const r = makeRoom({
       status: "reveal",
-      current: { cat: 0, val: 500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent(),
       nextAt: past.toISOString(),
       board: makeBoard().map((c) => ({ ...c, taken: true, takenBy: "h1" })),
     });
@@ -422,7 +433,7 @@ describe("skip / timeout", () => {
       status: "reveal",
       mode: 15,
       categories: CATS3,
-      current: { cat: 0, val: 500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent(),
       nextAt: past.toISOString(),
       board: makeBoard(CATS3).map((c) => ({ ...c, taken: true, takenBy: "h1" })),
     });
@@ -513,7 +524,7 @@ describe("race conditions (идемпотентность autoAdvance)", () => {
     const past = new Date(Date.now() - 1000);
     const r = makeRoom({
       status: "reveal",
-      current: { cat: 0, val: 500, qId: "x", pickedBy: "h1", answers: {} },
+      current: makeCurrent(),
       nextAt: past.toISOString(),
       board: makeBoard().map((c, i) => i === 0 ? { ...c, taken: true, takenBy: "h1" } : c),
     });
