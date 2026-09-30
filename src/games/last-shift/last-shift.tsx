@@ -36,20 +36,23 @@ interface Exit {
 
 const MAP = [
   "################",
-  "#S....#........#",
-  "#.##..#.####.#.#",
-  "#....##....#.#.#",
-  "####....##.#...#",
-  "#..F.#.....###.#",
-  "#.##.#.###.....#",
-  "#....#...#..##.#",
-  "##.###.#.#.....#",
-  "#.....#.#.####.#",
-  "#.###...#....F.#",
-  "#...#.####.##..#",
-  "###.#......#...#",
-  "#F..####.#...E.#",
-  "#..............#",
+  "#......#....F..#",
+  "#.####.#.####.##",
+  "#.#..#....#....#",
+  "#.#..##.##.#.###",
+  "#.#...#...#....#",
+  "###.###.##.###.#",
+  "#F....#.......#.",
+  "#.#####.#####.#.",
+  "#S.......#..#..#",
+  "#.#####..#..#.##",
+  "#.#....#..#....#",
+  "###.##.#..##.#.#",
+  "#....#.#......#.",
+  "###.#.#.####.#.#",
+  "#....#...F..#..#",
+  "#.##.##.###.#.##",
+  "#............E.#",
   "################",
 ];
 
@@ -123,13 +126,13 @@ function findPath(
 }
 
 function zoneAt(x: number, y: number) {
-  if (x >= 11 && y >= 10)
+  if (y >= 14)
     return { name: "ЗОНА E · ВЫХОД", base: [25, 53, 38], accent: [50, 150, 88] };
-  if (x >= 10 && y <= 5)
+  if (y <= 3)
     return { name: "ЗОНА D · ГЕНЕРАТОРНАЯ", base: [64, 28, 29], accent: [165, 38, 35] };
-  if (x >= 8 && y >= 7 && y <= 11)
+  if (y >= 10 && y <= 13)
     return { name: "ЗОНА C · МЕДБЛОК", base: [35, 54, 43], accent: [77, 128, 91] };
-  if (x <= 5 && y >= 4 && y <= 11)
+  if (y >= 6 && y <= 9)
     return { name: "ЗОНА B · СКЛАД", base: [61, 48, 35], accent: [177, 132, 52] };
   return {
     name: "ЗОНА A · ТЕХНИЧЕСКИЙ КОРИДОР",
@@ -768,7 +771,7 @@ export default function LastShift() {
         const side = Math.abs(Math.sin(rayAng)) > 0.7 ? 0.72 : 1;
         
         // Flashlight with flicker
-        const light = flashlight ? Math.max(0.08, 1 - d / 8) * flashlightFlicker : Math.max(0.035, 0.2 - d / 30);
+        const light = flashlight ? Math.max(0.08, 1 - d / 12) * flashlightFlicker : Math.max(0.035, 0.25 - d / 35);
         const cone = flashlight ? Math.max(0.2, 1 - Math.abs(i / cols - 0.5) * 1.6) : 0.4;
         const v = Math.floor(Math.max(3, 100 * light * cone * side));
         const zone = zoneAt(r.tx, r.ty);
@@ -832,7 +835,7 @@ export default function LastShift() {
       fuseSpots.forEach((f, idx) => {
         if (!f.taken) sprite(f.x, f.y, "#e0c46d", 0.2, true);
       });
-      if (dist(px, py, exit.x, exit.y) < 8)
+      if (dist(px, py, exit.x, exit.y) < 12)
         sprite(exit.x, exit.y, fuses === 3 ? "#55ff9b" : "#ff4c42", 0.56, fuses === 3);
 
       if (monster.active) {
@@ -843,7 +846,7 @@ export default function LastShift() {
         while (a > Math.PI) a -= 2 * Math.PI;
         while (a < -Math.PI) a += 2 * Math.PI;
         const fov = Math.PI / 2.9;
-        if (Math.abs(a) < fov * 0.62 && d < 10) {
+        if (Math.abs(a) < fov * 0.62 && d < 14) {
           const sx = ((a + fov / 2) / fov) * W;
           const idx = Math.max(0, Math.min(zbuf.length - 1, Math.floor((sx / W) * zbuf.length)));
           const sh = Math.min(H * 1.3, H / (Math.max(0.3, d) * 0.7));
@@ -1013,14 +1016,14 @@ export default function LastShift() {
           const options: { x: number; y: number }[] = [];
           for (let y = 1; y < grid.length - 1; y++) {
             for (let x = 1; x < grid[y].length - 1; x++) {
-              if (!w(x + 0.5, y + 0.5) && dist(px, py, x + 0.5, y + 0.5) > 5 && !hasLineOfSight(grid, px, py, x + 0.5, y + 0.5, doorOpen))
+              if (!w(x + 0.5, y + 0.5) && dist(px, py, x + 0.5, y + 0.5) > 8 && !hasLineOfSight(grid, px, py, x + 0.5, y + 0.5, doorOpen))
                 options.push({ x: x + 0.5, y: y + 0.5 });
             }
           }
           if (!options.length)
             for (let y = 1; y < grid.length - 1; y++)
               for (let x = 1; x < grid[y].length - 1; x++)
-                if (!w(x + 0.5, y + 0.5) && dist(px, py, x + 0.5, y + 0.5) > 5)
+                if (!w(x + 0.5, y + 0.5) && dist(px, py, x + 0.5, y + 0.5) > 6)
                   options.push({ x: x + 0.5, y: y + 0.5 });
           if (options.length) {
             const p = options[Math.floor(Math.random() * options.length)];
@@ -1038,8 +1041,8 @@ export default function LastShift() {
         let d = dist(px, py, monster.x, monster.y);
         const los = hasLineOfSight(grid, monster.x, monster.y, px, py, doorOpen);
         const prevChase = monster.state === "CHASE";
-        if (d < 7 && los) {
-          monster.state = d < 4 ? "CHASE" : "STALKING";
+        if (d < 9 && los) {
+          monster.state = d < 5 ? "CHASE" : "STALKING";
           monster.seen += dt;
         } else if (prevChase) {
           monster.state = "SEARCHING";
@@ -1065,14 +1068,14 @@ export default function LastShift() {
             monster.repath = 0;
           }
         }
-        if (sprint && d < 9) monster.state = "CHASE";
+        if (sprint && d < 11) monster.state = "CHASE";
         // Update threat level (throttled)
         if (threatUpdateTimer <= 0) {
           threatUpdateTimer = 0.5;
           let newThreat: "НИЗКАЯ" | "СРЕДНЯЯ" | "ВЫСОКАЯ" | "КРИТИЧЕСКАЯ";
-          if (monster.state === "CHASE" && d < 4) newThreat = "КРИТИЧЕСКАЯ";
+          if (monster.state === "CHASE" && d < 5) newThreat = "КРИТИЧЕСКАЯ";
           else if (monster.state === "CHASE") newThreat = "ВЫСОКАЯ";
-          else if (monster.state === "STALKING" && d < 7) newThreat = "СРЕДНЯЯ";
+          else if (monster.state === "STALKING" && d < 9) newThreat = "СРЕДНЯЯ";
           else newThreat = "НИЗКАЯ";
           if (newThreat !== threat) setThreat(newThreat);
         }
@@ -1092,7 +1095,7 @@ export default function LastShift() {
             const len = Math.hypot(dx, dy);
             if (len < 0.18) monster.path.shift();
             else {
-              const base = monster.state === "CHASE" ? 1.45 : monster.state === "SEARCHING" ? 0.75 : 0.48;
+              const base = monster.state === "CHASE" ? 1.6 : monster.state === "SEARCHING" ? 0.8 : 0.52;
               const sp = base * dt;
               const nx = monster.x + (dx / len) * sp;
               const ny = monster.y + (dy / len) * sp;
