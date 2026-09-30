@@ -2,8 +2,8 @@
 // QUIZ — сохранение незавершённой онлайн-партии
 //
 // Источник истины для комнаты — Supabase (сервер). Локальное
-// хранилище хранит только код комнаты, чтобы при перезагрузке
-// автоматически подключиться.
+// хранилище хранит код комнаты + myId, чтобы при перезагрузке
+// автоматически подключиться под тем же ID.
 //
 // Сохраняется: при создании/входе в комнату.
 // Удаляется: при выходе, при завершении, при невалидных данных.
@@ -14,6 +14,10 @@ const STORAGE_KEY = "quiz-online-room-code-v1";
 export interface QuizSession {
   version: 1;
   code: string;
+  /** ID игрока — чтобы после F5 подключиться под тем же ID */
+  playerId: string;
+  /** Роль в комнате: host или guest */
+  role: "host" | "guest";
   savedAt: number;
 }
 
@@ -22,12 +26,12 @@ function isValidSession(s: unknown): s is QuizSession {
   const o = s as Record<string, unknown>;
   if (o.version !== 1) return false;
   if (typeof o.code !== "string" || o.code.length < 4 || o.code.length > 8) return false;
+  if (typeof o.playerId !== "string" || o.playerId.length < 3) return false;
+  if (o.role !== "host" && o.role !== "guest") return false;
   return true;
 }
 
 export function loadSession(): QuizSession | null {
-  // Не используем typeof window guard — в тестах vitest нет
-  // глобального window, но localStorage доступен как globalThis.localStorage.
   if (typeof localStorage === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -46,11 +50,13 @@ export function loadSession(): QuizSession | null {
   }
 }
 
-export function saveSession(code: string) {
+export function saveSession(code: string, playerId: string, role: "host" | "guest" = "guest") {
   if (typeof localStorage === "undefined") return;
   const session: QuizSession = {
     version: 1,
     code: code.toUpperCase(),
+    playerId,
+    role,
     savedAt: Date.now(),
   };
   try {

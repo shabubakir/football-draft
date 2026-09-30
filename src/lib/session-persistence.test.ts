@@ -234,12 +234,22 @@ describe("Quiz — session persistence", () => {
     return await import("../components/quiz-session");
   }
 
-  it("saveSession → loadSession возвращает код", async () => {
+  it("saveSession → loadSession возвращает код + playerId", async () => {
     const mod = await loadModule();
-    mod.saveSession("abc12");
+    mod.saveSession("abc12", "p12345");
     const loaded = mod.loadSession();
     expect(loaded).not.toBeNull();
     expect(loaded!.code).toBe("ABC12"); // upper-case
+    expect(loaded!.playerId).toBe("p12345");
+    expect(loaded!.role).toBe("guest"); // default
+  });
+
+  it("saveSession с ролью host", async () => {
+    const mod = await loadModule();
+    mod.saveSession("XYZ99", "p99999", "host");
+    const loaded = mod.loadSession();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.role).toBe("host");
   });
 
   it("loadSession без сохранения → null", async () => {
@@ -249,7 +259,7 @@ describe("Quiz — session persistence", () => {
 
   it("clearSession удаляет", async () => {
     const mod = await loadModule();
-    mod.saveSession("xyz99");
+    mod.saveSession("xyz99", "p11111");
     expect(mod.loadSession()).not.toBeNull();
     mod.clearSession();
     expect(mod.loadSession()).toBeNull();
@@ -257,7 +267,7 @@ describe("Quiz — session persistence", () => {
 
   it("Короткий код (< 4) → null + очистка", async () => {
     const mod = await loadModule();
-    const bad = { version: 1, code: "AB", savedAt: 0 };
+    const bad = { version: 1, code: "AB", playerId: "p1", savedAt: 0 };
     localStorage.setItem("quiz-online-room-code-v1", JSON.stringify(bad));
     expect(mod.loadSession()).toBeNull();
     expect(localStorage.getItem("quiz-online-room-code-v1")).toBeNull();
@@ -265,7 +275,23 @@ describe("Quiz — session persistence", () => {
 
   it("Устаревшая версия → null + очистка", async () => {
     const mod = await loadModule();
-    const bad = { version: 0, code: "ABC12", savedAt: 0 };
+    const bad = { version: 0, code: "ABC12", playerId: "p1", savedAt: 0 };
+    localStorage.setItem("quiz-online-room-code-v1", JSON.stringify(bad));
+    expect(mod.loadSession()).toBeNull();
+    expect(localStorage.getItem("quiz-online-room-code-v1")).toBeNull();
+  });
+
+  it("Нет playerId → null + очистка", async () => {
+    const mod = await loadModule();
+    const bad = { version: 1, code: "ABC12", savedAt: 0 };
+    localStorage.setItem("quiz-online-room-code-v1", JSON.stringify(bad));
+    expect(mod.loadSession()).toBeNull();
+    expect(localStorage.getItem("quiz-online-room-code-v1")).toBeNull();
+  });
+
+  it("Невалидная роль → null + очистка", async () => {
+    const mod = await loadModule();
+    const bad = { version: 1, code: "ABC12", playerId: "p1", role: "admin", savedAt: 0 };
     localStorage.setItem("quiz-online-room-code-v1", JSON.stringify(bad));
     expect(mod.loadSession()).toBeNull();
     expect(localStorage.getItem("quiz-online-room-code-v1")).toBeNull();

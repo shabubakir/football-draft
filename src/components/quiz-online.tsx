@@ -128,6 +128,7 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
     setInviteLink(link);
     setPhase("lobby");
     setMsg(`Комната создана! Ссылка для друзей:\n${link}`);
+    saveSession(code, myId, "host");
   }, [initSb, myName, myId, topic]);
 
   // ---------- Гость: подключиться ----------
@@ -170,14 +171,20 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
 
     const existing = r.players.find((p) => p.id === myId);
     if (existing) {
-      // Уже подключены — просто показываем текущее состояние
-      setRole("guest");
+      // Уже подключены — просто показываем текущее состояние.
+      // Роль берём из комнаты: isHost = true → host.
+      const roomRole: Role = existing.isHost ? "host" : "guest";
+      setRole(roomRole);
       setJoinedByLink(true);
       setRoom(r);
       setPhase(phaseFromState());
+      saveSession(code, myId, roomRole);
       setMsg(`Вы уже в игре как «${existing.name}».`);
       return;
     }
+
+    if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
+    if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
 
     if (r.status !== "lobby") { setError("Игра уже началась или закончилась."); return; }
     if (r.players.length >= 5) { setError("Комната полная (максимум 5)."); return; }
@@ -196,6 +203,7 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
     setRoom({ ...r, players: newPlayers, scores: newScores });
     setPhase("lobby");
     setMsg(`Вы в игре как «${name}»! Ждите старта.`);
+    saveSession(code, myId, "guest");
   }, [initSb, joinCode, myName, myId, questions]);
 
   // ---------- Хост: старт ----------
@@ -590,6 +598,22 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
   // ---------- Авто-join: пришёл по ссылке → сразу подключиться ----------
   // ОТКЛЮЧЕНО: гость вводит имя ПОЛНОСТЬЮ и сам нажимает кнопку.
   // (раньше auto-join срабатывал раньше, чем гость допечатывал имя)
+
+  // ---------- Автовозврат: вернуться в комнату после F5/закрытия ----------
+  // Сохранённый playerId используется как myId — чтобы joinRoom
+  // нашёл игрока в room.players и не попытался добавить дубль.
+  const didAutoReturnRef = useRef(false);
+  const autoReturnMyIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (didAutoReturnRef.current) return;
+    didAutoReturnRef.current = true;
+    const saved = loadSession();
+    if (!saved) return;
+    // Подменяем myId на сохранённый — чтобы existing нашёлся
+    autoReturnMyIdRef.current = saved.playerId;
+    setMyId(saved.playerId);
+    void joinRoom(saved.code);
+  }, []);
 
   // Сброс выбора при смене вопроса
   const lastQRef = useRef<number>(-1);
