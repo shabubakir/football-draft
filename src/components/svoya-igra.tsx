@@ -153,6 +153,7 @@ export function SvoyaIgra() {
 
   const roomRef = useRef<SvoyaRoom | null>(null);
   roomRef.current = room;
+  const realtimeChannelRef = useRef<ReturnType<SupabaseClient["channel"]> | null>(null);
   const { reportResult } = useProgression();
   const reportedRef = useRef(false);
 
@@ -303,6 +304,12 @@ export function SvoyaIgra() {
   const handleLeave = useCallback(async () => {
     const r = roomRef.current;
     if (!r || !sb) return;
+    // Отписаться от realtime-канала, чтобы не подтянуть комнату обратно
+    if (realtimeChannelRef.current) {
+      sb.removeChannel(realtimeChannelRef.current);
+      realtimeChannelRef.current = null;
+    }
+    // Применяем leave и сохраняем
     await applyAndSave(sb, r.id, { type: "leave", playerId: myId });
     clearRoomIdFromStorage();
     setRoom(null);
@@ -325,7 +332,11 @@ export function SvoyaIgra() {
         }
       )
       .subscribe();
-    return () => { sb.removeChannel(ch); };
+    realtimeChannelRef.current = ch;
+    return () => {
+      sb.removeChannel(ch);
+      realtimeChannelRef.current = null;
+    };
   }, [sb, room?.id]);
 
   // ---------- Auto-reconnect: подхватить комнату после перезагрузки ----------
