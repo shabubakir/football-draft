@@ -121,22 +121,35 @@ export function SvoyaIgra() {
           return { cat, value, qId: q?.id ?? `${cat}-${value}`, taken: false };
         })
       );
-      const code = makeCode();
       const name = myNameRef.current.trim().slice(0, 32) || "Хост";
-      // id: "" → saveRoom сделает INSERT, Postgres сгенерит UUID сам
-      const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20 });
-
-      // Уникальность кода (крайне маловероятно, но проверяем)
-      const existing = await loadRoomByCode(sb, code);
-      if (existing) { setErr("Конфликт кода — попробуйте ещё раз."); return; }
-
-      const saved = await saveRoom(sb, newRoom);
-      if (!saved.ok || !saved.room) { setErr("Ошибка сохранения: " + (saved.error ?? "insert failed")); return; }
-
-      // saved.room.id — реальный UUID из БД
+      // Retry-цикл: генерируем код, пробуем INSERT. Если код занят
+      // (unique constraint) — берём новый код и пробуем снова (до 5 раз).
+      let saved: { ok: boolean; error?: string; room?: SvoyaRoom } | null = null;
+      let finalCode = "";
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const code = makeCode();
+        const newRoom = createRoom({ id: "", code, hostId: myId, hostName: name, categories: cats, board, answerSeconds: 20 });
+        const res = await saveRoom(sb, newRoom);
+        if (res.ok && res.room) {
+          saved = res;
+          finalCode = code;
+          break;
+        }
+        // Если ошибка unique violation — пробуем с новым кодом
+        if (res.error && (res.error.includes("unique") || res.error.includes("duplicate key"))) {
+          continue;
+        }
+        // Другая ошибка — не ретраим
+        saved = res;
+        break;
+      }
+      if (!saved || !saved.ok || !saved.room) {
+        setErr("Ошибка сохранения: " + (saved?.error ?? "не удалось создать комнату"));
+        return;
+      }
       setRoom(saved.room);
-      setInviteLink(`${window.location.origin}/svoya/join/${code}`);
-      setMsg(`Комната ${code} создана! Отправь ссылку друзьям (2–6 игроков).`);
+      setInviteLink(`${window.location.origin}/svoya/join/${finalCode}`);
+      setMsg(`Комната ${finalCode} создана! Отправь ссылку друзьям (2–6 игроков).`);
     } catch (e) {
       setErr("Ошибка создания комнаты: " + (e as Error).message);
     } finally {
