@@ -22,8 +22,12 @@ export function makeCode(): string {
 /**
  * Сохранить комнату.
  * - Если room.id пустая → INSERT (Postgres сам сгенерит UUID через default gen_random_uuid()).
- *   Возвращает сохранённую строку с реальным id.
- * - Если room.id задан → UPSERT по id.
+ *   Затем UPDATE, чтобы state.id внутри jsonb тоже стал UUID.
+ * - Если room.id задан → UPDATE по id (комната уже существует).
+ *
+ * ВАЖНО: не используем upsert — он роняет unique constraint на code,
+ * даже когда id совпадает (PostgREST строит ON CONFLICT без явного
+ * указания columns). Явный UPDATE безопасен.
  */
 export async function saveRoom(
   sb: SupabaseClient,
@@ -52,9 +56,10 @@ export async function saveRoom(
     if (upErr) return { ok: false, error: upErr.message };
     return { ok: true, room };
   }
+  // UPDATE: комната уже существует
   const { error } = await sb
     .from("svoya_rooms")
-    .upsert(payload, { onConflict: "id" })
+    .update(payload)
     .eq("id", room.id);
   return { ok: !error, error: error?.message, room };
 }
