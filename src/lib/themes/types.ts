@@ -16,6 +16,7 @@ export type GameThemeId =
   | "cs2-map-guess"
   | "reaction-test"
   | "flappy-bird"
+  | "last-shift"
   | "neutral";
 
 export interface GameTheme {

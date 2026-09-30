@@ -262,6 +262,24 @@ const GAMES: GameDefinition[] = [
     },
     category: "arcade",
   },
+  {
+    id: "last-shift",
+    name: "Последняя смена",
+    icon: "🔦",
+    xpRules: {
+      complete: 5,
+      win: 25,
+      perfect: 0,
+      daily: 10,
+    },
+    statsSchema: {
+      gamesPlayed: { type: "int", default: 0 },
+      wins: { type: "int", default: 0 },
+      losses: { type: "int", default: 0 },
+      bestTime: { type: "int", default: 0 },
+    },
+    category: "horror",
+  },
 ];
 
 /**

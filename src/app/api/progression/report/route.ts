@@ -86,6 +86,7 @@ export async function POST(req: Request) {
       akinator: { complete: 5, win: 15, perfect: 10 },
       geoguessr: { complete: 5, win: 25, perfect: 30 },
       "flappy-bird": { complete: 5, win: 20, perfect: 30 },
+      "last-shift": { complete: 5, win: 25 },
     };
 
     const rules = gameRules[gameId];
@@ -189,6 +190,15 @@ export async function POST(req: Request) {
       } else {
         update.totalScore = (current.totalScore ?? 0) + s;
         if (s > (current.bestScore ?? 0)) update.bestScore = s;
+      }
+    }
+    if (gameId === "last-shift") {
+      // Anti-cheat: minimum plausible time (map requires >60s to traverse)
+      const t = metadata?.time ?? 0;
+      if (metadata?.valid === 1 && t > 60) {
+        if (!current.bestTime || t < current.bestTime) {
+          update.bestTime = Math.floor(t);
+        }
       }
     }
 

@@ -258,6 +258,26 @@ export const THEMES: Record<GameThemeId, GameTheme> = {
     fontStyle: "bold",
   },
 
+  // ---------- LAST SHIFT — horror / industrial dark ----------
+  "last-shift": {
+    id: "last-shift",
+    background:
+      "linear-gradient(180deg, #060607 0%, #0b0d0f 45%, #101214 100%)",
+    backgroundPattern:
+      "radial-gradient(circle at 20% 15%, rgba(217,119,6,0.06) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(127,29,29,0.07) 0%, transparent 45%)",
+    primary: "#d97706",
+    accent: "#991b1b",
+    card: "rgba(255,255,255,0.04)",
+    cardBorder: "rgba(255,255,255,0.10)",
+    text: "#f5f5f4",
+    textMuted: "rgba(255,255,255,0.55)",
+    buttonBg: "linear-gradient(135deg, #b45309, #92400e)",
+    buttonText: "#ffffff",
+    buttonHover: "linear-gradient(135deg, #92400e, #78350f)",
+    headerAccent: "#f59e0b",
+    fontStyle: "bold",
+  },
+
   // ---------- NEUTRAL — default site (cream) ----------
   neutral: {
     id: "neutral",

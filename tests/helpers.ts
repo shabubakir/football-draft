@@ -17,6 +17,7 @@ export const ROUTES = [
   "/cs2/battle",
   "/reaction-test",
   "/flappy",
+  "/shift",
   "/login",
   "/register",
   "/profile",
