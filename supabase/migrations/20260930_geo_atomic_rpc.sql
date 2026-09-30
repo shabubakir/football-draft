@@ -1,17 +1,16 @@
 -- ============================================================
 -- GEOGUESSR LITE — атомарные RPC для устранения race condition
 --
--- Проблема: раньше guess/next читали rounds_data, мутировали в JS,
--- и PATCH'или обратно. При одновременных запросах двух игроков
--- последний PATCH перезаписывал результат предыдущего — чужой
--- ответ терялся (симптом: "все нажали, но сервер видит 3/4").
+-- Проблема: раньше guess/next/auto-skip читали rounds_data,
+-- мутировали в JS и PATCH'или обратно. При одновременных
+-- запросах игроков последний PATCH перезаписывал предыдущий —
+-- чужой ответ терялся (симптом: "все нажали, сервер видит 3/4").
 --
--- Решение: все мутации rounds_data происходят внутри Postgres-функций
--- (SELECT ... FOR UPDATE блокирует строку на время транзакции),
--- и возвращают финальное состояние.
+-- Решение: все мутации rounds_data внутри Postgres-функций
+-- (SELECT ... FOR UPDATE блокирует строку на время транзакции).
 -- ============================================================
 
--- ---------- Атомарное добавление ГОТОВОГО entry (сервер уже посчитал очки) ----------
+-- ---------- Атомарное добавление ГОТОВОГО entry ----------
 create or replace function public.geo_add_guess_entry(
   p_room_id uuid,
   p_player_id text,
@@ -22,11 +21,12 @@ security definer
 set search_path = public
 as $$
 declare
-  v_room        geo_rooms%rowtype;
+  v_room        geo_rooms;
   v_rounds      jsonb;
   v_idx         int;
   v_guesses     jsonb;
   v_new_guesses jsonb;
+  v_i           int;
 begin
   select * into v_room from geo_rooms where id = p_room_id for update;
   if not found then
@@ -39,9 +39,9 @@ begin
   v_rounds := v_room.rounds_data;
 
   v_idx := -1;
-  for i in 0 .. jsonb_array_length(v_rounds) - 1 loop
-    if v_rounds -> i ->> 'location_id' is not null then
-      v_idx := i;
+  for v_i in 0 .. jsonb_array_length(v_rounds) - 1 loop
+    if v_rounds -> v_i ->> 'location_id' is not null then
+      v_idx := v_i;
     end if;
   end loop;
   if v_idx < 0 then
@@ -111,7 +111,7 @@ security definer
 set search_path = public
 as $$
 declare
-  v_room        geo_rooms%rowtype;
+  v_room        geo_rooms;
   v_rounds      jsonb;
   v_idx         int;
   v_next        int;
@@ -126,9 +126,15 @@ declare
   v_total       int;
   v_max         int;
   v_candidates  text[];
-  i int;
-  p_id text;
-  p_online boolean;
+  v_i           int;
+  v_j           int;
+  v_p_id        text;
+  v_p_online    boolean;
+  v_p_name      text;
+  v_r           jsonb;
+  v_g           jsonb;
+  v_s           jsonb;
+  v_pp          jsonb;
 begin
   select * into v_room from geo_rooms where id = p_room_id for update;
   if not found then
@@ -141,9 +147,9 @@ begin
   v_rounds := v_room.rounds_data;
 
   v_idx := -1;
-  for i in 0 .. jsonb_array_length(v_rounds) - 1 loop
-    if v_rounds -> i ->> 'location_id' is not null then
-      v_idx := i;
+  for v_i in 0 .. jsonb_array_length(v_rounds) - 1 loop
+    if v_rounds -> v_i ->> 'location_id' is not null then
+      v_idx := v_i;
     end if;
   end loop;
   if v_idx < 0 then
@@ -151,19 +157,21 @@ begin
   end if;
 
   -- Кто ответил в активном раунде
-  select coalesce(array_agg(g ->> 'playerId'), '{}') into v_answered
-  from jsonb_array_elements(v_rounds -> v_idx -> 'guesses') as g;
+  select coalesce(array_agg((v_rounds -> v_idx -> 'guesses') -> k ->> 'playerId'), '{}')
+  into v_answered
+  from generate_series(0, jsonb_array_length(v_rounds -> v_idx -> 'guesses') - 1) as k;
 
   -- Кто онлайн и НЕ ответил
   v_pending := '';
-  for p in select jsonb_array_elements(v_room.players) as pp
-  loop
-    p_id := p.pp ->> 'id';
-    p_online := (p.pp ->> 'online') = 'true';
-    if p_online and not (p_id = any(v_answered)) then
-      v_pending := case when v_pending = '' then p.pp ->> 'name'
-                         else v_pending || ', ' || (p.pp ->> 'name')
-                    end;
+  for v_i in 0 .. jsonb_array_length(v_room.players) - 1 loop
+    v_pp := v_room.players -> v_i;
+    v_p_id := v_pp ->> 'id';
+    v_p_online := (v_pp ->> 'online') = 'true';
+    if v_p_online and not (v_p_id = any(v_answered)) then
+      v_p_name := v_pp ->> 'name';
+      v_pending := case when v_pending = '' then v_p_name
+                        else v_pending || ', ' || v_p_name
+                   end;
     end if;
   end loop;
 
@@ -184,9 +192,9 @@ begin
 
   -- Следующий неактивированный раунд
   v_next := -1;
-  for i in 0 .. jsonb_array_length(v_rounds) - 1 loop
-    if v_rounds -> i ->> 'location_id' is null then
-      v_next := i;
+  for v_i in 0 .. jsonb_array_length(v_rounds) - 1 loop
+    if v_rounds -> v_i ->> 'location_id' is null then
+      v_next := v_i;
       exit;
     end if;
   end loop;
@@ -200,27 +208,31 @@ begin
     v_status := 'finished';
     v_finished := now();
     v_scores := '[]'::jsonb;
-    for p in select jsonb_array_elements(v_room.players) as pp
-    loop
-      p_id := p.pp ->> 'id';
+    for v_i in 0 .. jsonb_array_length(v_room.players) - 1 loop
+      v_pp := v_room.players -> v_i;
+      v_p_id := v_pp ->> 'id';
       v_total := 0;
-      for r in select jsonb_array_elements(v_rounds) as rr
-      loop
-        for g in select jsonb_array_elements(r.rr -> 'guesses') as gg
-        loop
-          if g.gg ->> 'playerId' = p_id then
-            v_total := v_total + coalesce((g.gg ->> 'points')::int, 0);
+      for v_j in 0 .. jsonb_array_length(v_rounds) - 1 loop
+        v_r := v_rounds -> v_j;
+        for v_i in 0 .. jsonb_array_length(v_r -> 'guesses') - 1 loop
+          v_g := v_r -> 'guesses' -> v_i;
+          if v_g ->> 'playerId' = v_p_id then
+            v_total := v_total + coalesce((v_g ->> 'points')::int, 0);
           end if;
         end loop;
       end loop;
-      v_scores := v_scores || jsonb_build_object('playerId', p_id, 'total', v_total);
+      v_scores := v_scores || jsonb_build_object('playerId', v_p_id, 'total', v_total);
     end loop;
-    select max((s ->> 'total')::int) into v_max from jsonb_array_elements(v_scores) as s;
+
+    select max((v_scores -> k ->> 'total')::int) into v_max
+    from generate_series(0, jsonb_array_length(v_scores) - 1) as k;
+
     v_winner := null;
     if v_max is not null and v_max > 0 then
-      select coalesce(array_agg((s ->> 'playerId')), '{}') into v_candidates
-        from jsonb_array_elements(v_scores) as s
-        where (s ->> 'total')::int = v_max;
+      select coalesce(array_agg((v_scores -> k ->> 'playerId')), '{}')
+      into v_candidates
+      from generate_series(0, jsonb_array_length(v_scores) - 1) as k
+      where (v_scores -> k ->> 'total')::int = v_max;
       if array_length(v_candidates, 1) = 1 then
         v_winner := v_candidates[1];
       end if;
