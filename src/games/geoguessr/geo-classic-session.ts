@@ -46,10 +46,12 @@ function isValidSession(s: unknown): s is GeoClassicSession {
   if (!o.usedIds.every((x) => typeof x === "string")) return false;
   if (!Array.isArray(o.history)) return false;
   if (o.phase !== "playing" && o.phase !== "revealed") return false;
-  // history.length должно совпадать с round-1 (если phase=playing)
-  // или с round-1 (если phase=revealed, текущий ещё не в history)
-  const expected = (o.round as number) - 1;
-  if ((o.history as unknown[]).length !== expected) return false;
+  // history.length:
+  //   phase=playing  → round-1 (текущий раунд ещё не завершён)
+  //   phase=revealed → round   (текущий раунд уже в history после confirm)
+  const histLen = (o.history as unknown[]).length;
+  const expected = o.phase === "revealed" ? (o.round as number) : (o.round as number) - 1;
+  if (histLen !== expected) return false;
   return true;
 }
 

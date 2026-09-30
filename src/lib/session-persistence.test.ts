@@ -72,6 +72,79 @@ describe("GeoGuessr Classic — session persistence", () => {
     expect(loaded!.roundResult).toBeNull();
   });
 
+  it("phase=revealed: history.length === round → валидно", async () => {
+    const mod = await loadModule();
+    const { LOCATIONS } = await import("../games/geoguessr/locations");
+    const realLoc = LOCATIONS[0];
+    const realLoc2 = LOCATIONS[1] ?? LOCATIONS[0];
+    const session = {
+      version: 1 as const,
+      round: 2,
+      currentId: realLoc.id,
+      usedIds: [realLoc2.id],
+      history: [
+        {
+          location: realLoc2,
+          guess: { latitude: realLoc2.latitude, longitude: realLoc2.longitude },
+          distanceKm: 10,
+          points: 5000,
+        },
+        {
+          location: realLoc,
+          guess: { latitude: realLoc.latitude, longitude: realLoc.longitude },
+          distanceKm: 20,
+          points: 4500,
+        },
+      ],
+      phase: "revealed" as const,
+      roundResult: {
+        location: realLoc,
+        guess: { latitude: realLoc.latitude, longitude: realLoc.longitude },
+        distanceKm: 20,
+        points: 4500,
+      },
+      savedAt: 1234567890,
+    };
+    mod.saveSession(session);
+    const loaded = mod.loadSession();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.phase).toBe("revealed");
+    expect(loaded!.history.length).toBe(2); // === round
+    expect(loaded!.roundResult).not.toBeNull();
+  });
+
+  it("phase=playing: history.length === round → НЕ валидно (ожидается round-1)", async () => {
+    const mod = await loadModule();
+    const { LOCATIONS } = await import("../games/geoguessr/locations");
+    const realLoc = LOCATIONS[0];
+    const realLoc2 = LOCATIONS[1] ?? LOCATIONS[0];
+    const bad = {
+      version: 1,
+      round: 2,
+      currentId: realLoc.id,
+      usedIds: [realLoc2.id],
+      history: [
+        {
+          location: realLoc2,
+          guess: { latitude: realLoc2.latitude, longitude: realLoc2.longitude },
+          distanceKm: 10,
+          points: 5000,
+        },
+        {
+          location: realLoc,
+          guess: { latitude: realLoc.latitude, longitude: realLoc.longitude },
+          distanceKm: 20,
+          points: 4500,
+        },
+      ],
+      phase: "playing", // round=2, но history.length=2 (ожидается 1)
+      roundResult: null,
+      savedAt: 0,
+    };
+    localStorage.setItem("geoguessr-lite-session-v1", JSON.stringify(bad));
+    expect(mod.loadSession()).toBeNull();
+  });
+
   it("loadSession без сохранения → null", async () => {
     const mod = await loadModule();
     expect(mod.loadSession()).toBeNull();
