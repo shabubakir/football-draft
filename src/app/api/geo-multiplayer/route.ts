@@ -73,6 +73,45 @@ function sanitizeName(raw: unknown, fallback = "Игрок"): string {
   return name || fallback;
 }
 
+/**
+ * Атомарный вызов Postgres-RPC через PostgREST.
+ * Возвращает распарсенный JSON (resультат функции).
+ */
+async function callRpc(
+  sb: ReturnType<typeof getSupabaseServer> & {},
+  fn: string,
+  args: Record<string, unknown>
+): Promise<{ ok: true; data: unknown } | { ok: false; error: string; status: number }> {
+  const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const res = await proxiedSupabaseCall({
+    url: sbUrl + "/rest/v1/rpc/" + fn,
+    method: "POST",
+    headers: {
+      apikey: sbKey,
+      Authorization: "Bearer " + sbKey,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(args),
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    // PostgREST ошибки приходят в формате { message, detail, hint }
+    let msg = text.slice(0, 300);
+    try {
+      const j = JSON.parse(text);
+      msg = j.message ?? j.error ?? msg;
+    } catch { /* ignore */ }
+    return { ok: false, error: msg, status: res.status };
+  }
+  try {
+    return { ok: true, data: JSON.parse(text) };
+  } catch {
+    return { ok: false, error: "RPC не вернул JSON: " + text.slice(0, 200), status: 500 };
+  }
+}
+
 // ---------- GET /api/geo-multiplayer?code=XXXXXX ----------
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -267,67 +306,34 @@ export async function POST(req: NextRequest) {
         return err("Неверные координаты");
       if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return err("Координаты вне диапазона");
 
-      // СЕРВЕР считает расстояние и очки
+      // СЕРВЕР считает расстояние и очки (до записи)
       const entry = scoreRoundGuess(location, deviceId, lat, lng);
 
-      const rnd = rounds[roundIdx];
-      if (!rnd) return err("Раунд не найден", 500);
-
-      // Уже ответил? (идемпотентность)
-      const existing = rnd.guesses.find((g) => g.playerId === deviceId);
-      if (existing) {
-        return ok({
-          room: { ...room, rounds_data: rounds },
-          result: { distanceKm: existing.distanceKm, points: existing.points, alreadyAnswered: true },
-        });
-      }
-
-      // Записываем ответ
-      const newRounds = [...rounds];
-      newRounds[roundIdx] = {
-        location_id: locationId,
-        guesses: [...rnd.guesses, entry],
-        last_activity: new Date().toISOString(),
-      };
-
-      // Записываем через raw fetch к PostgREST (через прокси, если dev
-      // машина за корпоративным squid — см. proxiedSupabaseCall)
-      const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-      const restRes = await proxiedSupabaseCall({
-        url: sbUrl + "/rest/v1/geo_rooms?id=eq." + room.id,
-        method: "PATCH",
-        headers: {
-          apikey: sbKey,
-          Authorization: "Bearer " + sbKey,
-          "Content-Type": "application/json",
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({ code: room.code, rounds_data: newRounds }),
+      // Атомарная запись через RPC: внутри Postgres SELECT ... FOR UPDATE,
+      // поэтому одновременные guess'и разных игроков не перезаписывают друг друга.
+      const rpc = await callRpc(sb, "geo_add_guess_entry", {
+        p_room_id: room.id,
+        p_player_id: deviceId,
+        p_entry: entry,
       });
-      const restText = await restRes.text();
-      if (!restRes.ok) {
-        return err("Не удалось сохранить ответ: " + restRes.status + " " + restText.slice(0, 300), 500);
+      if (!rpc.ok) {
+        // «already answered» / «game not playing» — Postgres exception
+        if (/already answered|no active round|game not playing/i.test(rpc.error)) {
+          return ok({
+            room,
+            result: { distanceKm: entry.distanceKm, points: entry.points, alreadyAnswered: true },
+          });
+        }
+        return err("Не удалось сохранить ответ: " + rpc.error, 500);
       }
-      let restBody: unknown;
-      try {
-        restBody = JSON.parse(restText);
-      } catch {
-        return err("PostgREST не вернул JSON: " + restText.slice(0, 200), 500);
-      }
-      const afterRounds: GeoRoomRound[] | null = Array.isArray(restBody) && restBody.length > 0
-        ? (restBody[0].rounds_data as GeoRoomRound[])
-        : null;
-      if (!afterRounds) return err("Ответ не подтверждён БД", 500);
-
-      const persistedGuess = afterRounds[roundIdx]?.guesses?.find((g) => g.playerId === deviceId);
-      if (!persistedGuess) {
-        return err("Ответ не записан в БД (внутренняя ошибка)", 500);
-      }
-
+      const rpcResult = rpc.data as { room: GeoRoom; alreadyAnswered: boolean };
       return ok({
-        room: { ...room, rounds_data: afterRounds },
-        result: { distanceKm: entry.distanceKm, points: entry.points },
+        room: normalizeRoom(rpcResult.room),
+        result: {
+          distanceKm: entry.distanceKm,
+          points: entry.points,
+          alreadyAnswered: rpcResult.alreadyAnswered,
+        },
       });
     }
 
@@ -343,91 +349,18 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return err("Вы не игрок в этой комнате");
 
-      // Читаем свежее rounds_data из БД (guess'и могли быть записаны между fetchRoom и next)
-      const { data: freshCur, error: freshErr } = await sb
-        .from("geo_rooms")
-        .select("rounds_data")
-        .eq("id", room.id)
-        .maybeSingle();
-      if (freshErr || !freshCur) return err("Не удалось прочитать комнату", 500);
-      const freshRounds = (freshCur as { rounds_data: GeoRoomRound[] }).rounds_data;
-
-      // Текущий раунд = последний с location_id (активированный).
-      const allPlayers = room.players;
-      let activeIdx = -1;
-      for (let i = 0; i < freshRounds.length; i++) {
-        if (freshRounds[i].location_id) activeIdx = i;
-      }
-      if (activeIdx < 0) return err("Нет активного раунда");
-
-      // Проверка: все ли ОНЛАЙН игроки ответили в активном раунде?
-      // Офлайн-игроки не блокируют переход (могли закрыть вкладку).
-      const activeRound = freshRounds[activeIdx];
-      const answeredIds = new Set(activeRound.guesses.map((g) => g.playerId));
-      const onlinePlayers = allPlayers.filter((p) => p.online);
-      const pendingHere = onlinePlayers.filter((p) => !answeredIds.has(p.id));
-
-      // АВТО-ПЕРЕХОД: если раунд висит > 35 сек (30 сек таймер + 5 сек запас)
-      // и есть хотя бы один ответ — не блокируем, переходим дальше.
-      // Фолбэк на started_at, если last_activity не задан.
-      const roundAnchor = activeRound.last_activity ?? room.started_at ?? "";
-      const isStuck =
-        pendingHere.length > 0 &&
-        activeRound.guesses.length > 0 &&
-        roundAnchor &&
-        Date.now() - new Date(roundAnchor).getTime() > 35_000;
-
-      if (pendingHere.length > 0 && !isStuck) {
-        return err(`Ждём ответов: ${pendingHere.map((p) => p.name).join(", ")}`);
-      }
-
-      // Все ответили (или авто-переход) → ищем следующий неактивированный раунд.
-      let nextIdx = -1;
-      for (let i = 0; i < freshRounds.length; i++) {
-        if (!freshRounds[i].location_id) {
-          nextIdx = i;
-          break;
+      // Атомарный переход через RPC: внутри Postgres SELECT ... FOR UPDATE,
+      // поэтому одновременные next'ы не активируют раунд дважды и не теряют
+      // чужие ответы.
+      const rpc = await callRpc(sb, "geo_next_round", { p_room_id: room.id });
+      if (!rpc.ok) {
+        // «Ждём ответов: ...» — нормальная ситуация (ещё не все ответили)
+        if (/Ждём ответов/i.test(rpc.error)) {
+          return err(rpc.error, 409);
         }
+        return err("Не удалось перейти: " + rpc.error, 500);
       }
-
-      // --- расчёт очков ---
-      const roundsData = [...freshRounds];
-      const scores = computeScores(room.players, roundsData);
-
-      let status: GeoRoom["status"] = room.status;
-      let winnerId: string | null = null;
-      let finishedAt: string | null = room.finished_at;
-
-      if (nextIdx < 0) {
-        // Все раунды сыграны → финал
-        status = "finished";
-        winnerId = computeWinner(scores);
-        finishedAt = new Date().toISOString();
-      } else {
-        // Активируем следующий раунд
-        roundsData[nextIdx] = {
-          location_id: room.round_location_ids[nextIdx] ?? null,
-          guesses: [],
-          last_activity: new Date().toISOString(),
-        };
-      }
-
-      const { error: upE } = await sb
-        .from("geo_rooms")
-        .update({ rounds_data: roundsData, scores, status, winner_id: winnerId, finished_at: finishedAt })
-        .eq("id", room.id);
-      if (upE) return err(upE.message, 500);
-
-      return ok({
-        room: {
-          ...room,
-          rounds_data: roundsData,
-          scores,
-          status,
-          winner_id: winnerId,
-          finished_at: finishedAt,
-        },
-      });
+      return ok({ room: normalizeRoom(rpc.data as GeoRoom) });
     }
 
     // ================= rematch (реванш) =================
@@ -554,43 +487,11 @@ export async function POST(req: NextRequest) {
       const me = room.players.find((p) => p.id === deviceId);
       if (!me) return ok({ ok: true });
 
-      // Читаем свежее rounds_data
-      const { data: cur, error: curErr } = await sb
-        .from("geo_rooms")
-        .select("rounds_data")
-        .eq("id", room.id)
-        .maybeSingle();
-      if (curErr || !cur) return ok({ ok: true });
-      const rounds = (cur as { rounds_data: GeoRoomRound[] }).rounds_data;
-
-      // Текущий раунд = последний с location_id
-      let roundIdx = -1;
-      for (let i = 0; i < rounds.length; i++) {
-        if (rounds[i].location_id) roundIdx = i;
-      }
-      if (roundIdx < 0) return ok({ ok: true });
-
-      const rnd = rounds[roundIdx];
-      // Уже ответил? — не пишем повторно
-      if (rnd.guesses.some((g) => g.playerId === deviceId)) return ok({ ok: true });
-
-      // Пишем 0 очков (максимальное расстояние = 20000 км)
-      const newRounds = [...rounds];
-      newRounds[roundIdx] = {
-        ...rnd,
-        guesses: [...rnd.guesses, {
-          playerId: deviceId,
-          lat: 0, lng: 0,
-          distanceKm: 20000,
-          points: 0,
-        }],
-        last_activity: new Date().toISOString(),
-      };
-      const { error: upE } = await sb
-        .from("geo_rooms")
-        .update({ rounds_data: newRounds })
-        .eq("id", room.id);
-      if (upE) return err(upE.message, 500);
+      // Атомарный auto-skip через RPC (идемпотентный: если уже ответил — no-op)
+      await callRpc(sb, "geo_auto_skip", {
+        p_room_id: room.id,
+        p_player_id: deviceId,
+      });
       return ok({ ok: true });
     }
 
