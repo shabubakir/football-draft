@@ -178,6 +178,7 @@ export default function LastShift() {
   const [totalFuses, setTotalFuses] = useState(3);
   const [elapsed, setElapsed] = useState(0);
   const [bestTime, setBestTime] = useState<number | null>(null);
+  const [staminaDisplay, setStaminaDisplay] = useState(100);
   const { reportResult } = useProgression();
 
 
@@ -223,6 +224,7 @@ export default function LastShift() {
     setPhase("playing");
     setFuseCount(0);
     setElapsed(0);
+    setStaminaDisplay(100);
     try {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       if (AC) audioCtxRef.current = new AC();
@@ -516,10 +518,7 @@ export default function LastShift() {
           ctx.fillStyle = `rgba(0,0,0,${Math.min(0.58, d / 12)})`;
           ctx.fillRect(i * 2, top, 3, wh);
         }
-        if (d < 5 && ((i * 13) % 79 < 2)) {
-          ctx.fillStyle = "rgba(155,25,20,.32)";
-          ctx.fillRect(i * 2, top + wh * 0.4, 2, wh * 0.15);
-        }
+
       }
       fuseSpots.forEach((f) => {
         if (!f.taken) sprite(f.x, f.y, "#e0c46d", 0.2);
@@ -584,6 +583,11 @@ export default function LastShift() {
       // Throttle: only update React state once per second to avoid re-render storms
       if (Math.floor(elapsed) !== Math.floor(elapsed - dt)) {
         setElapsed(Math.floor(elapsed));
+      }
+      // Update stamina display (throttled)
+      const staminaPct = Math.round(stamina);
+      if (Math.abs(staminaPct - staminaDisplay) >= 5) {
+        setStaminaDisplay(staminaPct);
       }
 
       const turn = (keys["arrowright"] ? 1 : 0) - (keys["arrowleft"] ? 1 : 0);
@@ -785,7 +789,7 @@ export default function LastShift() {
             <div className="w-[150px] h-[6px] bg-[#252a2a] border border-[#58605e] ml-auto">
               <div
                 className="h-full transition-[width] duration-75"
-                style={{ width: "100%", background: "#86c8a0" }}
+                style={{ width: `${staminaDisplay}%`, background: staminaDisplay < 30 ? "#c88686" : "#86c8a0" }}
               />
             </div>
             <button
