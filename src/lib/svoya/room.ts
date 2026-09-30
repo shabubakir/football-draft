@@ -35,15 +35,22 @@ export async function saveRoom(
     next_at: room.nextAt,
   };
   if (!room.id) {
-    // INSERT: пусть БД сгенерит UUID
+    // INSERT: пусть БД сгенерит UUID в колонку id
     const { data, error } = await sb
       .from("svoya_rooms")
       .insert(payload)
-      .select("id, code, state, next_at")
+      .select("id")
       .single();
     if (error || !data) return { ok: false, error: error?.message ?? "insert failed" };
-    const savedRoom = { ...room, id: data.id as string };
-    return { ok: true, room: savedRoom };
+    const realId = data.id as string;
+    // state.id внутри jsonb всё ещё "" → перезаписываем UPDATE с корректным id
+    room.id = realId;
+    const { error: upErr } = await sb
+      .from("svoya_rooms")
+      .update({ state: room, next_at: room.nextAt })
+      .eq("id", realId);
+    if (upErr) return { ok: false, error: upErr.message };
+    return { ok: true, room };
   }
   const { error } = await sb
     .from("svoya_rooms")
