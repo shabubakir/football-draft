@@ -269,6 +269,13 @@ export default function LastShift() {
     let noise = 0;
     let steps = 0;
     let doorOpen = false;
+    
+    // Animation state
+    let animTime = 0;
+    let cameraShakeX = 0;
+    let cameraShakeY = 0;
+    let shakeIntensity = 0;
+    let flashlightFlicker = 1;
 
     // Parse map
     const grid = MAP.map((r) => r.split(""));
@@ -453,7 +460,7 @@ export default function LastShift() {
       return { d: distv * Math.cos(angle - ang), hit, tx, ty };
     };
 
-    const sprite = (x: number, y: number, color: string, size: number) => {
+    const sprite = (x: number, y: number, color: string, size: number, animated: boolean = false) => {
       const dx = x - px;
       const dy = y - py;
       const d = Math.hypot(dx, dy);
@@ -465,29 +472,63 @@ export default function LastShift() {
       const sx = ((a + fov / 2) / fov) * W;
       const idx = Math.max(0, Math.min(zbuf.length - 1, Math.floor((sx / W) * zbuf.length)));
       if (d > zbuf[idx] + 0.15) return;
-      const sh = Math.min(H * 0.7, H / (d * 0.9)) * size;
+      
+      // Animated bobbing for fuses
+      let bobY = 0;
+      let pulse = 1;
+      if (animated) {
+        bobY = Math.sin(animTime * 3) * 0.02 * d;
+        pulse = 1 + Math.sin(animTime * 4) * 0.15;
+      }
+      
+      const sh = Math.min(H * 0.7, H / (d * 0.9)) * size * pulse;
       const sw = sh * 0.58;
-      const sy = H / 2 - sh / 2;
+      const sy = H / 2 - sh / 2 + bobY;
       ctx.save();
-      ctx.shadowBlur = 18;
+      
+      // Glow effect
+      const glowIntensity = animated ? 0.6 + Math.sin(animTime * 4) * 0.4 : 0.4;
+      ctx.shadowBlur = 25 * glowIntensity;
       ctx.shadowColor = color;
+      
+      // Main body
       ctx.fillStyle = color;
+      ctx.globalAlpha = 0.9;
       ctx.fillRect(sx - sw / 2, sy, sw, sh);
+      
+      // Inner detail
+      ctx.globalAlpha = 0.3;
       ctx.fillStyle = "#171b1b";
       ctx.fillRect(sx - sw * 0.25, sy + sh * 0.15, sw * 0.5, sh * 0.22);
+      
+      // Highlight
+      if (animated) {
+        ctx.globalAlpha = 0.4 + Math.sin(animTime * 6) * 0.2;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(sx - sw * 0.3, sy + sh * 0.1, sw * 0.2, sh * 0.15);
+      }
+      
       ctx.restore();
     };
 
     const render = () => {
-      ctx.fillStyle = "#101517";
+      // Apply camera shake
+      ctx.save();
+      ctx.translate(cameraShakeX, cameraShakeY);
+      
+      // Sky/ceiling
+      ctx.fillStyle = "#0a0f12";
       ctx.fillRect(0, 0, W, H / 2);
-      ctx.fillStyle = "#080909";
+      
+      // Floor with gradient
+      ctx.fillStyle = "#050708";
       ctx.fillRect(0, H / 2, W, H / 2);
       for (let y = H / 2; y < H; y += 4) {
-        const shade = Math.max(2, 15 - ((y - H / 2) / (H / 2)) * 13);
+        const shade = Math.max(2, 12 - ((y - H / 2) / (H / 2)) * 10);
         ctx.fillStyle = `rgb(${shade},${shade + 1},${shade + 2})`;
         ctx.fillRect(0, y, W, 4);
       }
+      
       const fov = Math.PI / 2.9;
       const cols = Math.ceil(W / 2);
       zbuf.length = cols;
@@ -499,32 +540,74 @@ export default function LastShift() {
         const wh = Math.min(H * 2, H / (d * 0.82));
         const top = H / 2 - wh / 2;
         const side = Math.abs(Math.sin(rayAng)) > 0.7 ? 0.72 : 1;
-        const light = flashlight ? Math.max(0.08, 1 - d / 8) : Math.max(0.035, 0.2 - d / 30);
+        
+        // Flashlight with flicker
+        const light = flashlight ? Math.max(0.08, 1 - d / 8) * flashlightFlicker : Math.max(0.035, 0.2 - d / 30);
         const cone = flashlight ? Math.max(0.2, 1 - Math.abs(i / cols - 0.5) * 1.6) : 0.4;
         const v = Math.floor(Math.max(3, 100 * light * cone * side));
         const zone = zoneAt(r.tx, r.ty);
         const boost = Math.max(0.08, light * cone * side);
+        
+        // Base wall color
         const rgb = zone.base.map((c) => Math.max(2, Math.floor(c * boost)));
-        if (r.hit === "D")
+        
+        // Door special coloring
+        if (r.hit === "D") {
+          const doorGlow = doorOpen ? 0.4 + Math.sin(animTime * 4) * 0.2 : 0.1;
           ctx.fillStyle = `rgb(${Math.max(3, (v * 0.25) | 0)},${Math.max(8, (v * 0.8) | 0)},${Math.max(3, (v * 0.35) | 0)})`;
-        else ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-        ctx.fillRect(i * 2, top, 3, wh);
-        if (wh > 24) {
-          ctx.fillStyle = `rgba(${zone.accent[0]},${zone.accent[1]},${zone.accent[2]},${Math.max(0.025, 0.13 / (d * 0.35))})`;
-          ctx.fillRect(i * 2, top + wh * 0.18, 3, Math.max(1, wh * 0.012));
-          ctx.fillRect(i * 2, top + wh * 0.78, 3, Math.max(1, wh * 0.01));
+          if (doorOpen) {
+            ctx.fillStyle = `rgba(85, 255, 155, ${doorGlow * 0.3})`;
+            ctx.fillRect(i * 2, top + wh * 0.3, 3, wh * 0.4);
+          }
+        } else {
+          ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
         }
+        ctx.fillRect(i * 2, top, 3, wh);
+        
+        // Wall details - pipes, grime, cracks
+        if (wh > 30) {
+          const detailAlpha = Math.max(0.02, 0.15 / (d * 0.3));
+          
+          // Horizontal pipe at 1/4 height
+          if ((i * 7) % 23 < 3) {
+            ctx.fillStyle = `rgba(${zone.accent[0] * 0.6},${zone.accent[1] * 0.6},${zone.accent[2] * 0.6},${detailAlpha})`;
+            ctx.fillRect(i * 2, top + wh * 0.22, 3, Math.max(2, wh * 0.015));
+          }
+          
+          // Lower pipe at 3/4 height
+          if ((i * 11) % 31 < 4) {
+            ctx.fillStyle = `rgba(40,45,50,${detailAlpha * 0.8})`;
+            ctx.fillRect(i * 2, top + wh * 0.72, 3, Math.max(2, wh * 0.012));
+          }
+          
+          // Grime spots
+          if ((i * 13) % 47 < 2 && d < 6) {
+            ctx.fillStyle = `rgba(15,18,20,${detailAlpha * 0.6})`;
+            const grimeSize = Math.max(1, wh * 0.02);
+            ctx.fillRect(i * 2, top + wh * 0.5, grimeSize, grimeSize);
+          }
+          
+          // Warning stripes on some walls
+          if ((i * 17) % 53 < 3 && zone.accent[0] > 100) {
+            const stripeY = top + wh * 0.85;
+            for (let s = 0; s < 3; s++) {
+              ctx.fillStyle = s % 2 === 0 ? `rgba(180,150,20,${detailAlpha * 0.5})` : `rgba(20,20,20,${detailAlpha * 0.5})`;
+              ctx.fillRect(i * 2 + s, stripeY, 1, Math.max(1, wh * 0.008));
+            }
+          }
+        }
+        
+        // Distance fog
         if (d < 7) {
           ctx.fillStyle = `rgba(0,0,0,${Math.min(0.58, d / 12)})`;
           ctx.fillRect(i * 2, top, 3, wh);
         }
-
       }
-      fuseSpots.forEach((f) => {
-        if (!f.taken) sprite(f.x, f.y, "#e0c46d", 0.2);
+      fuseSpots.forEach((f, idx) => {
+        if (!f.taken) sprite(f.x, f.y, "#e0c46d", 0.2, true);
       });
       if (dist(px, py, exit.x, exit.y) < 8)
-        sprite(exit.x, exit.y, fuses === 3 ? "#55ff9b" : "#ff4c42", 0.56);
+        sprite(exit.x, exit.y, fuses === 3 ? "#55ff9b" : "#ff4c42", 0.56, fuses === 3);
 
       if (monster.active) {
         const dx = monster.x - px;
@@ -540,35 +623,73 @@ export default function LastShift() {
           const sh = Math.min(H * 1.2, H / (Math.max(0.3, d) * 0.7));
           if (d < zbuf[idx] + 0.35) {
             ctx.save();
-            const sw = sh * 0.42;
-            const sy = H / 2 - sh * 0.42;
-            ctx.shadowBlur = 30;
-            ctx.shadowColor = "#6b0000";
-            ctx.fillStyle = "#050505";
+            
+            // Monster animation - bobbing and lunging
+            const bob = Math.sin(animTime * (monster.state === "CHASE" ? 8 : 4)) * sh * 0.03;
+            const lunge = monster.state === "CHASE" ? Math.sin(animTime * 12) * sh * 0.02 : 0;
+            
+            const sw = sh * (0.42 + lunge * 0.1);
+            const sy = H / 2 - sh * 0.42 + bob;
+            
+            // Shadow
+            ctx.fillStyle = "rgba(0,0,0,0.4)";
             ctx.beginPath();
-            ctx.ellipse(sx, sy + sh * 0.25, sw * 0.28, sh * 0.12, 0, 0, Math.PI * 2);
+            ctx.ellipse(sx, H / 2 + sh * 0.45, sw * 0.3, sh * 0.08, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillRect(sx - sw * 0.18, sy + sh * 0.29, sw * 0.36, sh * 0.55);
+            
+            // Body with pulsing glow
+            const glowPulse = monster.state === "CHASE" ? 0.5 + Math.sin(animTime * 10) * 0.3 : 0.3;
+            ctx.shadowBlur = 40 * glowPulse;
+            ctx.shadowColor = "#8b0000";
+            ctx.fillStyle = "#0a0a0a";
+            
+            // Torso
             ctx.beginPath();
-            ctx.moveTo(sx - sw * 0.15, sy + sh * 0.75);
-            ctx.lineTo(sx - sw * 0.32, sy + sh);
-            ctx.lineTo(sx - sw * 0.08, sy + sh);
+            ctx.ellipse(sx, sy + sh * 0.35, sw * 0.22, sh * 0.28, 0, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Head
             ctx.beginPath();
-            ctx.moveTo(sx + sw * 0.15, sy + sh * 0.75);
-            ctx.lineTo(sx + sw * 0.32, sy + sh);
-            ctx.lineTo(sx + sw * 0.08, sy + sh);
+            ctx.ellipse(sx, sy + sh * 0.18, sw * 0.18, sh * 0.12, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = "#ff1a1a";
-            ctx.shadowBlur = 15;
-            ctx.fillRect(sx - sw * 0.14, sy + sh * 0.22, Math.max(2, sw * 0.07), Math.max(2, sh * 0.018));
-            ctx.fillRect(sx + sw * 0.07, sy + sh * 0.22, Math.max(2, sw * 0.07), Math.max(2, sh * 0.018));
+            
+            // Arms (animated)
+            const armSwing = Math.sin(animTime * (monster.state === "CHASE" ? 10 : 5)) * sh * 0.05;
+            ctx.fillRect(sx - sw * 0.22 - armSwing, sy + sh * 0.25, sw * 0.08, sh * 0.35);
+            ctx.fillRect(sx + sw * 0.14 + armSwing, sy + sh * 0.25, sw * 0.08, sh * 0.35);
+            
+            // Legs (animated)
+            const legSwing = Math.sin(animTime * (monster.state === "CHASE" ? 10 : 4)) * sh * 0.04;
+            ctx.fillRect(sx - sw * 0.12 - legSwing, sy + sh * 0.6, sw * 0.06, sh * 0.4);
+            ctx.fillRect(sx + sw * 0.06 + legSwing, sy + sh * 0.6, sw * 0.06, sh * 0.4);
+            
+            // Eyes (glowing, pulse when chasing)
+            const eyeGlow = monster.state === "CHASE" ? 0.8 + Math.sin(animTime * 15) * 0.2 : 0.5;
+            ctx.fillStyle = `rgba(255, 26, 26, ${eyeGlow})`;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#ff0000";
+            const eyeSize = Math.max(3, sh * 0.02);
+            ctx.fillRect(sx - sw * 0.12, sy + sh * 0.15, eyeSize, eyeSize * 0.6);
+            ctx.fillRect(sx + sw * 0.04, sy + sh * 0.15, eyeSize, eyeSize * 0.6);
+            
+            // Mouth (opens when chasing)
+            if (monster.state === "CHASE") {
+              const mouthOpen = Math.sin(animTime * 8) * 0.5 + 0.5;
+              ctx.fillStyle = "#2a0000";
+              ctx.fillRect(sx - sw * 0.08, sy + sh * 0.22, sw * 0.16, sh * 0.05 * mouthOpen);
+            }
+            
             ctx.restore();
           }
         }
       }
+      
+      // Vignette effect
       ctx.fillStyle = "rgba(0,0,0,.08)";
       for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
+      
+      // Restore camera shake transform
+      ctx.restore();
     };
 
     const loop = (t: number) => {
@@ -580,6 +701,11 @@ export default function LastShift() {
       const dt = Math.min(0.05, (t - last) / 1000 || 0.016);
       last = t;
       elapsed += dt;
+      animTime += dt;
+      
+      // Flashlight flicker
+      flashlightFlicker = flashlight ? 0.9 + Math.sin(animTime * 8) * 0.08 + Math.random() * 0.02 : 0;
+      
       // Throttle: only update React state once per second to avoid re-render storms
       if (Math.floor(elapsed) !== Math.floor(elapsed - dt)) {
         setElapsed(Math.floor(elapsed));
@@ -596,6 +722,14 @@ export default function LastShift() {
         keys["w"] || keys["arrowup"] || keys["s"] || keys["arrowdown"] || keys["a"] || keys["d"];
       const sprint = !!keys["shift"] && wantsMove && stamina > 1;
       const speed = (sprint ? 2.65 : 1.8) * dt;
+      
+      // Camera shake on sprint
+      if (sprint && wantsMove) {
+        shakeIntensity = Math.min(1, shakeIntensity + dt * 3);
+      } else {
+        shakeIntensity = Math.max(0, shakeIntensity - dt * 2);
+      }
+      
       const forward = (keys["w"] || keys["arrowup"] ? 1 : 0) - (keys["s"] || keys["arrowdown"] ? 1 : 0);
       const strafe = (keys["d"] ? 1 : 0) - (keys["a"] ? 1 : 0);
       if (forward || strafe) {
@@ -722,6 +856,14 @@ export default function LastShift() {
       if (tension > 0.55 && heartTimer <= 0) {
         heartTimer = 0.9 - tension * 0.45;
         soundRef.current(48 + tension * 18, 0.16, "sine", 0.018 + tension * 0.025);
+      }
+
+      // Update camera shake
+      if (shakeIntensity > 0.01) {
+        cameraShakeX = (Math.random() - 0.5) * shakeIntensity * 8;
+        cameraShakeY = (Math.random() - 0.5) * shakeIntensity * 8;
+      } else {
+        cameraShakeX = cameraShakeY = 0;
       }
 
       render();
