@@ -165,4 +165,13 @@ export const GAMES: GameCard[] = [
     cta: "ВОЙТИ",
     theme: "last-shift",
   },
+  {
+    href: "/backrooms",
+    tag: "ХОРРОР · ОТ ПЕРВОГО ЛИЦА",
+    title: "BACKROOMS: LEVEL 0",
+    desc: "3D-хоррор от первого лица: собери 8 страниц в процедурном лабиринте и сбеги, пока «оно» не услышало твои шаги.",
+    footer: "8 СТРАНИЦ · ПРОЦЕДУРНЫЙ ЛАБИРИНТ · 3D",
+    cta: "ВОЙТИ",
+    theme: "backrooms",
+  },
 ];

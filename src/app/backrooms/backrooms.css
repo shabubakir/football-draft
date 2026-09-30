@@ -1,0 +1,166 @@
+/* BACKROOMS: LEVEL 0 — game-specific atmosphere (VHS menu, HUD, effects).
+   Imported by this route group's layout only, so the rest of the site is
+   unaffected. */
+
+/* Special Elite (Apache 2.0), self-hosted from /public/fonts so the build
+   does not depend on fonts.gstatic.com and the game stays offline-capable.
+   next/font/local is deliberately avoided: its size-adjusted fallback
+   decompression trips a Turbopack "missing content" asset-hash error for this
+   woff2 in dev, so the font is served as a plain @font-face instead. */
+@font-face {
+  font-family: "Special Elite";
+  src: url("/fonts/SpecialElite.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-elite: "Special Elite", "Courier New", monospace;
+}
+
+.font-elite {
+  font-family: var(--font-elite), "Courier New", monospace;
+}
+
+.crt-grain {
+  background-image: repeating-radial-gradient(
+    circle at 17% 32%,
+    rgba(255, 255, 255, 0.9) 0,
+    rgba(255, 255, 255, 0) 1.5px
+  ),
+  repeating-radial-gradient(
+    circle at 81% 67%,
+    rgba(255, 255, 255, 0.8) 0,
+    rgba(255, 255, 255, 0) 1.2px
+  );
+  background-size: 3px 3px, 5px 5px;
+  animation: grain-shift 0.45s steps(3) infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-2px, 1px); }
+  66% { transform: translate(1px, -2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 0, 0, 0.9) 3px
+  );
+}
+
+/* fluorescent tube struggling to stay alive */
+.flicker {
+  animation: flicker 6.5s infinite;
+}
+.flicker-slow {
+  animation: flicker 11s infinite;
+}
+
+@keyframes flicker {
+  0%, 16%, 21%, 64%, 68%, 100% { opacity: 1; }
+  17%, 20% { opacity: 0.35; }
+  18.5% { opacity: 0.85; }
+  65% { opacity: 0.4; }
+  66.5% { opacity: 0.9; }
+  67% { opacity: 0.3; }
+}
+
+/* VHS menu — chromatic aberration + tape jitter on the title */
+.vhs-title {
+  text-shadow:
+    -2.5px 0 0 rgba(255, 70, 55, 0.5),
+    2.5px 0 0 rgba(80, 225, 255, 0.38),
+    0 0 30px rgba(255, 220, 140, 0.25);
+  animation:
+    flicker 6.5s infinite,
+    vhs-jitter 3.8s steps(1) infinite;
+}
+
+@keyframes vhs-jitter {
+  0%, 93%, 100% { transform: translate(0, 0) skewX(0deg); }
+  94% { transform: translate(-2px, 1px) skewX(-1.4deg); }
+  95.5% { transform: translate(1.5px, -1px) skewX(0.8deg); }
+  97% { transform: translate(-1px, 0) skewX(0deg); }
+}
+
+.rec-dot {
+  animation: rec-blink 1.6s steps(1) infinite;
+}
+
+@keyframes rec-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.12; }
+}
+
+/* horizontal tracking distortion band rolling down the screen */
+.tracking-band {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.045) 30%,
+    rgba(255, 255, 255, 0.085) 50%,
+    rgba(255, 255, 255, 0.045) 70%,
+    transparent
+  );
+  animation: tracking-roll 9s linear infinite;
+}
+
+@keyframes tracking-roll {
+  0% { transform: translateY(-130px); opacity: 0; }
+  6% { opacity: 1; }
+  60% { transform: translateY(100vh); opacity: 1; }
+  61%, 100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.glitch-text {
+  animation: glitch-skew 4s infinite;
+}
+
+@keyframes glitch-skew {
+  0%, 88%, 100% { transform: skewX(0deg); }
+  89% { transform: skewX(3deg) translateX(2px); }
+  90% { transform: skewX(-2.5deg); }
+  91% { transform: skewX(0.8deg) translateX(-2px); }
+  92% { transform: skewX(0deg); }
+}
+
+/* collected page readout */
+.page-pop {
+  animation: page-pop 6.5s ease forwards;
+}
+
+@keyframes page-pop {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.96); }
+  6% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+/* centered objective announcement */
+.objective-pop {
+  animation: objective-pop 5.2s ease-out forwards;
+}
+
+@keyframes objective-pop {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  7% { opacity: 1; transform: translate(-50%, 0); }
+  84% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -6px); }
+}
+
+/* "rotate your device" phone glyph */
+.phone-spin {
+  animation: phone-spin 2.2s ease-in-out infinite;
+}
+
+@keyframes phone-spin {
+  0%, 25% { transform: rotate(0deg); }
+  55%, 85% { transform: rotate(90deg); }
+  100% { transform: rotate(90deg); }
+}

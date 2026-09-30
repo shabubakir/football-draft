@@ -278,6 +278,26 @@ export const THEMES: Record<GameThemeId, GameTheme> = {
     fontStyle: "bold",
   },
 
+  // ---------- BACKROOMS: LEVEL 0 — liminal horror / VHS tape ----------
+  backrooms: {
+    id: "backrooms",
+    background:
+      "linear-gradient(180deg, #0a0905 0%, #14120b 50%, #0a0905 100%)",
+    backgroundPattern:
+      "radial-gradient(ellipse at 50% 0%, rgba(255,225,150,0.05) 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(120,100,40,0.04) 0%, transparent 45%)",
+    primary: "#f5deb3",
+    accent: "#fbbf24",
+    card: "rgba(0,0,0,0.5)",
+    cardBorder: "rgba(255,225,170,0.18)",
+    text: "#faf5e8",
+    textMuted: "rgba(255,235,200,0.55)",
+    buttonBg: "linear-gradient(135deg, #f5deb3, #d4a94a)",
+    buttonText: "#0a0905",
+    buttonHover: "linear-gradient(135deg, #d4a94a, #a97f2e)",
+    headerAccent: "#f5deb3",
+    fontStyle: "bold",
+  },
+
   // ---------- NEUTRAL — default site (cream) ----------
   neutral: {
     id: "neutral",

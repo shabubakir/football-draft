@@ -39,6 +39,7 @@ const NAV_GAMES: NavGame[] = [
   { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
   { href: "/flappy", label: "GOAL FLAPPY", match: "/flappy", icon: "flappy", desc: "Неоновый аркадный полёт" },
   { href: "/shift", label: "ПОСЛЕДНЯЯ СМЕНА", match: "/shift", icon: "flashlight", desc: "Хоррор · выживи до конца смены" },
+  { href: "/backrooms", label: "BACKROOMS: LEVEL 0", match: "/backrooms", icon: "backrooms", desc: "3D хоррор · сбеги из лабиринта" },
 ];
 
 // ---------- Категории для мега-меню «ВСЕ ИГРЫ» ----------
@@ -62,7 +63,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "АРКАДА",
     icon: "zap",
-    hrefs: ["/reaction-test", "/flappy", "/shift"],
+    hrefs: ["/reaction-test", "/flappy", "/shift", "/backrooms"],
   },
   {
     title: "КВИЗЫ",
@@ -214,6 +215,16 @@ function GameIcon({ name, className = "w-5 h-5" }: { name: string; className?: s
           <circle cx="10" cy="12" r="6" />
           <path d="M16 12h4" />
           <circle cx="9" cy="11" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "backrooms":
+      return (
+        <svg {...common}>
+          {/* open door with a dark opening */}
+          <path d="M13 4h5a2 2 0 0 1 2 2v14" />
+          <path d="M3 20h14" />
+          <path d="M13 4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+          <circle cx="10" cy="12" r="0.9" fill="currentColor" stroke="none" />
         </svg>
       );
     default:
