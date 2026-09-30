@@ -90,7 +90,6 @@ export function SvoyaIgra() {
   const [inviteLink, setInviteLink] = useState("");
   const [joinName, setJoinName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   const roomRef = useRef<SvoyaRoom | null>(null);
   roomRef.current = room;
@@ -215,17 +214,18 @@ export function SvoyaIgra() {
     await act({ type: "pick", actorId: myId, cat, val }, { silent: true });
   }, [act, myId]);
 
-  const handleOption = useCallback(async (idx: number) => {
-    // Блокируем повторные нажатия: если уже выбран вариант — игнорируем
-    if (selectedOption !== null) return;
-    setSelectedOption(idx);
-    const res = await act({ type: "answer", actorId: myId, optionIndex: idx });
-    // Сбрасываем локальный выбор после обновления комнаты (новое question)
-    // Если act вернул ошибку — сбрасываем, чтобы можно было попробовать снова
-    if (!res?.ok) {
-      setSelectedOption(null);
-    }
-  }, [act, myId, selectedOption]);
+  const myAnsweredRef = useRef(false);
+  const myAnswered = room?.current
+    ? room.current.answers[myId] !== undefined
+    : false;
+  myAnsweredRef.current = myAnswered;
+
+  const handleOption = useCallback(async (optionId: number) => {
+    // Блокируем повторные нажатия: если я уже ответил — игнорируем
+    if (myAnsweredRef.current) return;
+    // Отправляем ответ — движок зафиксирует и обновит комнату
+    await act({ type: "answer", actorId: myId, optionId }, { silent: true });
+  }, [act, myId]);
 
   const handleSkip = useCallback(async () => {
     await act({ type: "skip", actorId: myId });
@@ -244,11 +244,6 @@ export function SvoyaIgra() {
     setMsg("");
     setInviteLink("");
   }, [sb, myId]);
-
-  // Сбрасываем локальный выбор варианта при смене вопроса/фазы
-  useEffect(() => {
-    setSelectedOption(null);
-  }, [room?.current?.qId, room?.status]);
 
   // ---------- Realtime ----------
   useEffect(() => {
@@ -342,6 +337,8 @@ export function SvoyaIgra() {
   // ---------- Вычисления ----------
   const iAmHost = room?.hostId === myId;
   const iAmIn = room ? room.players.some((p) => p.id === myId) : false;
+  const answeredCount = room?.current ? Object.keys(room.current.answers).length : 0;
+  const totalActive = room?.players.length ?? 0;
 
   const turnPlayerName = useMemo(() => {
     if (!room || room.status !== "board") return null;
@@ -633,6 +630,11 @@ export function SvoyaIgra() {
             </span>
           </div>
 
+          {/* Счётчик ответивших */}
+          <div className="text-center text-sm text-white/50">
+            Ответили: <b className="text-cyan-300">{answeredCount}</b> из {totalActive}
+          </div>
+
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6">
             <h2 className="text-xl sm:text-2xl font-bold">{currentQuestion?.q ?? "Загрузка вопроса…"}</h2>
           </div>
@@ -643,10 +645,10 @@ export function SvoyaIgra() {
               {currentQuestion.options.map((opt, idx) => (
                 <button
                   key={idx}
-                  disabled={selectedOption !== null || !iAmIn}
+                  disabled={myAnswered || !iAmIn}
                   onClick={() => handleOption(idx)}
                   className={`rounded-2xl border-2 px-5 py-4 text-base sm:text-lg font-bold text-left transition active:scale-[0.97] ${
-                    selectedOption !== null
+                    myAnswered
                       ? "border-white/10 bg-white/5 text-white/30 cursor-default"
                       : iAmIn
                       ? "border-cyan-500/40 bg-gradient-to-br from-cyan-600/60 to-cyan-800/60 text-white hover:from-cyan-500 hover:to-cyan-700 cursor-pointer"
@@ -662,14 +664,14 @@ export function SvoyaIgra() {
             </div>
           )}
 
-          {selectedOption !== null && (
-            <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 text-sm text-white/60">
-              ⏳ Ответ отправлен…
+          {myAnswered && (
+            <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 text-sm text-white/60 text-center">
+              ✓ Ваш ответ зафиксирован. Ожидаем остальных…
             </div>
           )}
 
           {/* Кнопка пропуска (хост) */}
-          {iAmHost && selectedOption === null && (
+          {iAmHost && (
             <button
               onClick={handleSkip}
               className="w-full rounded-xl bg-stone-600/60 text-white font-semibold py-2.5 hover:bg-stone-500/60 transition"
@@ -693,45 +695,55 @@ export function SvoyaIgra() {
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 space-y-4">
             <h2 className="text-xl sm:text-2xl font-bold">{currentQuestion?.q ?? "—"}</h2>
 
-            {/* Показываем все 4 варианта с подсветкой */}
+            {/* Показываем все 4 варианта с подсветкой правильного */}
             {currentQuestion && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {currentQuestion.options.map((opt, idx) => {
-                  const isCorrect = idx === 0; // options[0] всегда правильный
-                  const isChosen = room.current!.chosenOption === idx;
+                  const isCorrect = idx === 0;
                   let cls = "border-white/10 bg-white/5 text-white/30";
                   if (isCorrect) cls = "border-emerald-500/60 bg-emerald-500/15 text-emerald-200";
-                  else if (isChosen) cls = "border-red-500/60 bg-red-500/15 text-red-200";
                   return (
                     <div key={idx} className={`rounded-xl border-2 px-4 py-3 text-sm font-semibold ${cls}`}>
                       <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black/30 text-[11px] font-black mr-2">
                         {String.fromCharCode(65 + idx)}
                       </span>
                       {opt}
-                      {isCorrect && <span className="ml-2 text-emerald-300">✓</span>}
-                      {isChosen && !isCorrect && <span className="ml-2 text-red-300">✗ ваш выбор</span>}
+                      {isCorrect && <span className="ml-2 text-emerald-300">✓ правильный</span>}
                     </div>
                   );
                 })}
               </div>
             )}
 
-            <div className={`rounded-xl border px-4 py-3 ${
-              room.current.correct
-                ? "bg-emerald-500/10 border-emerald-500/40"
-                : "bg-red-500/10 border-red-500/40"
-            }`}>
-              <div className="flex items-center gap-2 text-sm font-bold">
-                {room.current.correct ? (
-                  <span className="text-emerald-300">✓ ВЕРНО · +{room.current.val}</span>
-                ) : (
-                  <span className="text-red-300">✗ НЕВЕРНО · −{room.current.val}</span>
-                )}
-                <span className="text-white/40 font-normal ml-auto">
-                  ({room.players.find((p) => p.id === room.current!.pickedBy)?.name})
-                </span>
-              </div>
-              <div className="mt-1 text-sm text-white/50">
+            {/* Результаты каждого игрока */}
+            <div className="space-y-1.5">
+              {room.players.map((p) => {
+                const ans = room.current!.answers[p.id];
+                const q = currentQuestion;
+                return (
+                  <div
+                    key={p.id}
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                      ans
+                        ? ans.correct
+                          ? "bg-emerald-500/10 border border-emerald-500/20"
+                          : "bg-red-500/10 border border-red-500/20"
+                        : "bg-white/5 border border-white/10"
+                    }`}
+                  >
+                    <span className="font-semibold">{p.name}</span>
+                    <span className={ans ? (ans.correct ? "text-emerald-300" : "text-red-300") : "text-white/30"}>
+                      {ans
+                        ? `${ans.correct ? "✓" : "✗"} ${q ? q.options[ans.optionId] : ""} · ${ans.correct ? "+" : "−"}${room.current!.val}`
+                        : "не ответил"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+              <div className="text-sm text-white/50">
                 💡 {currentQuestion?.explanation}
               </div>
             </div>

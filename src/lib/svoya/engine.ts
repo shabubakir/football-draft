@@ -2,7 +2,7 @@
 // СВОЯ ИГРА — чистый игровой движок (state machine)
 // ============================================================
 // Движок — чистая функция: (room, action) => { room, ok, error? }
-// Никаких副作用 (side effects). Все проверки прав, фаз, гонок — здесь.
+// Никаких side effects. Все проверки прав, фаз, гонок — здесь.
 //
 // Состояния: lobby → board → question → reveal → board … → finished
 //
@@ -11,16 +11,30 @@
 //   leave       — игрок выходит (хост → передача хоста)
 //   start       — хост начинает игру (≥2 игроков)
 //   pick        — игрок со своего хода выбирает ячейку
-//   answer      — игрок выбирает вариант (optionIndex 0..3), движок сам проверяет
+//   answer      — игрок выбирает вариант (optionId), движок сам проверяет
 //   skip        — хост пропускает вопрос (таймаут авто-вердикта)
 //   transfer    — хост передаёт хоста
 //   finish      — хост завершает игру досрочно
+//
+// Ответы:
+//   - Вопрос остаётся открытым (question) ПОКА не ответили все активные
+//     игроки. Каждый ответ фиксируется в current.answers ( playerId → { optionId, correct }).
+//   - Очки начисляются/снимаются сразу при каждом ответе (по правилам).
+//   - После каждого ответа nextAt обновляется на IDLE_AFTER_ANSWER_MS
+//     (10 с). Если новых ответов нет — вопрос закрывается.
+//   - Когда все активные игроки ответили → вопрос закрывается сразу.
+//   - REVEAL длится REVEAL_MS (3 с), затем авто-переход к следующему ходу.
 //
 // Все мутации пишут ЦЕЛИКОМ (scores, board, players) — нет
 // частичных обновлений, нет подделки очков.
 // ============================================================
 
 import type { SvoyaCategory, SvoyaQuestion } from "./questions";
+
+/** Длительность REVEAL (показ итогов) в мс. */
+export const REVEAL_MS = 3000;
+/** Идл-тайм-аут после последнего ответа в мс (10 с без новых ответов). */
+export const IDLE_AFTER_ANSWER_MS = 10_000;
 
 // ---------- Типы комнаты ----------
 
@@ -41,15 +55,25 @@ export interface SvoyaCell {
   takenBy?: string;
 }
 
+/** Фиксированный ответ одного игрока на текущий вопрос. */
+export interface SvoyaAnswer {
+  /** Стабильный id варианта (не зависит от позиции на экране). */
+  optionId: number;
+  /** Было ли верно (зафиксировано движком в момент ответа). */
+  correct: boolean;
+}
+
 export interface SvoyaCurrent {
   cat: number;      // индекс категории (0-4)
   val: number;      // 100..500
   qId: string;
   pickedBy: string;
-  /** Индекс выбранного варианта (0..3). 0 = правильный. */
-  chosenOption?: number;
-  correct?: boolean;
-  revealed?: boolean;
+  /**
+   * Ответы на текущий вопрос: playerId → { optionId, correct }.
+   * Пустой объект = никто не ответил. Вопрос закрывается, когда ответили
+   * все активные игроки (или по идл-тайм-ауту).
+   */
+  answers: Record<string, SvoyaAnswer>;
 }
 
 export interface SvoyaRoom {
@@ -77,7 +101,7 @@ export type SvoyaAction =
   | { type: "leave"; playerId: string }
   | { type: "start"; actorId: string }
   | { type: "pick"; actorId: string; cat: number; val: number }
-  | { type: "answer"; actorId: string; optionIndex: number }
+  | { type: "answer"; actorId: string; optionId: number }
   | { type: "skip"; actorId: string }
   | { type: "transfer"; actorId: string; toPlayerId: string }
   | { type: "finish"; actorId: string };
@@ -105,7 +129,9 @@ export function cloneRoom(r: SvoyaRoom): SvoyaRoom {
     board: r.board.map((c) => ({ ...c })),
     scores: { ...r.scores },
     turnQueue: [...r.turnQueue],
-    current: r.current ? { ...r.current } : null,
+    current: r.current
+      ? { ...r.current, answers: { ...r.current.answers } }
+      : null,
   };
 }
 
@@ -207,7 +233,7 @@ export function applyAction(
     case "pick":
       return doPick(r, action, questions);
     case "answer":
-      return doAnswer(r, action);
+      return doAnswer(r, action, questions);
     case "skip":
       return doSkip(r, action);
     case "transfer":
@@ -321,6 +347,7 @@ function doPick(
     val: a.val,
     qId: cell.qId,
     pickedBy: a.actorId,
+    answers: {},
   };
   // Таймер ответа
   r.nextAt = new Date(Date.now() + r.answerSeconds * 1000).toISOString();
@@ -328,38 +355,66 @@ function doPick(
 }
 
 /**
- * Ответ на вопрос: игрок выбирает один из 4 вариантов (optionIndex 0..3).
- * Движок САМ проверяет правильность:
- *   - optionIndex === 0 → правильный (options[0] — всегда верный)
- *   - optionIndex !== 0 → неправильный
- * Очки начисляются/снимаются автоматически, фаза → reveal.
- * Клиенту НЕ доверяется определение правильного ответа.
+ * Ответ на вопрос: игрок выбирает один из 4 вариантов (optionId 0..3).
+ *
+ * Движок САМ проверяет правильность: optionId === 0 → правильный
+ * (options[0] — всегда верный в данных вопроса). Очки начисляются/снимаются
+ * СРАЗУ при каждом ответе (правила текущие):
+ *   - верный  → +value
+ *   - неверный → −value
+ *
+ * Вопрос НЕ закрывается после первого ответа: он остаётся в "question",
+ * пока не ответили все активные игроки. Каждый новый ответ обновляет
+ * nextAt на +IDLE_AFTER_ANSWER_MS (идл-тайм-аут 10 с). Когда ответили все
+ * активные игроки — вопрос сразу закрывается (→ reveal, REVEAL_MS).
+ *
+ * Клиенту НЕ доверяется определение правильного ответа: движок сравнивает
+ * optionId с canonical-данными вопроса (options[0]).
  */
-function doAnswer(r: SvoyaRoom, a: { actorId: string; optionIndex: number }): EngineResult {
+function doAnswer(
+  r: SvoyaRoom,
+  a: { actorId: string; optionId: number },
+  questions?: Map<string, SvoyaQuestion>
+): EngineResult {
   if (r.status !== "question") return { room: r, ok: false, error: "Нет активного вопроса" };
   if (!r.current) return { room: r, ok: false, error: "Нет активного вопроса" };
-  // Двойной ответ
-  if (r.current.chosenOption !== undefined) {
-    return { room: r, ok: false, error: "Ответ уже дан" };
+  // Двойной ответ от того же игрока
+  if (r.current.answers[a.actorId] !== undefined) {
+    return { room: r, ok: false, error: "Вы уже ответили на этот вопрос" };
   }
-  // Валидация индекса
-  if (!Number.isInteger(a.optionIndex) || a.optionIndex < 0 || a.optionIndex > 3) {
+  // Валидация id
+  if (!Number.isInteger(a.optionId) || a.optionId < 0 || a.optionId > 3) {
     return { room: r, ok: false, error: "Некорректный вариант ответа" };
   }
-  // Любой игрок может ответить (как в настоящей игре — голосует любой)
-  const correct = a.optionIndex === 0; // options[0] — всегда правильный
+  // Активные игроки (не отключились)
+  const activeIds = r.players.map((p) => p.id);
+  if (!activeIds.includes(a.actorId)) {
+    return { room: r, ok: false, error: "Игрок не в комнате" };
+  }
+
+  // Движок сам определяет вердикт: options[0] — правильный.
+  // (questions — на будущее, если потребуется проверка по canonical-данным)
+  const correct = a.optionId === 0;
   const val = r.current.val;
-  const who = r.current.pickedBy;
+  const who = a.actorId; // очки тому, кто ответил
   if (correct) {
     r.scores[who] = (r.scores[who] ?? 0) + val;
   } else {
     r.scores[who] = (r.scores[who] ?? 0) - val;
   }
-  r.current.chosenOption = a.optionIndex;
-  r.current.correct = correct;
-  r.current.revealed = true;
-  r.status = "reveal";
-  r.nextAt = new Date(Date.now() + 10_000).toISOString(); // 10 c на REVEAL
+
+  // Фиксируем ответ
+  r.current.answers[a.actorId] = { optionId: a.optionId, correct };
+
+  // Все активные игроки ответили? → сразу закрываем
+  const allAnswered = activeIds.every((pid) => r.current!.answers[pid] !== undefined);
+  if (allAnswered) {
+    r.status = "reveal";
+    r.nextAt = new Date(Date.now() + REVEAL_MS).toISOString();
+  } else {
+    // Идл-тайм-аут: 10 с без новых ответов → закроем
+    r.nextAt = new Date(Date.now() + IDLE_AFTER_ANSWER_MS).toISOString();
+  }
   return { room: r, ok: true, events: ["answered"] };
 }
 
@@ -372,10 +427,8 @@ function doSkip(r: SvoyaRoom, a: { actorId: string }): EngineResult {
   const val = r.current.val;
   const who = r.current.pickedBy;
   r.scores[who] = (r.scores[who] ?? 0) - val;
-  r.current.correct = false;
-  r.current.revealed = true;
   r.status = "reveal";
-  r.nextAt = new Date(Date.now() + 10_000).toISOString();
+  r.nextAt = new Date(Date.now() + REVEAL_MS).toISOString();
   return { room: r, ok: true, events: ["skipped"] };
 }
 
@@ -420,16 +473,15 @@ export function autoAdvance(
   // Просрочено — продвигаем
   const r = cloneRoom(room);
   if (r.status === "question") {
-    // Таймаут: штраф тому, кто выбрал (как skip)
+    // Таймаут: штраф тому, кто выбрал (как skip). Очки тех, кто уже
+    // ответил, уже начислены/сняты в doAnswer — не трогаем их.
     if (r.current) {
       const val = r.current.val;
       const who = r.current.pickedBy;
       r.scores[who] = (r.scores[who] ?? 0) - val;
-      r.current.correct = false;
-      r.current.revealed = true;
     }
     r.status = "reveal";
-    r.nextAt = new Date(t.getTime() + 10_000).toISOString();
+    r.nextAt = new Date(t.getTime() + REVEAL_MS).toISOString();
   } else if (r.status === "reveal") {
     // REVEAL → BOARD (следующий ход) или FINISHED
     if (r.board.every((c) => c.taken)) {
@@ -498,9 +550,7 @@ export function toPublicRoom(r: SvoyaRoom) {
       val: r.current.val,
       qId: r.current.qId,
       pickedBy: r.current.pickedBy,
-      chosenOption: r.current.chosenOption,
-      correct: r.current.correct,
-      revealed: r.current.revealed,
+      answers: r.current.answers,
     } : null,
     nextAt: r.nextAt,
   };
