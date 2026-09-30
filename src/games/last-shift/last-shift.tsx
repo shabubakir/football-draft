@@ -140,6 +140,225 @@ function zoneAt(x: number, y: number) {
 
 type AudioCtx = AudioContext | null;
 
+// ============================================================
+// Music engine — procedural ambient dread (drone + pulse + wind)
+// ============================================================
+
+function makeMusicEngine(ctxRef: { current: AudioCtx }) {
+  let nodes: { stop: () => void; stinger: () => void; setChase: (on: boolean) => void } | null = null;
+
+  function build() {
+    const ctx = ctxRef.current;
+    if (!ctx) return null;
+    const parts: AudioNode[] = [];
+    const stops: (() => void)[] = [];
+
+    // Master
+    const master = ctx.createGain();
+    master.gain.value = 0.5;
+    master.connect(ctx.destination);
+    parts.push(master);
+
+    // Lowpass filter for muffled feel
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 320;
+    lp.Q.value = 0.8;
+    lp.connect(master);
+    parts.push(lp);
+
+    // --- Drone layer: two detuned low sawtooths ---
+    const droneGain = ctx.createGain();
+    droneGain.gain.value = 0.12;
+    droneGain.connect(lp);
+    parts.push(droneGain);
+
+    const d1 = ctx.createOscillator();
+    d1.type = "sawtooth";
+    d1.frequency.value = 38; // low G
+    const d2 = ctx.createOscillator();
+    d2.type = "sawtooth";
+    d2.frequency.value = 38.7; // detuned, beats
+    d1.connect(droneGain);
+    d2.connect(droneGain);
+    d1.start();
+    d2.start();
+    parts.push(d1, d2);
+
+    // Slow LFO on drone gain (breathing)
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.07;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.05;
+    lfo.connect(lfoGain);
+    lfoGain.connect(droneGain.gain);
+    lfo.start();
+    parts.push(lfo, lfoGain);
+
+    // --- Sub pulse (heartbeat-like thump every ~2.4s) ---
+    const pulseGain = ctx.createGain();
+    pulseGain.gain.value = 0;
+    pulseGain.connect(lp);
+    parts.push(pulseGain);
+
+    const pulseOsc = ctx.createOscillator();
+    pulseOsc.type = "sine";
+    pulseOsc.frequency.value = 52;
+    pulseOsc.connect(pulseGain);
+    pulseOsc.start();
+    parts.push(pulseOsc);
+
+    let pulseInterval: ReturnType<typeof setInterval> | null = null;
+    pulseInterval = setInterval(() => {
+      if (!ctxRef.current || ctxRef.current.state === "closed") {
+        if (pulseInterval) clearInterval(pulseInterval);
+        return;
+      }
+      const t = ctx.currentTime;
+      pulseGain.gain.cancelScheduledValues(t);
+      pulseGain.gain.setValueAtTime(0.001, t);
+      pulseGain.gain.exponentialRampToValueAtTime(0.35, t + 0.05);
+      pulseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    }, 2400);
+    stops.push(() => {
+      if (pulseInterval) clearInterval(pulseInterval);
+    });
+
+    // --- Wind layer: filtered noise ---
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf;
+    noise.loop = true;
+    const nf = ctx.createBiquadFilter();
+    nf.type = "bandpass";
+    nf.frequency.value = 420;
+    nf.Q.value = 1.5;
+    const windGain = ctx.createGain();
+    windGain.gain.value = 0.05;
+    noise.connect(nf);
+    nf.connect(windGain);
+    windGain.connect(lp);
+    noise.start();
+    parts.push(noise, nf, windGain);
+
+    // LFO on wind filter (howling)
+    const windLfo = ctx.createOscillator();
+    windLfo.type = "sine";
+    windLfo.frequency.value = 0.11;
+    const windLfoGain = ctx.createGain();
+    windLfoGain.gain.value = 180;
+    windLfo.connect(windLfoGain);
+    windLfoGain.connect(nf.frequency);
+    windLfo.start();
+    parts.push(windLfo, windLfoGain);
+
+    // --- High dissonant whistle (very quiet, eerie) ---
+    const wh = ctx.createOscillator();
+    wh.type = "sine";
+    wh.frequency.value = 940;
+    const whG = ctx.createGain();
+    whG.gain.value = 0.008;
+    wh.connect(whG);
+    whG.connect(master);
+    wh.start();
+    parts.push(wh, whG);
+
+    // Slow LFO on whistle pitch
+    const whLfo = ctx.createOscillator();
+    whLfo.type = "sine";
+    whLfo.frequency.value = 0.05;
+    const whLfoG = ctx.createGain();
+    whLfoG.gain.value = 25;
+    whLfo.connect(whLfoG);
+    whLfoG.connect(wh.frequency);
+    whLfo.start();
+    parts.push(whLfo, whLfoG);
+
+    // --- Stinger (called when monster spawns / chase starts) ---
+    let stingerNodes: AudioNode[] = [];
+    function stinger() {
+      if (!ctxRef.current) return;
+      const c = ctxRef.current;
+      const t = c.currentTime;
+      const sg = c.createGain();
+      sg.gain.setValueAtTime(0.001, t);
+      sg.gain.exponentialRampToValueAtTime(0.5, t + 0.1);
+      sg.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+      const sf = c.createBiquadFilter();
+      sf.type = "lowpass";
+      sf.frequency.value = 600;
+      sg.connect(sf);
+      sf.connect(master);
+
+      const o1 = c.createOscillator();
+      o1.type = "sawtooth";
+      o1.frequency.setValueAtTime(120, t);
+      o1.frequency.exponentialRampToValueAtTime(45, t + 1.4);
+      const o2 = c.createOscillator();
+      o2.type = "square";
+      o2.frequency.setValueAtTime(118, t);
+      o2.frequency.exponentialRampToValueAtTime(42, t + 1.4);
+      o1.connect(sg);
+      o2.connect(sg);
+      o1.start(t);
+      o2.start(t);
+      o1.stop(t + 1.7);
+      o2.stop(t + 1.7);
+      stingerNodes = [o1, o2, sg, sf];
+    }
+
+    // --- Chase mode: raise filter, add heartbeat faster ---
+    let chaseMode = false;
+    function setChase(on: boolean) {
+      if (chaseMode === on) return;
+      chaseMode = on;
+      if (!ctxRef.current) return;
+      const t = ctxRef.current.currentTime;
+      lp.frequency.cancelScheduledValues(t);
+      lp.frequency.setTargetAtTime(on ? 700 : 320, t, 0.5);
+      droneGain.gain.setTargetAtTime(on ? 0.2 : 0.12, t, 0.5);
+    }
+
+    return {
+      stop: () => {
+        stops.forEach((s) => s());
+        parts.forEach((n) => {
+          try {
+            (n as OscillatorNode).stop?.();
+          } catch {
+            /* ignore */
+          }
+          try {
+            n.disconnect();
+          } catch {
+            /* ignore */
+          }
+        });
+        nodes = null;
+      },
+      stinger,
+      setChase,
+    };
+  }
+
+  return {
+    start: () => {
+      nodes?.stop();
+      nodes = null;
+      nodes = build();
+    },
+    stop: () => {
+      nodes?.stop();
+      nodes = null;
+    },
+    stinger: () => nodes?.stinger(),
+    setChase: (on: boolean) => nodes?.setChase(on),
+  };
+}
+
 function makeSoundFn(ctxRef: { current: AudioCtx }) {
   return function sound(
     freq = 100,
@@ -172,6 +391,7 @@ export default function LastShift() {
   const audioCtxRef = useRef<AudioCtx>(null);
   const runningRef = useRef(false);
   const rafIdRef = useRef(0);
+  const musicRef = useRef<ReturnType<typeof makeMusicEngine> | null>(null);
   const [phase, setPhase] = useState<"menu" | "playing" | "dead" | "won">("menu");
   const [muted, setMuted] = useState(false);
   const [fuseCount, setFuseCount] = useState(0);
@@ -179,6 +399,7 @@ export default function LastShift() {
   const [elapsed, setElapsed] = useState(0);
   const [bestTime, setBestTime] = useState<number | null>(null);
   const [staminaDisplay, setStaminaDisplay] = useState(100);
+  const [threat, setThreat] = useState<"НИЗКАЯ" | "СРЕДНЯЯ" | "ВЫСОКАЯ" | "КРИТИЧЕСКАЯ">("НИЗКАЯ");
   const { reportResult } = useProgression();
 
 
@@ -225,12 +446,16 @@ export default function LastShift() {
     setFuseCount(0);
     setElapsed(0);
     setStaminaDisplay(100);
+    setThreat("НИЗКАЯ");
     try {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       if (AC) audioCtxRef.current = new AC();
     } catch {
       /* ignore */
     }
+    // Start ambient dread music
+    if (!musicRef.current) musicRef.current = makeMusicEngine(audioCtxRef);
+    musicRef.current.start();
     soundRef.current(90, 0.4, "sine", 0.04);
   };
 
@@ -276,6 +501,7 @@ export default function LastShift() {
     let cameraShakeY = 0;
     let shakeIntensity = 0;
     let flashlightFlicker = 1;
+    let threatUpdateTimer = 0;
 
     // Parse map
     const grid = MAP.map((r) => r.split(""));
@@ -620,65 +846,97 @@ export default function LastShift() {
         if (Math.abs(a) < fov * 0.62 && d < 10) {
           const sx = ((a + fov / 2) / fov) * W;
           const idx = Math.max(0, Math.min(zbuf.length - 1, Math.floor((sx / W) * zbuf.length)));
-          const sh = Math.min(H * 1.2, H / (Math.max(0.3, d) * 0.7));
+          const sh = Math.min(H * 1.3, H / (Math.max(0.3, d) * 0.7));
           if (d < zbuf[idx] + 0.35) {
             ctx.save();
-            
+
             // Monster animation - bobbing and lunging
             const bob = Math.sin(animTime * (monster.state === "CHASE" ? 8 : 4)) * sh * 0.03;
             const lunge = monster.state === "CHASE" ? Math.sin(animTime * 12) * sh * 0.02 : 0;
-            
-            const sw = sh * (0.42 + lunge * 0.1);
-            const sy = H / 2 - sh * 0.42 + bob;
-            
-            // Shadow
-            ctx.fillStyle = "rgba(0,0,0,0.4)";
+
+            const sw = sh * (0.46 + lunge * 0.1);
+            const sy = H / 2 - sh * 0.46 + bob;
+
+            // Ground shadow
+            ctx.fillStyle = "rgba(0,0,0,0.55)";
             ctx.beginPath();
-            ctx.ellipse(sx, H / 2 + sh * 0.45, sw * 0.3, sh * 0.08, 0, 0, Math.PI * 2);
+            ctx.ellipse(sx, H / 2 + sh * 0.44, sw * 0.32, sh * 0.07, 0, 0, Math.PI * 2);
             ctx.fill();
-            
-            // Body with pulsing glow
-            const glowPulse = monster.state === "CHASE" ? 0.5 + Math.sin(animTime * 10) * 0.3 : 0.3;
-            ctx.shadowBlur = 40 * glowPulse;
-            ctx.shadowColor = "#8b0000";
-            ctx.fillStyle = "#0a0a0a";
-            
-            // Torso
+
+            const chasing = monster.state === "CHASE";
+            const stalker = monster.state === "STALKING" || monster.state === "SEARCHING";
+
+            // Body silhouette — dark with reddish rim light
+            const glowPulse = chasing ? 0.6 + Math.sin(animTime * 10) * 0.3 : 0.35;
+            ctx.shadowBlur = 45 * glowPulse;
+            ctx.shadowColor = chasing ? "#ff2200" : "#5a1010";
+            ctx.fillStyle = "#07070a";
+            ctx.strokeStyle = `rgba(${chasing ? 120 : 55},15,15,${0.5 + glowPulse * 0.4})`;
+            ctx.lineWidth = Math.max(1, sh * 0.008);
+
+            // Torso (tall, hunched)
             ctx.beginPath();
-            ctx.ellipse(sx, sy + sh * 0.35, sw * 0.22, sh * 0.28, 0, 0, Math.PI * 2);
+            ctx.ellipse(sx, sy + sh * 0.4, sw * 0.24, sh * 0.32, 0, 0, Math.PI * 2);
             ctx.fill();
-            
-            // Head
+            ctx.stroke();
+
+            // Long arms hanging
+            const armSwing = Math.sin(animTime * (chasing ? 10 : 5)) * sh * 0.06;
+            const armW = Math.max(2, sw * 0.07);
+            ctx.fillRect(sx - sw * 0.26 - armSwing, sy + sh * 0.22, armW, sh * 0.5);
+            ctx.fillRect(sx + sw * 0.26 - armW + armSwing, sy + sh * 0.22, armW, sh * 0.5);
+            // Claws
+            ctx.fillRect(sx - sw * 0.27 - armSwing, sy + sh * 0.7, armW * 1.4, Math.max(2, sh * 0.02));
+            ctx.fillRect(sx + sw * 0.26 - armW + armSwing, sy + sh * 0.7, armW * 1.4, Math.max(2, sh * 0.02));
+
+            // Head (tilted, pale)
+            ctx.fillStyle = chasing ? "#120608" : "#0a0a10";
             ctx.beginPath();
-            ctx.ellipse(sx, sy + sh * 0.18, sw * 0.18, sh * 0.12, 0, 0, Math.PI * 2);
+            ctx.ellipse(sx, sy + sh * 0.14, sw * 0.2, sh * 0.13, 0, 0, Math.PI * 2);
             ctx.fill();
-            
-            // Arms (animated)
-            const armSwing = Math.sin(animTime * (monster.state === "CHASE" ? 10 : 5)) * sh * 0.05;
-            ctx.fillRect(sx - sw * 0.22 - armSwing, sy + sh * 0.25, sw * 0.08, sh * 0.35);
-            ctx.fillRect(sx + sw * 0.14 + armSwing, sy + sh * 0.25, sw * 0.08, sh * 0.35);
-            
+            ctx.stroke();
+
             // Legs (animated)
-            const legSwing = Math.sin(animTime * (monster.state === "CHASE" ? 10 : 4)) * sh * 0.04;
-            ctx.fillRect(sx - sw * 0.12 - legSwing, sy + sh * 0.6, sw * 0.06, sh * 0.4);
-            ctx.fillRect(sx + sw * 0.06 + legSwing, sy + sh * 0.6, sw * 0.06, sh * 0.4);
-            
-            // Eyes (glowing, pulse when chasing)
-            const eyeGlow = monster.state === "CHASE" ? 0.8 + Math.sin(animTime * 15) * 0.2 : 0.5;
-            ctx.fillStyle = `rgba(255, 26, 26, ${eyeGlow})`;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = "#ff0000";
-            const eyeSize = Math.max(3, sh * 0.02);
-            ctx.fillRect(sx - sw * 0.12, sy + sh * 0.15, eyeSize, eyeSize * 0.6);
-            ctx.fillRect(sx + sw * 0.04, sy + sh * 0.15, eyeSize, eyeSize * 0.6);
-            
-            // Mouth (opens when chasing)
-            if (monster.state === "CHASE") {
+            const legSwing = Math.sin(animTime * (chasing ? 10 : 4)) * sh * 0.05;
+            const legW = Math.max(2, sw * 0.08);
+            ctx.fillStyle = "#07070a";
+            ctx.fillRect(sx - sw * 0.14 - legSwing, sy + sh * 0.68, legW, sh * 0.34);
+            ctx.fillRect(sx + sw * 0.06 + legSwing, sy + sh * 0.68, legW, sh * 0.34);
+
+            // GLOWING EYES — the key feature, very visible
+            const eyeGlow = chasing ? 0.9 + Math.sin(animTime * 15) * 0.1 : stalker ? 0.65 : 0.4;
+            const eyeColor = chasing ? "#ff1a1a" : "#ffb3b3";
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = eyeColor;
+            ctx.fillStyle = eyeColor;
+            const eyeSize = Math.max(3, sh * 0.025);
+            const eyeY = sy + sh * 0.11;
+            ctx.beginPath();
+            ctx.ellipse(sx - sw * 0.1, eyeY, eyeSize, eyeSize * 0.55, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(sx + sw * 0.1, eyeY, eyeSize, eyeSize * 0.55, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth — dark slit, opens and shows teeth when chasing
+            if (chasing) {
               const mouthOpen = Math.sin(animTime * 8) * 0.5 + 0.5;
-              ctx.fillStyle = "#2a0000";
-              ctx.fillRect(sx - sw * 0.08, sy + sh * 0.22, sw * 0.16, sh * 0.05 * mouthOpen);
+              ctx.fillStyle = "#1a0000";
+              ctx.beginPath();
+              ctx.ellipse(sx, sy + sh * 0.2, sw * 0.12, Math.max(2, sh * 0.035 * (0.4 + mouthOpen)), 0, 0, Math.PI * 2);
+              ctx.fill();
+              // Teeth
+              ctx.fillStyle = "#cfc9b8";
+              const teeth = 4;
+              for (let ti = 0; ti < teeth; ti++) {
+                const tx2 = sx - sw * 0.1 + (sw * 0.2 / (teeth - 1)) * ti;
+                ctx.fillRect(tx2 - 1, sy + sh * 0.175, 2, Math.max(2, sh * 0.02 * mouthOpen));
+              }
+            } else {
+              ctx.fillStyle = "#1a0000";
+              ctx.fillRect(sx - sw * 0.09, sy + sh * 0.19, sw * 0.18, Math.max(1, sh * 0.008));
             }
-            
+
             ctx.restore();
           }
         }
@@ -748,6 +1006,8 @@ export default function LastShift() {
       } else stamina = Math.min(100, stamina + 18 * dt);
 
       if (!monster.active) {
+        if (threat !== "НИЗКАЯ") setThreat("НИЗКАЯ");
+        musicRef.current?.setChase(false);
         monster.spawnTimer -= dt;
         if (monster.spawnTimer <= 0) {
           const options: { x: number; y: number }[] = [];
@@ -770,18 +1030,26 @@ export default function LastShift() {
           monster.active = true;
           monster.state = "STALKING";
           soundRef.current(58, 0.8, "sawtooth", 0.06);
+          musicRef.current?.stinger();
         }
       }
 
       if (monster.active && !dead) {
         let d = dist(px, py, monster.x, monster.y);
         const los = hasLineOfSight(grid, monster.x, monster.y, px, py, doorOpen);
+        const prevChase = monster.state === "CHASE";
         if (d < 7 && los) {
           monster.state = d < 4 ? "CHASE" : "STALKING";
           monster.seen += dt;
-        } else if (monster.state === "CHASE") {
+        } else if (prevChase) {
           monster.state = "SEARCHING";
           monster.searchTimer = 5;
+        }
+        if (monster.state === "CHASE" && !prevChase) {
+          musicRef.current?.setChase(true);
+          musicRef.current?.stinger();
+        } else if (prevChase && monster.state !== "CHASE") {
+          musicRef.current?.setChase(false);
         }
         if (monster.state === "SEARCHING") {
           monster.searchTimer -= dt;
@@ -798,6 +1066,16 @@ export default function LastShift() {
           }
         }
         if (sprint && d < 9) monster.state = "CHASE";
+        // Update threat level (throttled)
+        if (threatUpdateTimer <= 0) {
+          threatUpdateTimer = 0.5;
+          let newThreat: "НИЗКАЯ" | "СРЕДНЯЯ" | "ВЫСОКАЯ" | "КРИТИЧЕСКАЯ";
+          if (monster.state === "CHASE" && d < 4) newThreat = "КРИТИЧЕСКАЯ";
+          else if (monster.state === "CHASE") newThreat = "ВЫСОКАЯ";
+          else if (monster.state === "STALKING" && d < 7) newThreat = "СРЕДНЯЯ";
+          else newThreat = "НИЗКАЯ";
+          if (newThreat !== threat) setThreat(newThreat);
+        }
         monster.repath -= dt;
         if (
           monster.repath <= 0 &&
@@ -911,7 +1189,9 @@ export default function LastShift() {
             <br />
             <span className="text-[#a7c5d2]">{zone}</span>
             <br />
-            <span className="text-[#a9b2a4]">УГРОЗА: НИЗКАЯ</span>
+            <span className={threat === "КРИТИЧЕСКАЯ" ? "text-[#ff4444]" : threat === "ВЫСОКАЯ" ? "text-[#e0a040]" : threat === "СРЕДНЯЯ" ? "text-[#d0d080]" : "text-[#a9b2a4]"}>
+              УГРОЗА: {threat}
+            </span>
           </div>
           <div className="absolute top-4 right-5 font-mono text-right text-xs leading-6 text-[#d0d0c7]">
             ПРЕДОХРАНИТЕЛИ:{" "}
@@ -968,7 +1248,7 @@ export default function LastShift() {
             className="text-5xl md:text-8xl tracking-[8px] text-[#f4eeee]"
             style={{ textShadow: "0 0 35px red", animation: "shake .09s infinite" }}
           >
-            ОН НАШЁЛ ТЕБЯ
+            ТЫ ПОПАЛСЯ, СУЧКА
           </strong>
         </div>
       )}
@@ -1014,8 +1294,8 @@ export default function LastShift() {
                 <h1 className="text-3xl md:text-5xl tracking-[5px] mb-2 text-[#e2e5e4]" style={{ textShadow: "0 0 20px #9b1f1f" }}>
                   СМЕНА ОКОНЧЕНА
                 </h1>
-                <div className="text-[#9fa8a9] tracking-[3px] text-xs mb-6">СИГНАЛ ПОТЕРЯН</div>
-                <p className="leading-6.5 text-[#c2c7c7] text-sm">Ты не успел выбраться.</p>
+                <div className="text-[#ff5a5a] tracking-[2px] text-xs mb-6">ОНО ДОГНАЛО ТЕБЯ</div>
+                <p className="leading-6.5 text-[#c2c7c7] text-sm">Ты не успел выбраться. Темнота забрала и тебя.</p>
                 <button
                   onClick={start}
                   className="mt-4 px-6 py-3 border border-[#68777a] bg-[#182124] text-[#f0f4f4] tracking-[2px] hover:bg-[#29383c] hover:border-[#b9c4c5] font-mono"
