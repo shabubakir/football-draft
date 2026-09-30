@@ -147,4 +147,13 @@ export const GAMES: GameCard[] = [
     cta: "ИГРАТЬ",
     theme: "reaction-test",
   },
+  {
+    href: "/flappy",
+    tag: "АРКАДА · НЕОН",
+    title: "GOAL FLAPPY",
+    desc: "Неоновый полёт между трубами. Чем дальше — тем быстрее. Space, клик или тап — взмах крыльями.",
+    footer: "БЕСКОНЕЧНЫЙ ПОЛЁТ · РЕКОРД",
+    cta: "ПОЛЕТЕТЬ",
+    theme: "flappy-bird",
+  },
 ];

@@ -15,6 +15,7 @@ export type GameThemeId =
   | "geoguessr"
   | "cs2-map-guess"
   | "reaction-test"
+  | "flappy-bird"
   | "neutral";
 
 export interface GameTheme {

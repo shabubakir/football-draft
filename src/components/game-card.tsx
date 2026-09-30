@@ -13,6 +13,7 @@ const DARK_THEMES = new Set([
   "akinator",
   "geoguessr",
   "grid-9",
+  "flappy-bird",
 ]);
 
 export function GameCard({ game }: { game: GameCardType }) {

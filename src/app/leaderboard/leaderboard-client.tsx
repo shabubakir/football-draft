@@ -19,7 +19,7 @@ interface LeaderboardEntry {
   created_at: string;
 }
 
-type Category = "all" | "football" | "cs2" | "geoguessr" | "reaction";
+type Category = "all" | "football" | "cs2" | "geoguessr" | "reaction" | "arcade";
 
 const CATEGORIES: { id: Category; label: string; icon: string }[] = [
   { id: "all", label: "Все", icon: "🌐" },
@@ -27,6 +27,7 @@ const CATEGORIES: { id: Category; label: string; icon: string }[] = [
   { id: "cs2", label: "CS2", icon: "🔫" },
   { id: "geoguessr", label: "География", icon: "🌍" },
   { id: "reaction", label: "Реакция", icon: "⚡" },
+  { id: "arcade", label: "Аркада", icon: "🎮" },
 ];
 
 export default function LeaderboardPage() {

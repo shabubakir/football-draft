@@ -37,6 +37,7 @@ const NAV_GAMES: NavGame[] = [
   // Своя игра: match "/svoya" — чтобы /svoya/join/... подсвечивал её
   { href: "/svoya", label: "СВОЯ ИГРА", match: "/svoya", icon: "trophy", desc: "5×5 · до 6 игроков · таймер" },
   { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
+  { href: "/flappy", label: "GOAL FLAPPY", match: "/flappy", icon: "flappy", desc: "Неоновый аркадный полёт" },
 ];
 
 // ---------- Категории для мега-меню «ВСЕ ИГРЫ» ----------
@@ -60,7 +61,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "АРКАДА",
     icon: "zap",
-    hrefs: ["/reaction-test"],
+    hrefs: ["/reaction-test", "/flappy"],
   },
   {
     title: "КВИЗЫ",
@@ -196,6 +197,14 @@ function GameIcon({ name, className = "w-5 h-5" }: { name: string; className?: s
       return (
         <svg {...common}>
           <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+        </svg>
+      );
+    case "flappy":
+      return (
+        <svg {...common}>
+          <circle cx="10" cy="12" r="6" />
+          <path d="M16 12h4" />
+          <circle cx="9" cy="11" r="1" fill="currentColor" stroke="none" />
         </svg>
       );
     default:

@@ -238,6 +238,26 @@ export const THEMES: Record<GameThemeId, GameTheme> = {
     fontStyle: "medium",
   },
 
+  // ---------- FLAPPY BIRD — neon night sky / arcade ----------
+  "flappy-bird": {
+    id: "flappy-bird",
+    background:
+      "linear-gradient(180deg, #05090f 0%, #0a1626 45%, #08131f 100%)",
+    backgroundPattern:
+      "radial-gradient(circle at 15% 20%, rgba(34,211,238,0.05) 0%, transparent 45%), radial-gradient(circle at 85% 70%, rgba(56,189,248,0.05) 0%, transparent 45%)",
+    primary: "#22d3ee",
+    accent: "#fbbf24",
+    card: "rgba(255,255,255,0.05)",
+    cardBorder: "rgba(255,255,255,0.12)",
+    text: "#f0f9ff",
+    textMuted: "rgba(255,255,255,0.6)",
+    buttonBg: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    buttonText: "#ffffff",
+    buttonHover: "linear-gradient(135deg, #0891b2, #0e7490)",
+    headerAccent: "#67e8f9",
+    fontStyle: "bold",
+  },
+
   // ---------- NEUTRAL — default site (cream) ----------
   neutral: {
     id: "neutral",

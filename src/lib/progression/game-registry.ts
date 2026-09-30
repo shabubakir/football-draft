@@ -245,6 +245,23 @@ const GAMES: GameDefinition[] = [
     },
     category: "geoguessr",
   },
+  {
+    id: "flappy-bird",
+    name: "Goal Flappy",
+    icon: "🐤",
+    xpRules: {
+      complete: 5,
+      win: 20,
+      perfect: 30,
+      daily: 10,
+    },
+    statsSchema: {
+      gamesPlayed: { type: "int", default: 0 },
+      totalScore: { type: "int", default: 0 },
+      bestScore: { type: "int", default: 0 },
+    },
+    category: "arcade",
+  },
 ];
 
 /**

@@ -65,5 +65,5 @@ export interface GameDefinition {
   /** Stats schema for this game */
   statsSchema: Record<string, { type: "int"; default: number }>;
   /** Category for leaderboards */
-  category: "football" | "cs2" | "geoguessr" | "quiz" | "other";
+  category: "football" | "cs2" | "geoguessr" | "quiz" | "arcade" | "other";
 }

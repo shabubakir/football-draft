@@ -85,6 +85,7 @@ export async function POST(req: Request) {
       "reaction-test": { complete: 5, win: 10, perfect: 25 },
       akinator: { complete: 5, win: 15, perfect: 10 },
       geoguessr: { complete: 5, win: 25, perfect: 30 },
+      "flappy-bird": { complete: 5, win: 20, perfect: 30 },
     };
 
     const rules = gameRules[gameId];
@@ -103,7 +104,8 @@ export async function POST(req: Request) {
       const isPerfect =
         (gameId === "cs2-aim" && (score ?? 0) >= 1000) ||
         (gameId === "cs2-map-guess" && won && (metadata?.wrong ?? 1) === 0) ||
-        (gameId === "reaction-test" && (metadata?.best ?? 9999) < 180);
+        (gameId === "reaction-test" && (metadata?.best ?? 9999) < 180) ||
+        (gameId === "flappy-bird" && (score ?? 0) >= 30);
       if (isPerfect) xpAmount += rules.perfect;
     }
 
@@ -178,6 +180,15 @@ export async function POST(req: Request) {
       }
       if (metadata?.streak) {
         update.bestStreak = Math.max(current.bestStreak ?? 0, metadata.streak);
+      }
+    }
+    if (gameId === "flappy-bird") {
+      const s = score ?? 0;
+      if (metadata?.valid !== 1) {
+        // Anti-cheat: don't count invalid scores
+      } else {
+        update.totalScore = (current.totalScore ?? 0) + s;
+        if (s > (current.bestScore ?? 0)) update.bestScore = s;
       }
     }
 
