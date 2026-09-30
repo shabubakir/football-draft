@@ -162,6 +162,16 @@ export function GeoMultiplayer({
     "menu" | "create" | "join" | "lobby" | "play" | "end"
   >(initialRoomCode ? "join" : "menu");
   const [room, setRoom] = useState<GeoRoom | null>(null);
+  // Автовозврат: если в localStorage есть roomCode, пробуем вернуться
+  // в комнату при монтировании (F5, деплой Vercel, перезагрузка).
+  const [savedCode] = useState<string>(() => {
+    try {
+      if (typeof window === "undefined") return "";
+      return (localStorage.getItem("geo_mp_room_code") ?? "").trim().toUpperCase();
+    } catch {
+      return "";
+    }
+  });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [schemaError, setSchemaError] = useState(false);
@@ -516,6 +526,9 @@ export function GeoMultiplayer({
       maxRoundIdxRef.current = -1; // fresh room — reset guard
       setRoom(d.room);
       setPhase("lobby");
+      try {
+        localStorage.setItem("geo_mp_room_code", d.room.code);
+      } catch { /* ignore */ }
     } catch (e) {
       const msg = (e as Error).message;
       setError(msg);
@@ -546,9 +559,24 @@ export function GeoMultiplayer({
       setBusy(true);
       try {
         const d = await api("join", { code: clean });
-        maxRoundIdxRef.current = -1; // new session — reset guard
+        // maxRoundIdxRef обновляем по фактическому состоянию комнаты
+        // (не сбрасываем на -1 при возврате в активную игру)
+        if (d.room?.rounds_data) {
+          let idx = -1;
+          for (let i = 0; i < d.room.rounds_data.length; i++) {
+            if (d.room.rounds_data[i].location_id) idx = i;
+          }
+          maxRoundIdxRef.current = idx;
+        } else {
+          maxRoundIdxRef.current = -1;
+        }
         setRoom(d.room);
-        setPhase("lobby");
+        // Если игра уже идёт — сразу в play (мы вернулись из F5/деплоя)
+        setPhase(d.room.status === "playing" ? "play" : "lobby");
+        if (d.room.status === "finished") setPhase("end");
+        try {
+          localStorage.setItem("geo_mp_room_code", d.room.code);
+        } catch { /* ignore */ }
       } catch (e) {
         const msg = (e as Error).message;
         setError(msg);
@@ -559,6 +587,51 @@ export function GeoMultiplayer({
     },
     [api, joinCode, myName]
   );
+
+  // ---------- АВТОВОЗВРАТ: при монтировании, если есть сохранённый код ----------
+  const didAutoReturnRef = useRef(false);
+  useEffect(() => {
+    if (didAutoReturnRef.current) return;
+    if (!savedCode) return;
+    didAutoReturnRef.current = true;
+    // Не вмешиваемся, если initialRoomCode уже задан (UI сам вызовет doJoin)
+    if (initialRoomCode) return;
+    (async () => {
+      try {
+        const d = (await geoApi(myId, apiMyName.current, "join", {
+          code: savedCode,
+        })) as { room?: GeoRoom } & { ok?: boolean };
+        if (d?.room) {
+          if (d.room.rounds_data) {
+            let idx = -1;
+            for (let i = 0; i < d.room.rounds_data.length; i++) {
+              if (d.room.rounds_data[i].location_id) idx = i;
+            }
+            maxRoundIdxRef.current = idx;
+          }
+          setRoom(d.room);
+          setPhase(
+            d.room.status === "playing"
+              ? "play"
+              : d.room.status === "finished"
+                ? "end"
+                : "lobby"
+          );
+        } else {
+          // Комната не найдена / игра завершена — чистим
+          try {
+            localStorage.removeItem("geo_mp_room_code");
+          } catch { /* ignore */ }
+        }
+      } catch {
+        // Комната не найдена / ошибка сети — чистим
+        try {
+          localStorage.removeItem("geo_mp_room_code");
+        } catch { /* ignore */ }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedCode, initialRoomCode, myId]);
 
   const doStart = useCallback(async () => {
     if (!room) return;
@@ -672,6 +745,9 @@ export function GeoMultiplayer({
     }
     setRoom(null);
     setPhase("menu");
+    try {
+      localStorage.removeItem("geo_mp_room_code");
+    } catch { /* ignore */ }
     onExit?.();
   }, [api, room, onExit]);
 

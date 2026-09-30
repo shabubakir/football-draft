@@ -191,14 +191,13 @@ export async function POST(req: NextRequest) {
       if ("error" in found) return err(found.error, found.status);
       const room = found.room;
 
-      if (room.status !== "waiting")
-        return err("Игра уже идёт или завершена — зайти нельзя");
-      if (room.players.length >= GEO_MAX_PLAYERS)
-        return err(`Комната полная (${GEO_MAX_PLAYERS} игроков)`);
-
+      // Игрок УЖЕ в комнате → идемпотентный возврат (онлайн, имя).
+      // Это нужно для автовозврата после F5/деплоя: join не должен
+      // блокировать, если player уже записан.
       const existing = room.players.find((p) => p.id === deviceId);
       if (existing) {
-        // Возвращение: обновляем имя (если дали новое) и online=true.
+        if (room.status === "finished")
+          return err("Игра завершена — зайти нельзя");
         const players = room.players.map((p) =>
           p.id === deviceId
             ? { ...p, online: true, last_seen: Date.now(), name: body.name ? sanitizeName(body.name) : p.name }
@@ -208,6 +207,12 @@ export async function POST(req: NextRequest) {
         if (upE) return err("Не удалось подключиться: " + upE.message, 500);
         return ok({ room: { ...room, players } });
       }
+
+      // Новый игрок — только в waiting-комнате
+      if (room.status !== "waiting")
+        return err("Игра уже идёт — зайти нельзя (ты не в этой комнате)");
+      if (room.players.length >= GEO_MAX_PLAYERS)
+        return err(`Комната полная (${GEO_MAX_PLAYERS} игроков)`);
 
       const player: GeoPlayer = {
         id: deviceId,
