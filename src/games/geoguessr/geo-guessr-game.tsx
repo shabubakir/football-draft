@@ -26,17 +26,25 @@ import { LOCATIONS, geoImageUrl } from "./locations";
 import { GeoMap } from "./geo-map";
 import { OptimizedImage } from "@/components/optimized-image";
 import { useProgression } from "@/lib/progression/use-progression";
+import { clearSession, loadSession, saveSession } from "./geo-classic-session";
 
 type Phase = "playing" | "revealed" | "done";
 
 export function GeoGuessrGame() {
   const { reportResult } = useProgression();
+
+  // ---------- Инициализация: пытаемся восстановить сохранённую партию ----------
   const [round, setRound] = useState(1);
   const [phase, setPhase] = useState<Phase>("playing");
   const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
-  const [current, setCurrent] = useState<GeoLocation>(() =>
-    pickClassicRound(LOCATIONS, new Set())
-  );
+  const [current, setCurrent] = useState<GeoLocation>(() => {
+    const saved = loadSession();
+    if (saved) {
+      const loc = LOCATIONS.find((l) => l.id === saved.currentId);
+      if (loc) return loc;
+    }
+    return pickClassicRound(LOCATIONS, new Set());
+  });
   const [guess, setGuess] = useState<[number, number] | null>(null);
   const [roundResult, setRoundResult] = useState<GeoRoundResult | null>(null);
   const [history, setHistory] = useState<GeoRoundResult[]>([]);
@@ -44,6 +52,28 @@ export function GeoGuessrGame() {
   const [imgFailed, setImgFailed] = useState(false);
   const [finalResult, setFinalResult] = useState<GeoGameResult | null>(null);
   const [stats, setStats] = useState<GeoStats | null>(null);
+  const restoredRef = useRef(false);
+
+  // ---------- Восстановление сохранённой партии (один раз) ----------
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const saved = loadSession();
+    if (!saved) return;
+    const loc = LOCATIONS.find((l) => l.id === saved.currentId);
+    if (!loc) {
+      clearSession();
+      return;
+    }
+    setRound(saved.round);
+    setPhase(saved.phase);
+    setUsedIds(new Set(saved.usedIds));
+    setCurrent(loc);
+    setHistory(saved.history);
+    setRoundResult(saved.roundResult);
+    // guess НЕ восстанавливаем — пользователь заново ставит точку
+    setGuess(null);
+  }, []);
 
   const totalScore = useMemo(
     () => history.reduce((s, r) => s + r.points, 0),
@@ -62,9 +92,23 @@ export function GeoGuessrGame() {
       points,
     };
     setRoundResult(result);
-    setHistory((h) => [...h, result]);
+    setHistory((h) => {
+      const newHistory = [...h, result];
+      // Сохраняем после подтверждения ответа
+      saveSession({
+        version: 1,
+        round,
+        currentId: current.id,
+        usedIds: Array.from(usedIds),
+        history: newHistory,
+        phase: "revealed",
+        roundResult: result,
+        savedAt: Date.now(),
+      });
+      return newHistory;
+    });
     setPhase("revealed");
-  }, [guess, phase, current]);
+  }, [guess, phase, current, round, usedIds]);
 
   const nextRound = useCallback(() => {
     if (round >= ROUNDS_PER_GAME) {
@@ -73,6 +117,7 @@ export function GeoGuessrGame() {
       setFinalResult(result);
       setStats(stats);
       setPhase("done");
+      clearSession();
       // Report to progression system
       const totalScore = history.reduce((s, r) => s + r.points, 0);
       void reportResult({
@@ -83,14 +128,27 @@ export function GeoGuessrGame() {
       return;
     }
     const next = pickClassicRound(LOCATIONS, usedIds);
-    setUsedIds((s) => new Set(s).add(current.id));
+    const newUsedIds = new Set(usedIds).add(current.id);
+    const newRound = round + 1;
+    setUsedIds(newUsedIds);
     setCurrent(next);
-    setRound((r) => r + 1);
+    setRound(newRound);
     setGuess(null);
     setRoundResult(null);
     setImgLoaded(false);
     setImgFailed(false);
     setPhase("playing");
+    // Сохраняем после перехода к новому раунду
+    saveSession({
+      version: 1,
+      round: newRound,
+      currentId: next.id,
+      usedIds: Array.from(newUsedIds),
+      history,
+      phase: "playing",
+      roundResult: null,
+      savedAt: Date.now(),
+    });
   }, [round, history, usedIds, current, reportResult]);
 
   const restart = useCallback(() => {
@@ -105,6 +163,7 @@ export function GeoGuessrGame() {
     setImgFailed(false);
     setFinalResult(null);
     setStats(null);
+    clearSession();
   }, []);
 
   // ==================== ФИНАЛЬНЫЙ ЭКРАН ====================

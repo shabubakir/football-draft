@@ -8,6 +8,7 @@ import { shuffleQuestions, type QuizTopic } from "@/lib/quiz";
 import { OptimizedImage } from "@/components/optimized-image";
 import { useProgression } from "@/lib/progression/use-progression";
 import { usePlayerName } from "@/lib/use-player-name";
+import { clearSession, loadSession, saveSession } from "./quiz-session";
 
 type QuizPhase = "lobby" | "playing" | "reveal" | "end";
 type Role = "host" | "guest";
@@ -1110,6 +1111,18 @@ export function QuizOnline({ fixedTopic }: { fixedTopic?: QuizTopic }) {
           ? "Онлайн-викторина через Supabase Realtime. Откройте страницу в 2+ окнах, чтобы протестировать."
           : "⚠️ Supabase не настроен — онлайн-режим не работает."}
       </p>
+
+      {/* Кнопка выхода из комнаты (внизу) */}
+      {room && phase !== "lobby" && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => { setRoom(null); setPhase("lobby"); clearSession(); }}
+            className="text-xs text-stone-400 hover:text-red-400 underline underline-offset-2"
+          >
+            Выйти из комнаты
+          </button>
+        </div>
+      )}
     </div>
   );
 }

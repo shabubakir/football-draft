@@ -8,7 +8,7 @@
 // «магическая» атмосфера (фиолетовые акценты, искры).
 // ============================================================
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   newGame,
   answer as engineAnswer,
@@ -27,6 +27,7 @@ import { loadStats, recordGame, resetStats, EMPTY_STATS } from "./stats";
 import { getEntityPhoto } from "./avatars";
 import type { AkinatorStats } from "./types";
 import { useProgression } from "@/lib/progression/use-progression";
+import { clearSession, loadSession, saveSession } from "./akinator-session";
 
 // ---------- вспомогательные ----------
 
@@ -59,11 +60,20 @@ export function AkinatorGame() {
   const [correctQuery, setCorrectQuery] = useState("");
   const [lastWrongGuess, setLastWrongGuess] = useState<Entity | null>(null);
   const [started, setStarted] = useState(false);
+  const restoredRef = useRef(false);
 
-  // Инициализация
+  // Инициализация: пытаемся восстановить сохранённую партию
   useEffect(() => {
-    setState(newGame());
     setStats(loadStats());
+    const saved = loadSession();
+    if (saved) {
+      setState(saved.state);
+      setStarted(saved.started);
+    } else {
+      setState(newGame());
+      setStarted(false);
+    }
+    restoredRef.current = true;
   }, []);
 
   // ---------- действия ----------
@@ -79,17 +89,20 @@ export function AkinatorGame() {
       if (!q) return;
       setTransitioning(true);
       setTimeout(() => {
-        setState(engineAnswer(state, q.id, ans));
+        const next = engineAnswer(state, q.id, ans);
+        setState(next);
+        saveSession(next, started);
         setTransitioning(false);
       }, 350);
     },
-    [state, transitioning]
+    [state, transitioning, started]
   );
 
   const handleAccept = useCallback(() => {
     if (!state) return;
     const next = acceptGuess(state);
     setState(next);
+    clearSession();
     recordGame(true, state.questionNum);
     setStats(loadStats());
     void reportResult({
@@ -107,12 +120,15 @@ export function AkinatorGame() {
     }
     const next = rejectGuess(state);
     setState(next);
-  }, [state]);
+    saveSession(next, started);
+  }, [state, started]);
 
   const handleReveal = useCallback(
     (entityId: string) => {
       if (!state) return;
-      setState(revealAnswer(state, entityId));
+      const next = revealAnswer(state, entityId);
+      setState(next);
+      clearSession();
       recordGame(false, state.questionNum);
       setStats(loadStats());
       setShowCorrectInput(false);
@@ -128,11 +144,13 @@ export function AkinatorGame() {
   );
 
   const handleNewGame = useCallback(() => {
-    setState(newGame());
+    const fresh = newGame();
+    setState(fresh);
     setStarted(true);
     setShowCorrectInput(false);
     setCorrectQuery("");
     setLastWrongGuess(null);
+    clearSession();
   }, []);
 
   const handleResetStats = useCallback(() => {
