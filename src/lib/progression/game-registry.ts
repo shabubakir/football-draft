@@ -100,6 +100,23 @@ const GAMES: GameDefinition[] = [
     category: "football",
   },
   {
+    id: "svoya-igra",
+    name: "Своя игра",
+    icon: "🎯",
+    xpRules: {
+      complete: 5,
+      win: 20,
+      perfect: 10,
+      daily: 0,
+    },
+    statsSchema: {
+      gamesPlayed: { type: "int", default: 0 },
+      wins: { type: "int", default: 0 },
+      bestScore: { type: "int", default: 0 },
+    },
+    category: "quiz",
+  },
+  {
     id: "cs2-cases",
     name: "CS2 Кейсы",
     icon: "📦",

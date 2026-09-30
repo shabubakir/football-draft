@@ -34,6 +34,8 @@ const NAV_GAMES: NavGame[] = [
   { href: "/cs2/map-guess", label: "CS2 MAP GUESS", match: "/cs2/map-guess", icon: "map", desc: "Угадай карту по скриншоту" },
   { href: "/reaction-test", label: "REACTION TEST", match: "/reaction-test", icon: "zap", desc: "Тест реакции · 5 попыток" },
   { href: "/quiz/geo", label: "ВИКТОРИНА", match: "/quiz/geo", icon: "trophy", desc: "География · до 5 игроков" },
+  // Своя игра: match "/svoya" — чтобы /svoya/join/... подсвечивал её
+  { href: "/svoya", label: "СВОЯ ИГРА", match: "/svoya", icon: "trophy", desc: "5×5 · до 6 игроков · таймер" },
   { href: "/geoguessr", label: "GEOGUESSR", match: "/geoguessr", icon: "pin", desc: "Угадай место на карте" },
 ];
 
@@ -61,9 +63,14 @@ const NAV_CATEGORIES: NavCategory[] = [
     hrefs: ["/reaction-test"],
   },
   {
+    title: "КВИЗЫ",
+    icon: "trophy",
+    hrefs: ["/quiz/online", "/quiz/geo", "/svoya"],
+  },
+  {
     title: "ГЕОГРАФИЯ",
     icon: "pin",
-    hrefs: ["/quiz/geo", "/geoguessr"],
+    hrefs: ["/geoguessr"],
   },
 ];
 
