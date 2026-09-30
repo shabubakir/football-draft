@@ -1404,12 +1404,12 @@ export default function LastShift() {
       {/* Death flash */}
       {phase === "dead" && (
         <div
-          className="absolute inset-0 z-40 flex items-center justify-center"
-          style={{ background: "#090000" }}
+          className="absolute inset-0 z-60 flex items-center justify-center"
+          style={{ background: "rgba(9,0,0,0.85)" }}
         >
           <strong
-            className="text-5xl md:text-8xl tracking-[8px] text-[#f4eeee]"
-            style={{ textShadow: "0 0 35px red", animation: "shake .09s infinite" }}
+            className="text-6xl md:text-9xl tracking-[10px] text-[#f4eeee] font-bold"
+            style={{ textShadow: "0 0 50px red, 0 0 100px #ff0000", animation: "shake .09s infinite" }}
           >
             ТЫ ПОПАЛСЯ, СУЧКА
           </strong>
