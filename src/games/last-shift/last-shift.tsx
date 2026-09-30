@@ -142,17 +142,17 @@ function zoneAt(x: number, y: number) {
   // Backrooms: everything is damp yellow wallpaper + yellow carpet.
   // Each zone is just a slightly different shade of sickly yellow.
   if (y >= 18)
-    return { name: "ЗОНА E · ВЫХОД", base: [215, 196, 118], accent: [236, 219, 149] };
+    return { name: "ЗОНА E · ВЫХОД", base: [165, 150, 92], accent: [188, 172, 116] };
   if (y <= 6)
-    return { name: "ЗОНА D · ГЕНЕРАТОРНАЯ", base: [198, 176, 100], accent: [222, 201, 128] };
+    return { name: "ЗОНА D · ГЕНЕРАТОРНАЯ", base: [150, 134, 78], accent: [172, 155, 100] };
   if (y >= 14 && y <= 17)
-    return { name: "ЗОНА C · МЕДБЛОК", base: [222, 203, 126], accent: [242, 225, 154] };
+    return { name: "ЗОНА C · МЕДБЛОК", base: [170, 156, 96], accent: [192, 176, 120] };
   if (y >= 8 && y <= 13)
-    return { name: "ЗОНА B · СКЛАД", base: [210, 188, 108], accent: [232, 211, 136] };
+    return { name: "ЗОНА B · СКЛАД", base: [160, 144, 84], accent: [182, 164, 106] };
   return {
     name: "ЗОНА A · ТЕХНИЧЕСКИЙ КОРИДОР",
-    base: [212, 191, 110],
-    accent: [234, 213, 140],
+    base: [162, 146, 86],
+    accent: [184, 166, 108],
   };
 }
 
@@ -774,12 +774,12 @@ export default function LastShift() {
       ctx.translate(cameraShakeX, cameraShakeY);
       
       // Ceiling — warm dim Backrooms tiles
-      ctx.fillStyle = "#7a6f42";
+      ctx.fillStyle = "#574f30";
       ctx.fillRect(0, 0, W, H / 2);
       for (let y = 0; y < H / 2; y += 4) {
         const t = (y / (H / 2)); // 0 top -> 1 horizon
-        const shade = Math.max(42, 128 - t * 60);
-        ctx.fillStyle = `rgb(${(shade + 8) | 0},${(shade + 4) | 0},${(shade * 0.6) | 0})`;
+        const shade = Math.max(28, 88 - t * 48);
+        ctx.fillStyle = `rgb(${(shade + 6) | 0},${(shade + 3) | 0},${(shade * 0.58) | 0})`;
         ctx.fillRect(0, y, W, 4);
       }
       // Ceiling panel seams (converge toward horizon)
@@ -796,25 +796,25 @@ export default function LastShift() {
           ctx.fillRect(lx, y, 1, 3);
         }
       }
-      // A couple of glowing fluorescent ceiling lights
+      // A couple of dim fluorescent ceiling lights
       for (const lx of [0.32, 0.68]) {
         const x = lx * W;
         const y = H * 0.14;
         ctx.save();
-        ctx.shadowBlur = 22;
-        ctx.shadowColor = "#fff6c8";
-        ctx.fillStyle = "rgba(255,248,214,0.9)";
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#d8cc96";
+        ctx.fillStyle = "rgba(214,206,160,0.55)";
         ctx.fillRect(x - 26, y, 52, 9);
         ctx.restore();
       }
 
       // Floor — yellow carpet, darker with distance
-      ctx.fillStyle = "#9a8a58";
+      ctx.fillStyle = "#6b6040";
       ctx.fillRect(0, H / 2, W, H / 2);
       for (let y = H / 2; y < H; y += 4) {
         const t = (y - H / 2) / (H / 2); // 0 horizon -> 1 bottom
-        const shade = Math.max(48, 96 + t * 38);
-        ctx.fillStyle = `rgb(${(shade + 10) | 0},${(shade + 2) | 0},${(shade * 0.52) | 0})`;
+        const shade = Math.max(30, 62 + t * 30);
+        ctx.fillStyle = `rgb(${(shade + 8) | 0},${(shade + 2) | 0},${(shade * 0.5) | 0})`;
         ctx.fillRect(0, y, W, 4);
       }
 
@@ -831,8 +831,8 @@ export default function LastShift() {
         const side = Math.abs(Math.sin(rayAng)) > 0.7 ? 0.82 : 1;
 
         // Backrooms ambient: dim, warm, fades with distance. Flashlight adds a soft center cone.
-        const ambient = Math.max(0.18, 0.72 - d / 14) * flashlightFlicker * side;
-        const boost = flashlight ? Math.min(1, ambient * 1.15 + (1 - Math.abs(i / cols - 0.5) * 2) * 0.28) : ambient;
+        const ambient = Math.max(0.1, 0.5 - d / 13) * flashlightFlicker * side;
+        const boost = flashlight ? Math.min(1, ambient * 1.1 + (1 - Math.abs(i / cols - 0.5) * 2) * 0.18) : ambient;
         const zone = zoneAt(r.tx, r.ty);
 
         // Base yellow wallpaper
@@ -845,7 +845,7 @@ export default function LastShift() {
             ctx.fillRect(i * 2, top + wh * 0.3, 3, wh * 0.4);
           }
         } else {
-          const rgb = zone.base.map((c) => Math.min(255, Math.floor(c * (0.35 + boost * 0.85))));
+          const rgb = zone.base.map((c) => Math.min(255, Math.floor(c * (0.22 + boost * 0.72))));
           ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
         }
         ctx.fillRect(i * 2, top, 3, wh);
@@ -854,9 +854,9 @@ export default function LastShift() {
         if (wh > 26) {
           const stripeOn = Math.floor((r.tx + r.ty * 3) * 2.2) % 2 === 0;
           if (stripeOn) {
-            const s = Math.min(255, Math.floor((zone.accent[0] + 26) * (0.35 + boost * 0.85)));
-            const s2 = Math.min(255, Math.floor((zone.accent[1] + 24) * (0.35 + boost * 0.85)));
-            const s3 = Math.min(255, Math.floor((zone.accent[2] + 14) * (0.35 + boost * 0.85)));
+            const s = Math.min(255, Math.floor((zone.accent[0] + 26) * (0.22 + boost * 0.72)));
+            const s2 = Math.min(255, Math.floor((zone.accent[1] + 24) * (0.22 + boost * 0.72)));
+            const s3 = Math.min(255, Math.floor((zone.accent[2] + 14) * (0.22 + boost * 0.72)));
             ctx.fillStyle = `rgba(${s},${s2},${s3},0.55)`;
             ctx.fillRect(i * 2, top + wh * 0.08, 3, wh * 0.86);
           }
@@ -872,9 +872,9 @@ export default function LastShift() {
           ctx.fillRect(i * 2, top + wh * 0.72, 3, wh * 0.2);
         }
 
-        // Distance fog — warm dusty yellow, not pure black
-        if (d < 16) {
-          ctx.fillStyle = `rgba(92,84,44,${Math.min(0.48, d / 20)})`;
+        // Distance fog — warm dark, closes in quickly
+        if (d < 13) {
+          ctx.fillStyle = `rgba(34,31,16,${Math.min(0.62, d / 14)})`;
           ctx.fillRect(i * 2, top, 3, wh);
         }
       }
@@ -1428,7 +1428,7 @@ export default function LastShift() {
           style={{ background: "rgba(9,0,0,0.85)" }}
         >
           <strong
-            className="text-6xl md:text-9xl tracking-[10px] text-[#f4eeee] font-bold"
+            className="whitespace-nowrap text-[11vw] md:text-8xl tracking-[6px] text-[#f4eeee] font-bold"
             style={{ textShadow: "0 0 50px red, 0 0 100px #ff0000", animation: "shake .09s infinite" }}
           >
             ТЫ ПОПАЛСЯ, СУЧКА
