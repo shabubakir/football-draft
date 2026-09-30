@@ -139,18 +139,20 @@ function findPath(
 }
 
 function zoneAt(x: number, y: number) {
+  // Backrooms: everything is damp yellow wallpaper + yellow carpet.
+  // Each zone is just a slightly different shade of sickly yellow.
   if (y >= 18)
-    return { name: "ЗОНА E · ВЫХОД", base: [25, 53, 38], accent: [50, 150, 88] };
+    return { name: "ЗОНА E · ВЫХОД", base: [215, 196, 118], accent: [236, 219, 149] };
   if (y <= 6)
-    return { name: "ЗОНА D · ГЕНЕРАТОРНАЯ", base: [64, 28, 29], accent: [165, 38, 35] };
+    return { name: "ЗОНА D · ГЕНЕРАТОРНАЯ", base: [198, 176, 100], accent: [222, 201, 128] };
   if (y >= 14 && y <= 17)
-    return { name: "ЗОНА C · МЕДБЛОК", base: [35, 54, 43], accent: [77, 128, 91] };
+    return { name: "ЗОНА C · МЕДБЛОК", base: [222, 203, 126], accent: [242, 225, 154] };
   if (y >= 8 && y <= 13)
-    return { name: "ЗОНА B · СКЛАД", base: [61, 48, 35], accent: [177, 132, 52] };
+    return { name: "ЗОНА B · СКЛАД", base: [210, 188, 108], accent: [232, 211, 136] };
   return {
     name: "ЗОНА A · ТЕХНИЧЕСКИЙ КОРИДОР",
-    base: [35, 48, 56],
-    accent: [87, 145, 168],
+    base: [212, 191, 110],
+    accent: [234, 213, 140],
   };
 }
 
@@ -771,19 +773,51 @@ export default function LastShift() {
       ctx.save();
       ctx.translate(cameraShakeX, cameraShakeY);
       
-      // Sky/ceiling
-      ctx.fillStyle = "#0a0f12";
+      // Ceiling — warm dim Backrooms tiles
+      ctx.fillStyle = "#7a6f42";
       ctx.fillRect(0, 0, W, H / 2);
-      
-      // Floor with gradient
-      ctx.fillStyle = "#050708";
-      ctx.fillRect(0, H / 2, W, H / 2);
-      for (let y = H / 2; y < H; y += 4) {
-        const shade = Math.max(2, 12 - ((y - H / 2) / (H / 2)) * 10);
-        ctx.fillStyle = `rgb(${shade},${shade + 1},${shade + 2})`;
+      for (let y = 0; y < H / 2; y += 4) {
+        const t = (y / (H / 2)); // 0 top -> 1 horizon
+        const shade = Math.max(42, 128 - t * 60);
+        ctx.fillStyle = `rgb(${(shade + 8) | 0},${(shade + 4) | 0},${(shade * 0.6) | 0})`;
         ctx.fillRect(0, y, W, 4);
       }
-      
+      // Ceiling panel seams (converge toward horizon)
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      for (let k = 0; k < 8; k++) {
+        const y = 6 + k * (H / 4);
+        if (y < H / 2 - 2) ctx.fillRect(0, y, W, 1);
+      }
+      for (let c = 0; c <= 12; c++) {
+        const x = (c / 12) * W;
+        for (let y = 0; y < H / 2; y += 3) {
+          const spread = 1 + (y / (H / 2)) * 2.2;
+          const lx = W / 2 + (x - W / 2) / spread;
+          ctx.fillRect(lx, y, 1, 3);
+        }
+      }
+      // A couple of glowing fluorescent ceiling lights
+      for (const lx of [0.32, 0.68]) {
+        const x = lx * W;
+        const y = H * 0.14;
+        ctx.save();
+        ctx.shadowBlur = 22;
+        ctx.shadowColor = "#fff6c8";
+        ctx.fillStyle = "rgba(255,248,214,0.9)";
+        ctx.fillRect(x - 26, y, 52, 9);
+        ctx.restore();
+      }
+
+      // Floor — yellow carpet, darker with distance
+      ctx.fillStyle = "#9a8a58";
+      ctx.fillRect(0, H / 2, W, H / 2);
+      for (let y = H / 2; y < H; y += 4) {
+        const t = (y - H / 2) / (H / 2); // 0 horizon -> 1 bottom
+        const shade = Math.max(48, 96 + t * 38);
+        ctx.fillStyle = `rgb(${(shade + 10) | 0},${(shade + 2) | 0},${(shade * 0.52) | 0})`;
+        ctx.fillRect(0, y, W, 4);
+      }
+
       const fov = Math.PI / 2.9;
       const cols = Math.ceil(W / 2);
       zbuf.length = cols;
@@ -794,67 +828,53 @@ export default function LastShift() {
         zbuf[i] = d;
         const wh = Math.min(H * 2, H / (d * 0.82));
         const top = H / 2 - wh / 2;
-        const side = Math.abs(Math.sin(rayAng)) > 0.7 ? 0.72 : 1;
-        
-        // Flashlight with flicker
-        const light = flashlight ? Math.max(0.08, 1 - d / 12) * flashlightFlicker : Math.max(0.035, 0.25 - d / 35);
-        const cone = flashlight ? Math.max(0.2, 1 - Math.abs(i / cols - 0.5) * 1.6) : 0.4;
-        const v = Math.floor(Math.max(3, 100 * light * cone * side));
+        const side = Math.abs(Math.sin(rayAng)) > 0.7 ? 0.82 : 1;
+
+        // Backrooms ambient: dim, warm, fades with distance. Flashlight adds a soft center cone.
+        const ambient = Math.max(0.18, 0.72 - d / 14) * flashlightFlicker * side;
+        const boost = flashlight ? Math.min(1, ambient * 1.15 + (1 - Math.abs(i / cols - 0.5) * 2) * 0.28) : ambient;
         const zone = zoneAt(r.tx, r.ty);
-        const boost = Math.max(0.08, light * cone * side);
-        
-        // Base wall color
-        const rgb = zone.base.map((c) => Math.max(2, Math.floor(c * boost)));
-        
-        // Door special coloring
+
+        // Base yellow wallpaper
         if (r.hit === "D") {
-          const doorGlow = doorOpen ? 0.4 + Math.sin(animTime * 4) * 0.2 : 0.1;
-          ctx.fillStyle = `rgb(${Math.max(3, (v * 0.25) | 0)},${Math.max(8, (v * 0.8) | 0)},${Math.max(3, (v * 0.35) | 0)})`;
+          const doorGlow = doorOpen ? 0.5 + Math.sin(animTime * 4) * 0.2 : 0.25;
+          const g = Math.floor(90 * boost + 40 * doorGlow);
+          ctx.fillStyle = `rgb(${(g * 0.5) | 0},${Math.max(6, (g) | 0)},${(g * 0.4) | 0})`;
           if (doorOpen) {
-            ctx.fillStyle = `rgba(85, 255, 155, ${doorGlow * 0.3})`;
+            ctx.fillStyle = `rgba(85, 255, 155, ${doorGlow * 0.25})`;
             ctx.fillRect(i * 2, top + wh * 0.3, 3, wh * 0.4);
           }
         } else {
+          const rgb = zone.base.map((c) => Math.min(255, Math.floor(c * (0.35 + boost * 0.85))));
           ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
         }
         ctx.fillRect(i * 2, top, 3, wh);
-        
-        // Wall details - pipes, grime, cracks
-        if (wh > 30) {
-          const detailAlpha = Math.max(0.02, 0.15 / (d * 0.3));
-          
-          // Horizontal pipe at 1/4 height
-          if ((i * 7) % 23 < 3) {
-            ctx.fillStyle = `rgba(${zone.accent[0] * 0.6},${zone.accent[1] * 0.6},${zone.accent[2] * 0.6},${detailAlpha})`;
-            ctx.fillRect(i * 2, top + wh * 0.22, 3, Math.max(2, wh * 0.015));
+
+        // Wallpaper: subtle vertical stripe pattern
+        if (wh > 26) {
+          const stripeOn = Math.floor((r.tx + r.ty * 3) * 2.2) % 2 === 0;
+          if (stripeOn) {
+            const s = Math.min(255, Math.floor((zone.accent[0] + 26) * (0.35 + boost * 0.85)));
+            const s2 = Math.min(255, Math.floor((zone.accent[1] + 24) * (0.35 + boost * 0.85)));
+            const s3 = Math.min(255, Math.floor((zone.accent[2] + 14) * (0.35 + boost * 0.85)));
+            ctx.fillStyle = `rgba(${s},${s2},${s3},0.55)`;
+            ctx.fillRect(i * 2, top + wh * 0.08, 3, wh * 0.86);
           }
-          
-          // Lower pipe at 3/4 height
-          if ((i * 11) % 31 < 4) {
-            ctx.fillStyle = `rgba(40,45,50,${detailAlpha * 0.8})`;
-            ctx.fillRect(i * 2, top + wh * 0.72, 3, Math.max(2, wh * 0.012));
-          }
-          
-          // Grime spots
-          if ((i * 13) % 47 < 2 && d < 6) {
-            ctx.fillStyle = `rgba(15,18,20,${detailAlpha * 0.6})`;
-            const grimeSize = Math.max(1, wh * 0.02);
-            ctx.fillRect(i * 2, top + wh * 0.5, grimeSize, grimeSize);
-          }
-          
-          // Warning stripes on some walls
-          if ((i * 17) % 53 < 3 && zone.accent[0] > 100) {
-            const stripeY = top + wh * 0.85;
-            for (let s = 0; s < 3; s++) {
-              ctx.fillStyle = s % 2 === 0 ? `rgba(180,150,20,${detailAlpha * 0.5})` : `rgba(20,20,20,${detailAlpha * 0.5})`;
-              ctx.fillRect(i * 2 + s, stripeY, 1, Math.max(1, wh * 0.008));
-            }
-          }
+          // Darker horizontal baseboard + crown line
+          ctx.fillStyle = `rgba(60,52,28,${Math.max(0.05, boost * 0.5)})`;
+          ctx.fillRect(i * 2, top + wh * 0.9, 3, Math.max(1, wh * 0.05));
+          ctx.fillRect(i * 2, top + wh * 0.04, 3, Math.max(1, wh * 0.02));
         }
-        
-        // Distance fog
-        if (d < 7) {
-          ctx.fillStyle = `rgba(0,0,0,${Math.min(0.58, d / 12)})`;
+
+        // Damp stain near floor in some columns
+        if ((i * 13) % 41 < 2 && d < 8) {
+          ctx.fillStyle = `rgba(40,36,18,${Math.max(0.03, boost * 0.28)})`;
+          ctx.fillRect(i * 2, top + wh * 0.72, 3, wh * 0.2);
+        }
+
+        // Distance fog — warm dusty yellow, not pure black
+        if (d < 16) {
+          ctx.fillStyle = `rgba(92,84,44,${Math.min(0.48, d / 20)})`;
           ctx.fillRect(i * 2, top, 3, wh);
         }
       }
