@@ -99,7 +99,9 @@ export function MazeGame() {
 
   return (
     <div className="relative w-full h-full bg-black">
-      <div ref={containerRef} className="w-full h-full" />
+      {/* Game canvas sits at z-10; UI overlays (menu, HUD, nav) at z-20+
+          so the pointer lock canvas never eats their clicks. */}
+      <div ref={containerRef} className="absolute inset-0 z-10" />
 
       {!showMenu && !showGameOver && <HUD data={hud} />}
 
@@ -117,7 +119,7 @@ export function MazeGame() {
       <Link
         href="/"
         onClick={() => goMenu()}
-        className="absolute left-4 top-4 z-40 pointer-events-auto flex items-center gap-2 border border-stone-700 bg-black/70 px-3 py-1.5 text-[11px] font-bold tracking-widest text-stone-300 hover:bg-stone-800 hover:text-white"
+        className="absolute left-4 top-4 z-50 pointer-events-auto flex items-center gap-2 border border-stone-700 bg-black/80 px-3 py-1.5 text-[11px] font-bold tracking-widest text-stone-300 hover:bg-stone-800 hover:text-white"
       >
         <span aria-hidden>←</span> МЕНЮ
       </Link>
