@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Game } from "./core/Game";
 import type { Difficulty } from "./core/GameState";
 import { loadGameState } from "./core/GameState";
@@ -111,15 +112,15 @@ export function MazeGame() {
         />
       )}
 
-      {/* Leave-to-home button: always visible on the start screen and in-game */}
-      {!showGameOver && (
-        <button
-          onClick={goMenu}
-          className="absolute bottom-4 right-4 z-40 pointer-events-auto border border-stone-700 bg-black/70 px-3 py-1.5 text-[10px] font-bold tracking-widest text-stone-400 hover:bg-stone-800 hover:text-stone-200"
-        >
-          {showMenu ? "ВЫХОД" : "В МЕНЮ"}
-        </button>
-      )}
+      {/* Top-left: back to the site's main menu (same place as on other
+          game pages — the global Nav sits here) */}
+      <Link
+        href="/"
+        onClick={() => goMenu()}
+        className="absolute left-4 top-4 z-40 pointer-events-auto flex items-center gap-2 border border-stone-700 bg-black/70 px-3 py-1.5 text-[11px] font-bold tracking-widest text-stone-300 hover:bg-stone-800 hover:text-white"
+      >
+        <span aria-hidden>←</span> МЕНЮ
+      </Link>
 
       {paused && !showMenu && !showGameOver && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
