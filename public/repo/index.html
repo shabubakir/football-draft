@@ -94,8 +94,8 @@
             return parts;
         }
         Promise.all([
-            mergeFiles(getParts("Build/NewestBuild.wasm.gz", 1, 3)),
-            mergeFiles(getParts("Build/NewestBuild.data.gz", 1, 16))
+            fetch("Build/NewestBuild.wasm.gz").then(r => r.blob()).then(b => URL.createObjectURL(b)),
+            fetch("Build/NewestBuild.data.gz").then(r => r.blob()).then(b => URL.createObjectURL(b))
         ]).then(([wasmUrl, dataUrl]) => {
             container.hidden = false;
             var buildUrl = "Build";

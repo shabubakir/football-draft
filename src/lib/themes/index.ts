@@ -318,6 +318,26 @@ export const THEMES: Record<GameThemeId, GameTheme> = {
     fontStyle: "bold",
   },
 
+  // ---------- THE MAZE — dark horror / survival ----------
+  maze: {
+    id: "maze",
+    background:
+      "linear-gradient(180deg, #050505 0%, #0a0a0f 50%, #050505 100%)",
+    backgroundPattern:
+      "radial-gradient(circle at 50% 100%, rgba(220,38,38,0.04) 0%, transparent 50%)",
+    primary: "#dc2626",
+    accent: "#f59e0b",
+    card: "rgba(255,255,255,0.03)",
+    cardBorder: "rgba(220,38,38,0.15)",
+    text: "#f5f5f4",
+    textMuted: "rgba(255,255,255,0.5)",
+    buttonBg: "linear-gradient(135deg, #dc2626, #991b1b)",
+    buttonText: "#ffffff",
+    buttonHover: "linear-gradient(135deg, #991b1b, #7f1d1d)",
+    headerAccent: "#f87171",
+    fontStyle: "bold",
+  },
+
   // ---------- NEUTRAL — default site (cream) ----------
   neutral: {
     id: "neutral",

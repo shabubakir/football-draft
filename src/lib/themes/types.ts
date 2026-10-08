@@ -19,6 +19,7 @@ export type GameThemeId =
   | "last-shift"
   | "backrooms"
   | "repo"
+  | "maze"
   | "neutral";
 
 export interface GameTheme {
