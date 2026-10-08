@@ -43,8 +43,8 @@ export class Game {
 
   constructor(private container: HTMLElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x050505);
-    this.scene.fog = new THREE.FogExp2(0x050505, 0.08);
+    this.scene.background = new THREE.Color(0x0a0a0f);
+    this.scene.fog = new THREE.FogExp2(0x0a0a0f, 0.04);
 
     this.camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);
     this.renderer = new THREE.WebGLRenderer({ antialias: true });

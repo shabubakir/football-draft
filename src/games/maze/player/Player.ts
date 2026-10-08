@@ -65,10 +65,10 @@ export class Player {
     );
 
     let move = new THREE.Vector3();
-    if (input.isDown("KeyW")) move.add(forward);
-    if (input.isDown("KeyS")) move.sub(forward);
-    if (input.isDown("KeyD")) move.add(right);
-    if (input.isDown("KeyA")) move.sub(right);
+    if (input.isDown("KeyW")) move.sub(forward);
+    if (input.isDown("KeyS")) move.add(forward);
+    if (input.isDown("KeyA")) move.add(right);
+    if (input.isDown("KeyD")) move.sub(right);
 
     const moving = move.lengthSq() > 0;
     if (moving) move.normalize();
