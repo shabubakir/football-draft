@@ -175,15 +175,6 @@ export const GAMES: GameCard[] = [
     theme: "backrooms",
   },
   {
-    href: "/repo",
-    tag: "КООП · 4 ИГРОКА · 3D",
-    title: "R.E.P.O",
-    desc: "Кооперативный шутер от первого лица: 4 игрока против огромных боссов, сбор ресурсов, напряжение и хаос. Unity WebGL.",
-    footer: "4 ИГРОКА · БОССЫ · НАПРЯЖЕНИЕ",
-    cta: "ИГРАТЬ",
-    theme: "repo",
-  },
-  {
     href: "/maze",
     tag: "ХОРРОР · ВЫЖИВАНИЕ · 3D",
     title: "THE MAZE",

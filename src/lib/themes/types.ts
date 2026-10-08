@@ -18,7 +18,6 @@ export type GameThemeId =
   | "flappy-bird"
   | "last-shift"
   | "backrooms"
-  | "repo"
   | "maze"
   | "neutral";
 
