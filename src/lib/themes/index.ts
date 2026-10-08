@@ -298,6 +298,26 @@ export const THEMES: Record<GameThemeId, GameTheme> = {
     fontStyle: "bold",
   },
 
+  // ---------- R.E.P.O — sci-fi / industrial co-op ----------
+  repo: {
+    id: "repo",
+    background:
+      "linear-gradient(180deg, #0a0e14 0%, #111827 50%, #0a0e14 100%)",
+    backgroundPattern:
+      "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.04) 0%, transparent 60%)",
+    primary: "#3b82f6",
+    accent: "#f59e0b",
+    card: "rgba(255,255,255,0.04)",
+    cardBorder: "rgba(59,130,246,0.15)",
+    text: "#f3f4f6",
+    textMuted: "rgba(255,255,255,0.5)",
+    buttonBg: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+    buttonText: "#ffffff",
+    buttonHover: "linear-gradient(135deg, #1d4ed8, #1e40af)",
+    headerAccent: "#60a5fa",
+    fontStyle: "bold",
+  },
+
   // ---------- NEUTRAL — default site (cream) ----------
   neutral: {
     id: "neutral",

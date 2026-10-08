@@ -40,6 +40,7 @@ const NAV_GAMES: NavGame[] = [
   { href: "/flappy", label: "GOAL FLAPPY", match: "/flappy", icon: "flappy", desc: "Неоновый аркадный полёт" },
   { href: "/shift", label: "ПОСЛЕДНЯЯ СМЕНА", match: "/shift", icon: "flashlight", desc: "Хоррор · выживи до конца смены" },
   { href: "/backrooms", label: "BACKROOMS: LEVEL 0", match: "/backrooms", icon: "backrooms", desc: "3D хоррор · сбеги из лабиринта" },
+  { href: "/repo", label: "R.E.P.O", match: "/repo", icon: "crosshair", desc: "Кооп шутер · 4 игрока · Unity WebGL" },
 ];
 
 // ---------- Категории для мега-меню «ВСЕ ИГРЫ» ----------
@@ -63,7 +64,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: "АРКАДА",
     icon: "zap",
-    hrefs: ["/reaction-test", "/flappy", "/shift", "/backrooms"],
+    hrefs: ["/reaction-test", "/flappy", "/shift", "/backrooms", "/repo"],
   },
   {
     title: "КВИЗЫ",

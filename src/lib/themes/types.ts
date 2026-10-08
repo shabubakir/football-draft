@@ -18,6 +18,7 @@ export type GameThemeId =
   | "flappy-bird"
   | "last-shift"
   | "backrooms"
+  | "repo"
   | "neutral";
 
 export interface GameTheme {
