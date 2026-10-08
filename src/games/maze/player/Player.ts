@@ -40,7 +40,7 @@ export class Player {
     this.mesh = new THREE.Group();
 
     // Flashlight
-    this.flashlight = new THREE.SpotLight(0xfff4e0, 5, 24, Math.PI / 6, 0.5, 1.5);
+    this.flashlight = new THREE.SpotLight(0xfff4e0, 12, 22, Math.PI / 6, 0.5, 1.5);
     this.flashlight.position.set(0.2, -0.2, 0);
     this.flashlight.target.position.set(0, -0.2, -5);
     this.mesh.add(this.flashlight);
@@ -168,7 +168,7 @@ export class Player {
     if (this.flashlight.visible) {
       const flicker = 0.9 + 0.1 * Math.sin(Date.now() * 0.01) * Math.random();
       const subtle = 0.96 + Math.sin(performance.now() / 1000 * 47) * 0.012;
-      this.flashlight.intensity = 5 * flicker * subtle * this.torchDim;
+      this.flashlight.intensity = 12 * flicker * subtle * this.torchDim;
     }
 
     // Update camera

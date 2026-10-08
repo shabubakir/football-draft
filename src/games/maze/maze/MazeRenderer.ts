@@ -165,11 +165,12 @@ export class MazeRenderer {
     const size = this.maze.size;
     const rng = new RNG(this.maze.seed + 12345);
 
-    // One warm light per room
+    // One warm fixture per room (Backrooms: fixtures are everywhere,
+    // intensity ~8-12 so adjacent corridors read as "lit from ahead")
     for (const room of this.maze.rooms) {
       const x = Math.floor((room.x0 + room.x1) / 2);
       const y = Math.floor((room.y0 + room.y1) / 2);
-      const light = new THREE.PointLight(0xffaa44, 6, 18, 2);
+      const light = new THREE.PointLight(0xffd08a, 10, 22, 1.8);
       light.position.set(
         x * CELL_SIZE + CELL_SIZE / 2,
         WALL_HEIGHT - 0.3,
@@ -177,7 +178,7 @@ export class MazeRenderer {
       );
       light.userData.flicker = true;
       light.userData.phase = rng.next() * Math.PI * 2;
-      light.userData.baseIntensity = 6;
+      light.userData.baseIntensity = 10;
       this.group.add(light);
 
       // Small emissive sphere for the "bulb"
@@ -189,11 +190,11 @@ export class MazeRenderer {
       this.group.add(bulb);
     }
 
-    // A few sparse flickering corridor lights
-    for (let i = 0; i < 3; i++) {
+    // Denser corridor fixtures so every stretch of hallway has a lit spot
+    for (let i = 0; i < 8; i++) {
       const x = rng.nextInt(2, size - 2);
       const y = rng.nextInt(2, size - 2);
-      const light = new THREE.PointLight(0xffaa44, 2, 8, 2);
+      const light = new THREE.PointLight(0xffd08a, 6, 14, 1.8);
       light.position.set(
         x * CELL_SIZE + CELL_SIZE / 2,
         WALL_HEIGHT - 0.3,
@@ -201,7 +202,7 @@ export class MazeRenderer {
       );
       light.userData.flicker = true;
       light.userData.phase = rng.next() * Math.PI * 2;
-      light.userData.baseIntensity = 2;
+      light.userData.baseIntensity = 6;
       this.group.add(light);
 
       // Small emissive sphere for the "bulb"

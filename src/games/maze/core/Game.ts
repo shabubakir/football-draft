@@ -40,11 +40,9 @@ export class Game {
   private exitPosition: THREE.Vector3;
   private loopRunning = false;
 
-  // Room lights: each room has a PointLight; lights turn on when the player
-  // enters the room and fade off when they leave it.
+  // Ceiling fixtures (Backrooms-style): permanent point lights that
+  // flicker. The player walks towards them.
   private roomLightBulbs: { room: number; light: THREE.PointLight }[] = [];
-  private roomLightLevel = new Map<number, number>();
-  private lastRoom = -1;
 
   onWin: ((time: number) => void) | null = null;
   onLose: (() => void) | null = null;
@@ -57,8 +55,8 @@ export class Game {
 
   constructor(private container: HTMLElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x16161f);
-    this.scene.fog = new THREE.FogExp2(0x16161f, 0.028);
+    this.scene.background = new THREE.Color(0x181708);
+    this.scene.fog = new THREE.FogExp2(0x181708, 0.032);
 
     this.camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -68,7 +66,7 @@ export class Game {
     // Same tonemapping as the Backrooms engine: soft shoulder keeps
     // close surfaces from clipping to a white disc.
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.2;
+    this.renderer.toneMappingExposure = 1.3;
     this.renderer.domElement.style.width = "100%";
     this.renderer.domElement.style.height = "100%";
     container.appendChild(this.renderer.domElement);
@@ -123,8 +121,8 @@ export class Game {
     this.monster = new Monster(this.monsterAI);
     this.scene.add(this.monster.group);
 
-    // Ambient light
-    const ambient = new THREE.AmbientLight(0x2a2a3a, 1.1);
+    // Ambient light — same dim warm floor light as Backrooms
+    const ambient = new THREE.AmbientLight(0x3a342a, 0.55);
     this.scene.add(ambient);
 
     // Exit position (far corner) — must be set before placeItems
@@ -220,42 +218,38 @@ export class Game {
     this.exitMesh = exitMesh;
   }
 
-  // Scan room lights for the current maze and reset the light state
+  // Scan room lights for the current maze. Backrooms-style: every fixture
+  // is a permanent point light that flickers — no per-room on/off.
+  // The player walks TOWARDS the light, and the flashlight auto-dims
+  // near close walls (see Player.update).
   private setupRoomLights() {
     this.roomLightBulbs = [];
     this.mazeRenderer.group.traverse((obj) => {
-      if (obj instanceof THREE.PointLight && obj.userData.baseIntensity === 6) {
-        const cellX = Math.floor(obj.position.x / CELL_SIZE);
-        const cellY = Math.floor(obj.position.z / CELL_SIZE);
-        const room = this.maze.roomAt(cellX, cellY);
-        if (room >= 0) {
-          this.roomLightBulbs.push({ room, light: obj });
-          this.roomLightLevel.set(room, 0);
-        }
+      if (obj instanceof THREE.PointLight && obj.userData.flicker) {
+        this.roomLightBulbs.push({ room: -1, light: obj });
       }
     });
-    this.lastRoom = -1;
   }
 
-  // Update room lights: on when the player is in the room, fade in/out otherwise.
-  // Plays a short click when the lights of the new room switch on.
-  private updateRoomLights(dt: number) {
-    const cellX = Math.floor(this.player.position.x / CELL_SIZE);
-    const cellY = Math.floor(this.player.position.z / CELL_SIZE);
-    const room = this.maze.roomAt(cellX, cellY);
-
+  // Backrooms-style "fluorescent hum" proximity cue: the closer the player
+  // is to a lit fixture, the louder the hum (see AudioManager.playHum).
+  // Returns 0..1 (1 = right under a lit ceiling).
+  private computeLightProximity(): number {
+    const pos = this.player.position;
+    let minDistSq = Infinity;
     for (const rl of this.roomLightBulbs) {
-      const target = rl.room === room ? 1 : 0;
-      const level = this.roomLightLevel.get(rl.room) ?? 0;
-      const next = target === 1 ? Math.min(1, level + dt * 2.5) : Math.max(0, level - dt * 2.5);
-      this.roomLightLevel.set(rl.room, next);
-      rl.light.userData.baseIntensity = 6 * next;
+      const l = rl.light;
+      if (l.userData.flicker && l.intensity > 0.5) {
+        const dx = l.position.x - pos.x;
+        const dy = l.position.y - (pos.y + 1.7);
+        const dz = l.position.z - pos.z;
+        const d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 < minDistSq) minDistSq = d2;
+      }
     }
-
-    if (room !== this.lastRoom) {
-      this.lastRoom = room;
-      if (room >= 0) this.audio.playRoomLight();
-    }
+    // 0 at 12 m, 1 at 2 m (smooth)
+    const d = Math.sqrt(minDistSq);
+    return THREE.MathUtils.clamp((12 - d) / 10, 0, 1);
   }
 
   togglePause() {
@@ -409,15 +403,19 @@ export class Game {
       return;
     }
 
-    // Room lights: on when the player enters a room, off in corridors
-    this.updateRoomLights(dt);
-
-    // Corridor/room bulb flicker
+    // Ceiling fixtures flicker (permanent — Backrooms-style)
     this.mazeRenderer.update(this.state.elapsed);
 
-    // Audio update
+    // Audio: footsteps + heartbeat + fluorescent-hum proximity to fixtures
     const proximity = this.monsterAI.getProximity(this.player.position);
-    this.audio.update(dt, this.player.currentNoise > 0, this.player.isRunning, proximity);
+    const lightProximity = this.computeLightProximity();
+    this.audio.update(
+      dt,
+      this.player.currentNoise > 0,
+      this.player.isRunning,
+      proximity,
+      lightProximity
+    );
 
     // HUD update
     if (this.onHudUpdate) {

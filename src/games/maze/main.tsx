@@ -111,6 +111,16 @@ export function MazeGame() {
         />
       )}
 
+      {/* Leave-to-home button: always visible on the start screen and in-game */}
+      {!showGameOver && (
+        <button
+          onClick={goMenu}
+          className="absolute bottom-4 right-4 z-40 pointer-events-auto border border-stone-700 bg-black/70 px-3 py-1.5 text-[10px] font-bold tracking-widest text-stone-400 hover:bg-stone-800 hover:text-stone-200"
+        >
+          {showMenu ? "ВЫХОД" : "В МЕНЮ"}
+        </button>
+      )}
+
       {paused && !showMenu && !showGameOver && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
           <div className="border border-stone-700 bg-stone-950/95 px-10 py-8 text-center shadow-2xl">

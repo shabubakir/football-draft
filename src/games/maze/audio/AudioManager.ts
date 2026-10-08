@@ -7,6 +7,8 @@ export class AudioManager {
   private creakTimer: ReturnType<typeof setTimeout> | null = null;
   private stepTimer = 0;
   private heartbeatTimer = 0;
+  /** Fluorescent-hum gain, driven by proximity to a lit fixture (Backrooms) */
+  private humGain: GainNode | null = null;
 
   init() {
     if (this.ctx) return;
@@ -28,7 +30,7 @@ export class AudioManager {
     // Restart-safe: never stack two ambient layers on repeated start() calls
     if (this.ambientNodes.length > 0) return;
 
-    // Low frequency hum
+    // Low frequency hum (room tone)
     const hum = this.ctx.createOscillator();
     hum.type = "sine";
     hum.frequency.value = 40;
@@ -37,6 +39,21 @@ export class AudioManager {
     hum.connect(humGain).connect(this.masterGain);
     hum.start();
     this.ambientNodes.push(hum, humGain);
+
+    // Fluorescent hum (Backrooms-style proximity cue): a 120 Hz buzz that
+    // grows the closer the player is to a lit ceiling fixture.
+    const fluOsc = this.ctx.createOscillator();
+    fluOsc.type = "sawtooth";
+    fluOsc.frequency.value = 120;
+    const fluFilter = this.ctx.createBiquadFilter();
+    fluFilter.type = "bandpass";
+    fluFilter.frequency.value = 1200;
+    fluFilter.Q.value = 4;
+    this.humGain = this.ctx.createGain();
+    this.humGain.gain.value = 0;
+    fluOsc.connect(fluFilter).connect(this.humGain).connect(this.masterGain);
+    fluOsc.start();
+    this.ambientNodes.push(fluOsc, fluFilter, this.humGain);
 
     // Second layer: slightly detuned
     const hum2 = this.ctx.createOscillator();
@@ -74,27 +91,41 @@ export class AudioManager {
     this.ambientNodes = [];
   }
 
-  // ---------- Footsteps ----------
+  // ---------- Footsteps (Backrooms recipe: carpet scuff + weight thump) ----------
   playStep(isRunning: boolean) {
     if (!this.ctx || !this.masterGain) return;
-    const t = this.ctx.currentTime;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const vol = isRunning ? 0.17 : 0.1;
 
-    const noise = this.ctx.createBufferSource();
-    const buffer = this.createNoiseBuffer(0.1);
-    noise.buffer = buffer;
+    // Carpet scuff — bandpass noise, randomized center freq
+    const src = ctx.createBufferSource();
+    src.buffer = this.createNoiseBuffer(0.1);
+    src.playbackRate.value = 0.7 + Math.random() * 0.5;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 700 + Math.random() * 500;
+    bp.Q.value = 0.8;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.masterGain);
+    src.start(t, Math.random());
+    src.stop(t + 0.12);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = isRunning ? 800 : 400;
-    filter.Q.value = 2;
-
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(isRunning ? 0.3 : 0.15, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-
-    noise.connect(filter).connect(gain).connect(this.masterGain);
-    noise.start(t);
-    noise.stop(t + 0.1);
+    // Weight thump — 82 Hz sine dropping to 45 Hz
+    const osc = ctx.createOscillator();
+    osc.frequency.setValueAtTime(82, t);
+    osc.frequency.exponentialRampToValueAtTime(45, t + 0.07);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(vol * 0.8, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    osc.connect(og);
+    og.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.1);
   }
 
   // ---------- Heartbeat (when monster is close) ----------
@@ -250,8 +281,14 @@ export class AudioManager {
     });
   }
 
-  // ---------- Per-frame update: footsteps + heartbeat ----------
-  update(dt: number, playerMoving: boolean, playerRunning: boolean, monsterProximity: number) {
+  // ---------- Per-frame update: footsteps + heartbeat + fluorescent hum ----------
+  update(
+    dt: number,
+    playerMoving: boolean,
+    playerRunning: boolean,
+    monsterProximity: number,
+    lightProximity = 0
+  ) {
     if (!this.ctx) return;
 
     // Footsteps
@@ -274,6 +311,15 @@ export class AudioManager {
         this.heartbeatTimer = 0;
         this.playHeartbeat(monsterProximity);
       }
+    }
+
+    // Fluorescent hum: loud under a lit fixture, silent in unlit areas
+    if (this.humGain) {
+      this.humGain.gain.setTargetAtTime(
+        0.22 * lightProximity,
+        this.ctx.currentTime,
+        0.4
+      );
     }
   }
 
