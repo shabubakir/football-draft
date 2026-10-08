@@ -5,19 +5,38 @@ import Link from "next/link";
 import { Game } from "./core/Game";
 import type { Difficulty } from "./core/GameState";
 import { loadGameState } from "./core/GameState";
-import { HUD } from "./ui/HUD";
+import { loadEconomy, saveEconomy, buyUpgrade, type EconomyState, type UpgradeId } from "./core/Economy";
+import { HUD, type HudData } from "./ui/HUD";
 import { MainMenu } from "./ui/MainMenu";
-import { GameOver } from "./ui/GameOver";
+import { Shop } from "./ui/Shop";
+
+interface RaidResult {
+  won: boolean;
+  banked: number;
+  quota: number;
+  total: number;
+  nextLevel: number;
+}
 
 export function MazeGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Game | null>(null);
   const [showMenu, setShowMenu] = useState(true);
-  const [showGameOver, setShowGameOver] = useState(false);
-  const [won, setWon] = useState(false);
+  const [showShop, setShowShop] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [hud, setHud] = useState({ stamina: 100, battery: 100, fuses: 0, fusesTotal: 0 });
-  const [result, setResult] = useState({ time: 0, fuses: 0, total: 0 });
+  const [hud, setHud] = useState<HudData>({
+    stamina: 100,
+    battery: 100,
+    fuses: 0,
+    fusesTotal: 0,
+    banked: 0,
+    quota: 5000,
+    carried: 0,
+    timeLeft: 480,
+    event: null,
+  });
+  const [result, setResult] = useState<RaidResult | null>(null);
+  const [economy, setEconomy] = useState<EconomyState>(() => loadEconomy());
   const [stats, setStats] = useState(() => loadGameState());
 
   const startGame = useCallback((difficulty: Difficulty) => {
@@ -35,25 +54,22 @@ export function MazeGame() {
     game.onPause = (p) => setPaused(p);
 
     game.state.difficulty = difficulty;
-    game.onWin = (time) => {
-      setWon(true);
-      setShowGameOver(true);
-      setResult({
-        time,
-        fuses: game.state.fusesCollected,
-        total: game.state.fusesTotal,
-      });
+    let raidSettled = false;
+    const settle = (won: boolean) => {
+      if (raidSettled) return;
+      raidSettled = true;
+      const r = game.finishRaid(won);
+      setResult(r);
+      setEconomy(loadEconomy());
       setStats(loadGameState());
+      setShowShop(true);
+    };
+    game.onWin = (time: number) => {
+      void time;
+      settle(game.state.banked >= game.state.quota);
     };
     game.onLose = () => {
-      setWon(false);
-      setShowGameOver(true);
-      setResult({
-        time: game.state.elapsed,
-        fuses: game.state.fusesCollected,
-        total: game.state.fusesTotal,
-      });
-      setStats(loadGameState());
+      settle(false);
     };
     game.onHudUpdate = (h) => setHud(h);
 
@@ -61,9 +77,10 @@ export function MazeGame() {
     (window as unknown as { __mazeGame?: Game }).__mazeGame = game;
 
     setShowMenu(false);
-    setShowGameOver(false);
+    setShowShop(false);
     setPaused(false);
-    game.start();
+    setResult(null);
+    game.startRaid();
   }, []);
 
   const resume = useCallback(() => {
@@ -74,20 +91,36 @@ export function MazeGame() {
     setTimeout(() => game.input.requestLock(game.renderer.domElement), 50);
   }, []);
 
-  const restart = useCallback(() => {
-    const difficulty = gameRef.current?.state.difficulty ?? "normal";
-    startGame(difficulty);
-  }, [startGame]);
-
   const goMenu = useCallback(() => {
     const game = gameRef.current;
     if (game && game.isPaused) game.togglePause();
     game?.input.releaseLock();
     setPaused(false);
-    setShowGameOver(false);
+    setShowShop(false);
     setShowMenu(true);
+    setEconomy(loadEconomy());
     setStats(loadGameState());
   }, []);
+
+  const nextRaid = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    setShowShop(false);
+    setResult(null);
+    const difficulty = game.state.difficulty;
+    startGame(difficulty);
+  }, [startGame]);
+
+  const buy = useCallback((id: UpgradeId) => {
+    const game = gameRef.current;
+    if (!game) return;
+    const updated = buyUpgrade(economy, id);
+    if (updated) {
+      game.economy = updated;
+      saveEconomy(updated);
+      setEconomy(updated);
+    }
+  }, [economy]);
 
   // Cleanup
   useEffect(() => {
@@ -97,25 +130,28 @@ export function MazeGame() {
     };
   }, []);
 
+  const inGame = !showMenu && !showShop;
+
   return (
     <div className="relative w-full h-full bg-black">
       {/* Game canvas sits at z-10; UI overlays (menu, HUD, nav) at z-20+
           so the pointer lock canvas never eats their clicks. */}
       <div ref={containerRef} className="absolute inset-0 z-10" />
 
-      {!showMenu && !showGameOver && <HUD data={hud} />}
+      {inGame && <HUD data={hud} />}
 
       {showMenu && (
         <MainMenu
           bestTime={stats.bestTime}
           wins={stats.wins}
           deaths={stats.deaths}
+          raidLevel={economy.raidLevel}
+          money={economy.money}
           onStart={startGame}
         />
       )}
 
-      {/* Top-left: back to the site's main menu (same place as on other
-          game pages — the global Nav sits here) */}
+      {/* Top-left: back to the site's main menu */}
       <Link
         href="/"
         onClick={() => goMenu()}
@@ -124,7 +160,7 @@ export function MazeGame() {
         <span aria-hidden>←</span> МЕНЮ
       </Link>
 
-      {paused && !showMenu && !showGameOver && (
+      {paused && !showMenu && !showShop && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
           <div className="border border-stone-700 bg-stone-950/95 px-10 py-8 text-center shadow-2xl">
             <div className="mb-6 text-2xl font-black tracking-[4px] text-stone-200">ПАУЗА</div>
@@ -147,13 +183,12 @@ export function MazeGame() {
         </div>
       )}
 
-      {showGameOver && (
-        <GameOver
-          won={won}
-          time={result.time}
-          fusesCollected={result.fuses}
-          fusesTotal={result.total}
-          onRestart={restart}
+      {showShop && result && (
+        <Shop
+          economy={economy}
+          result={result}
+          onBuy={buy}
+          onNextRaid={nextRaid}
           onMenu={goMenu}
         />
       )}

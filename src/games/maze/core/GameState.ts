@@ -1,7 +1,9 @@
-export type GamePhase = "menu" | "playing" | "won" | "lost";
+export type GamePhase = "menu" | "raid" | "shop";
 
 export type Difficulty = "easy" | "normal" | "nightmare";
 
+// Legacy difficulty config — kept for the old DIFFICULTIES reference
+// (some tests import it). New raids use raidConfig.ts.
 export interface DifficultyConfig {
   monsterSpeed: number;
   monsterHearRange: number;
@@ -42,10 +44,16 @@ export interface GameState {
   phase: GamePhase;
   difficulty: Difficulty;
   seed: number;
+  // Raid scratch (reset in startRaid)
+  quota: number;
+  banked: number; // $ extracted so far this raid
+  carried: number; // $ currently in hand
+  elapsed: number;
+  eventBanner: string | null;
+  // Secondary collectibles (room lights / power)
   fusesCollected: number;
   fusesTotal: number;
-  batteriesCollected: number;
-  elapsed: number;
+  // Legacy meta (old save key, display only)
   bestTime: number | null;
   wins: number;
   deaths: number;
@@ -63,10 +71,13 @@ export function loadGameState(): GameState {
         phase: "menu",
         difficulty: saved.difficulty ?? "normal",
         seed: Math.floor(Math.random() * 1000000),
+        quota: 0,
+        banked: 0,
+        carried: 0,
+        elapsed: 0,
+        eventBanner: null,
         fusesCollected: 0,
         fusesTotal: 0,
-        batteriesCollected: 0,
-        elapsed: 0,
         bestTime: saved.bestTime ?? null,
         wins: saved.wins ?? 0,
         deaths: saved.deaths ?? 0,
@@ -78,10 +89,13 @@ export function loadGameState(): GameState {
     phase: "menu",
     difficulty: "normal",
     seed: Math.floor(Math.random() * 1000000),
+    quota: 0,
+    banked: 0,
+    carried: 0,
+    elapsed: 0,
+    eventBanner: null,
     fusesCollected: 0,
     fusesTotal: 0,
-    batteriesCollected: 0,
-    elapsed: 0,
     bestTime: null,
     wins: 0,
     deaths: 0,

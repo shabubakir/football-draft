@@ -7,10 +7,16 @@ interface MainMenuProps {
   bestTime: number | null;
   wins: number;
   deaths: number;
+  raidLevel: number;
+  money: number;
   onStart: (difficulty: Difficulty) => void;
 }
 
-export function MainMenu({ bestTime, wins, deaths, onStart }: MainMenuProps) {
+function fmtMoney(n: number): string {
+  return "$" + n.toLocaleString();
+}
+
+export function MainMenu({ bestTime, wins, deaths, raidLevel, money, onStart }: MainMenuProps) {
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [showHelp, setShowHelp] = useState(false);
 
@@ -20,15 +26,18 @@ export function MainMenu({ bestTime, wins, deaths, onStart }: MainMenuProps) {
         <h1 className="text-5xl font-black tracking-tight text-white mb-2">
           THE <span className="text-red-600">MAZE</span>
         </h1>
-        <p className="text-stone-500 text-sm mb-8">
-          Найди предохранители. Выживи.
+        <p className="text-stone-500 text-sm mb-4">
+          Добудь. Перенеси. Извлеки.
         </p>
 
         {/* Stats */}
-        <div className="flex justify-center gap-6 text-xs text-stone-500 mb-6">
-          {bestTime !== null && (
-            <span>ЛУЧШЕЕ: {bestTime.toFixed(1)}с</span>
-          )}
+        <div className="flex justify-center gap-4 text-xs text-stone-500 mb-4 flex-wrap">
+          <span>
+            РЕЙД: <span className="text-amber-400 font-bold">УР. {raidLevel}</span>
+          </span>
+          <span>
+            БЮДЖЕТ: <span className="text-emerald-400 font-bold">{fmtMoney(money)}</span>
+          </span>
           <span>ПОБЕД: {wins}</span>
           <span>СМЕРТЕЙ: {deaths}</span>
         </div>
@@ -56,7 +65,7 @@ export function MainMenu({ bestTime, wins, deaths, onStart }: MainMenuProps) {
             onClick={() => onStart(difficulty)}
             className="px-8 py-3 bg-red-700 hover:bg-red-600 text-white font-black text-lg rounded-xl transition"
           >
-            ИГРАТЬ
+            НАЧАТЬ РЕЙД
           </button>
           <button
             onClick={() => setShowHelp(!showHelp)}
@@ -74,9 +83,12 @@ export function MainMenu({ bestTime, wins, deaths, onStart }: MainMenuProps) {
             <p><b className="text-stone-200">Shift</b> — бег (тратит stamina)</p>
             <p><b className="text-stone-200">Ctrl / C</b> — присесть (тише)</p>
             <p><b className="text-stone-200">F</b> — фонарик</p>
+            <p><b className="text-stone-200">E</b> — подхватить лут</p>
+            <p><b className="text-stone-200">Q</b> — бросить лут</p>
             <p className="pt-2 text-stone-500">
-              Монстр слышит шум и видит свет. Не беги, если он рядом.
-              Собери все предохранители и найди выход.
+              Ищи ценные предметы, переноси на точку извлечения (синий маяк).
+              Монстр слышит шум — тяжелый лут стучит при падении.
+              Выполняй квоту, чтобы пройти на следующий уровень.
             </p>
           </div>
         )}

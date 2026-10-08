@@ -5,6 +5,8 @@ import { MazeGenerator, WALL_N, WALL_E, WALL_S, WALL_W } from "../maze/MazeGener
 const WALK_SPEED = 4;
 const RUN_SPEED = 7;
 const CROUCH_SPEED = 1.5;
+/** Carrying capacity without the backpack upgrade (kg). */
+export const BASE_CAPACITY = 40;
 const STAMINA_MAX = 100;
 const STAMINA_DRAIN = 20; // per second while running
 const STAMINA_REGEN = 15; // per second when not running
@@ -24,6 +26,14 @@ export class Player {
   isCrouching = false;
   flashlightOn = true;
   flashlightBattery = 100;
+  /** Upgrade: flashlight boost multiplier (1.4 with the upgrade) */
+  flashlightBoost = 1;
+  /** Upgrade: max battery capacity (100 base, +50 per level) */
+  batteryCapacity = 100;
+  /** Upgrade: movement speed multiplier (1 + 0.1 per level) */
+  speedMult = 1;
+  /** Upgrade: max stamina multiplier (1 + 0.25 per level) */
+  staminaMult = 1;
   // Backrooms-style auto-dim: 0..1 scale for surfaces close to the beam
   private torchDim = 1;
 
@@ -57,7 +67,8 @@ export class Player {
     input: Input,
     mazeBounds: { min: THREE.Vector3; max: THREE.Vector3 },
     maze: MazeGenerator | null = null,
-    cellSize = 4
+    cellSize = 4,
+    loadFactor = 0
   ) {
     // Mouse look
     const { x, y } = input.consumeMouse();
@@ -98,7 +109,8 @@ export class Player {
       !this.staminaExhausted;
     this.isRunning = wantsRun;
 
-    // Stamina
+    // Stamina (upgraded max: STAMINA_MAX * staminaMult)
+    const staminaMax = STAMINA_MAX * this.staminaMult;
     if (this.isRunning) {
       this.stamina -= STAMINA_DRAIN * dt;
       if (this.stamina <= 0) {
@@ -110,13 +122,16 @@ export class Player {
       if (this.staminaExhausted && this.stamina >= STAMINA_EXHAUST_THRESHOLD) {
         this.staminaExhausted = false;
       }
-      this.stamina = Math.min(STAMINA_MAX, this.stamina);
+      this.stamina = Math.min(staminaMax, this.stamina);
     }
 
-    // Speed
+    // Speed (load slows you down — the core R.E.P.O. trade-off)
     let speed = WALK_SPEED;
     if (this.isCrouching) speed = CROUCH_SPEED;
     else if (this.isRunning) speed = RUN_SPEED;
+    speed *= this.speedMult;
+    const overload = Math.max(0, loadFactor - 0.6) / 0.4; // 0 → 1 at full pack
+    speed *= 1 - 0.35 * overload - (loadFactor > 0 ? 0.05 : 0);
 
     // Apply movement
     const delta = move.multiplyScalar(speed * dt);
@@ -142,6 +157,7 @@ export class Player {
         this.flashlightOn = false;
       }
     }
+    this.flashlightBattery = Math.min(this.flashlightBattery, this.batteryCapacity);
 
     // Backrooms-style auto-dim: a wall half a meter out catches
     // inverse-square intensity and clips to a pure white disc. March the
@@ -168,10 +184,11 @@ export class Player {
     this.torchDim += (dimTarget - this.torchDim) * Math.min(1, dt * 9);
 
     // Flicker + subtle breathing + auto-dim (Backrooms player.ts recipe)
+    // flashlightBoost from the upgrade multiplies base intensity
     if (this.flashlight.visible) {
       const flicker = 0.9 + 0.1 * Math.sin(Date.now() * 0.01) * Math.random();
       const subtle = 0.96 + Math.sin(performance.now() / 1000 * 47) * 0.012;
-      this.flashlight.intensity = 12 * flicker * subtle * this.torchDim;
+      this.flashlight.intensity = 12 * this.flashlightBoost * flicker * subtle * this.torchDim;
     }
 
     // Update camera

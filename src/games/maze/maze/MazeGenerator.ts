@@ -210,8 +210,22 @@ export class MazeGenerator {
     return false;
   }
 
-  // Cell centers (world units) of the three largest rooms — good spots for the fuses
+  // All room centers (world units), largest first. Loot prefers rooms —
+  // open spaces where you can actually turn around and grab something.
   roomCenters(): { x: number; z: number }[] {
+    return this.rooms
+      .map((r) => {
+        const cx = (r.x0 + r.x1) / 2;
+        const cy = (r.y0 + r.y1) / 2;
+        const size = (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1);
+        return { x: Math.floor(cx) * 4 + 2, z: Math.floor(cy) * 4 + 2, size };
+      })
+      .sort((a, b) => b.size - a.size)
+      .map(({ x, z }) => ({ x, z }));
+  }
+
+  // Legacy: the three largest rooms — good spots for the fuses
+  roomCentersTop3(): { x: number; z: number }[] {
     const cellCenter = (cx: number, cy: number) => ({
       x: cx * 4 + 2,
       z: cy * 4 + 2,

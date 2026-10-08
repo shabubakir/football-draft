@@ -189,6 +189,44 @@ export class AudioManager {
     osc.stop(t + 0.2);
   }
 
+  // ---------- Drop / thud sound (loot) ----------
+  playDrop(intensity = 0.5) {
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+
+    // Low thud
+    const osc = this.ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(120 + intensity * 40, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.4 * intensity, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+
+    osc.connect(gain).connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.2);
+
+    // Rattle (short noise burst)
+    const noise = this.ctx.createBufferSource();
+    const bufLen = Math.floor(this.ctx.sampleRate * 0.08);
+    const buf = this.ctx.createBuffer(1, bufLen, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / bufLen);
+    }
+    noise.buffer = buf;
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.15 * intensity, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 600;
+    noise.connect(filter).connect(nGain).connect(this.masterGain);
+    noise.start(t);
+  }
+
   // ---------- Room light switch: short click + fluorescent buzz-in ----------
   playRoomLight() {
     if (!this.ctx || !this.masterGain) return;
