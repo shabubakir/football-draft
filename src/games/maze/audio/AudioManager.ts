@@ -4,6 +4,7 @@ export class AudioManager {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private ambientNodes: AudioNode[] = [];
+  private creakTimer: ReturnType<typeof setTimeout> | null = null;
   private stepTimer = 0;
   private heartbeatTimer = 0;
 
@@ -24,6 +25,8 @@ export class AudioManager {
   // ---------- Ambient sound: low hum + occasional metallic creaks ----------
   startAmbient() {
     if (!this.ctx || !this.masterGain) return;
+    // Restart-safe: never stack two ambient layers on repeated start() calls
+    if (this.ambientNodes.length > 0) return;
 
     // Low frequency hum
     const hum = this.ctx.createOscillator();
@@ -50,15 +53,23 @@ export class AudioManager {
       if (!this.ctx) return;
       this.playMetallicCreak();
       const delay = 3000 + Math.random() * 8000;
-      setTimeout(scheduleCreak, delay);
+      this.creakTimer = setTimeout(scheduleCreak, delay);
     };
-    setTimeout(scheduleCreak, 2000);
+    this.creakTimer = setTimeout(scheduleCreak, 2000);
   }
 
   stopAmbient() {
+    if (this.creakTimer !== null) {
+      clearTimeout(this.creakTimer);
+      this.creakTimer = null;
+    }
     this.ambientNodes.forEach((n) => {
-      if (n instanceof OscillatorNode) n.stop();
-      n.disconnect();
+      try {
+        if (n instanceof OscillatorNode) n.stop();
+        n.disconnect();
+      } catch {
+        // already stopped — ignore
+      }
     });
     this.ambientNodes = [];
   }

@@ -6,9 +6,19 @@ export class Input {
   /** Fired when pointer lock is released (Esc) — the game should pause */
   onUnlock: (() => void) | null = null;
 
+  /** Fired on a fresh (non-repeat) keydown — e.g. F toggles the flashlight */
+  onPress: ((code: string) => void) | null = null;
+
   private onKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Escape") return; // browser handles Esc for pointer lock
     this.keys.add(e.code);
+    if (!e.repeat) {
+      try {
+        this.onPress?.(e.code);
+      } catch {
+        // never let a UI callback break movement input
+      }
+    }
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
@@ -65,11 +75,25 @@ export class Input {
   }
 
   requestLock(element: HTMLElement) {
-    element.requestPointerLock();
+    try {
+      const p = element.requestPointerLock() as unknown as
+        | Promise<void>
+        | undefined;
+      // Modern Chrome returns a promise that rejects when the request is
+      // not allowed (iframe, Esc-cooldown, headless). Swallow it: the game
+      // stays playable with keyboard, mouse-look just doesn't engage.
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    } catch {
+      // Older browsers throw synchronously — same deal, ignore.
+    }
   }
 
   releaseLock() {
-    document.exitPointerLock();
+    try {
+      if (document.pointerLockElement) document.exitPointerLock();
+    } catch {
+      // ignore
+    }
   }
 
   consumeMouse() {

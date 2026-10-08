@@ -16,6 +16,7 @@ export function MazeGame() {
   const [won, setWon] = useState(false);
   const [paused, setPaused] = useState(false);
   const [hud, setHud] = useState({ stamina: 100, battery: 100, fuses: 0, fusesTotal: 0 });
+  const [result, setResult] = useState({ time: 0, fuses: 0, total: 0 });
   const [stats, setStats] = useState(() => loadGameState());
 
   const startGame = useCallback((difficulty: Difficulty) => {
@@ -36,14 +37,27 @@ export function MazeGame() {
     game.onWin = (time) => {
       setWon(true);
       setShowGameOver(true);
+      setResult({
+        time,
+        fuses: game.state.fusesCollected,
+        total: game.state.fusesTotal,
+      });
       setStats(loadGameState());
     };
     game.onLose = () => {
       setWon(false);
       setShowGameOver(true);
+      setResult({
+        time: game.state.elapsed,
+        fuses: game.state.fusesCollected,
+        total: game.state.fusesTotal,
+      });
       setStats(loadGameState());
     };
     game.onHudUpdate = (h) => setHud(h);
+
+    // Test hook for Playwright QA (same-origin only, harmless in prod)
+    (window as unknown as { __mazeGame?: Game }).__mazeGame = game;
 
     setShowMenu(false);
     setShowGameOver(false);
@@ -123,9 +137,9 @@ export function MazeGame() {
       {showGameOver && (
         <GameOver
           won={won}
-          time={gameRef.current?.state.elapsed ?? 0}
-          fusesCollected={gameRef.current?.state.fusesCollected ?? 0}
-          fusesTotal={gameRef.current?.state.fusesTotal ?? 0}
+          time={result.time}
+          fusesCollected={result.fuses}
+          fusesTotal={result.total}
           onRestart={restart}
           onMenu={goMenu}
         />

@@ -4,7 +4,9 @@ export class RNG {
   private state: number;
 
   constructor(seed: number) {
-    this.state = seed;
+    // xorshift(0) sticks at 0 forever, producing a degenerate maze —
+    // fall back to 1 for non-finite/zero seeds.
+    this.state = Number.isFinite(seed) && seed !== 0 ? seed : 1;
   }
 
   next(): number {

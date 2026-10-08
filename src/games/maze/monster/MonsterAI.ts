@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { MazeGenerator } from "../maze/MazeGenerator";
+import { MazeGenerator, WALL_N, WALL_E, WALL_S, WALL_W } from "../maze/MazeGenerator";
 
 export type MonsterState =
   | "PATROL"
@@ -33,6 +33,9 @@ export class MonsterAI {
   patrolTarget: [number, number] | null = null;
   searchTimer = 0;
   investigateNoise: NoiseEvent | null = null;
+  private patrolTimer = 0;
+  private repathTimer = 0;
+  private investigateTimer = 0;
 
   private config: MonsterConfig;
   private maze: MazeGenerator;
@@ -125,31 +128,58 @@ export class MonsterAI {
   }
 
   private hasLineOfSight(from: THREE.Vector3, to: THREE.Vector3): boolean {
-    // Raycast through maze grid
-    const steps = 20;
-    const dir = new THREE.Vector3().subVectors(to, from);
-    const len = dir.length();
-    dir.normalize();
-
-    for (let i = 0; i <= steps; i++) {
-      const t = (i / steps) * len;
-      const point = new THREE.Vector3().copy(from).addScaledVector(dir, t);
-      const cellX = Math.floor(point.x / this.cellSize);
-      const cellZ = Math.floor(point.z / this.cellSize);
+    // Walk the segment in small steps and check the maze walls between the
+    // cells we cross. Diagonal corner-cuts are blocked conservatively
+    // (either orthogonal wall blocks the peek), so the monster can never
+    // see through a wall or a closed corner.
+    const dx = to.x - from.x;
+    const dz = to.z - from.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+    if (dist < 1e-6) return true;
+    const steps = Math.max(1, Math.ceil(dist / 0.3));
+    let prevCX = Math.floor(from.x / this.cellSize);
+    let prevCZ = Math.floor(from.z / this.cellSize);
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const cx = Math.floor((from.x + dx * t) / this.cellSize);
+      const cz = Math.floor((from.z + dz * t) / this.cellSize);
+      if (cx === prevCX && cz === prevCZ) continue;
       if (
-        cellX < 0 ||
-        cellX >= this.maze.size ||
-        cellZ < 0 ||
-        cellZ >= this.maze.size
+        cx < 0 || cx >= this.maze.size ||
+        cz < 0 || cz >= this.maze.size ||
+        prevCX < 0 || prevCX >= this.maze.size ||
+        prevCZ < 0 || prevCZ >= this.maze.size
       )
         return false;
+      const prev = this.maze.cells[this.maze.idx(prevCX, prevCZ)];
+      const stepX = cx - prevCX;
+      const stepZ = cz - prevCZ;
+      if (stepX === 1 && stepZ === 0) {
+        if (prev.walls & WALL_E) return false;
+      } else if (stepX === -1 && stepZ === 0) {
+        if (prev.walls & WALL_W) return false;
+      } else if (stepX === 0 && stepZ === 1) {
+        if (prev.walls & WALL_S) return false;
+      } else if (stepX === 0 && stepZ === -1) {
+        if (prev.walls & WALL_N) return false;
+      } else {
+        // Diagonal: block if either orthogonal wall seals the corner
+        const ox = stepX > 0 ? WALL_E : WALL_W;
+        const oz = stepZ > 0 ? WALL_S : WALL_N;
+        if (prev.walls & (ox | oz)) return false;
+      }
+      prevCX = cx;
+      prevCZ = cz;
     }
     return true;
   }
 
   private updatePatrol(dt: number) {
-    // Pick random patrol target every few seconds
-    if (!this.patrolTarget || this.time % 5 < dt) {
+    // Pick a new random patrol target every few seconds (timer-based, so it
+    // doesn't depend on the frame rate)
+    this.patrolTimer += dt;
+    if (!this.patrolTarget || this.patrolTimer > 5) {
+      this.patrolTimer = 0;
       const x = Math.floor(Math.random() * this.maze.size);
       const z = Math.floor(Math.random() * this.maze.size);
       this.patrolTarget = [x, z];
@@ -165,13 +195,16 @@ export class MonsterAI {
 
   private updateInvestigate(dt: number) {
     if (!this.investigateNoise) return;
+    this.investigateTimer += dt;
 
     const noiseCellX = Math.floor(this.investigateNoise.position.x / this.cellSize);
     const noiseCellZ = Math.floor(this.investigateNoise.position.z / this.cellSize);
     const myCellX = Math.floor(this.position.x / this.cellSize);
     const myCellZ = Math.floor(this.position.z / this.cellSize);
 
-    if (this.pathIndex >= this.path.length || this.path.length === 0) {
+    this.repathTimer += dt;
+    if (this.pathIndex >= this.path.length || this.path.length === 0 || this.repathTimer > 1) {
+      this.repathTimer = 0;
       this.path = this.maze.findPath(myCellX, myCellZ, noiseCellX, noiseCellZ);
       this.pathIndex = 0;
     }
@@ -182,6 +215,16 @@ export class MonsterAI {
       this.state = "SEARCH";
       this.searchTimer = 0;
       this.investigateNoise = null;
+      this.investigateTimer = 0;
+      return;
+    }
+
+    // Stale/unreachable noise: give up and search the area instead
+    if (this.investigateTimer > 12) {
+      this.state = "SEARCH";
+      this.searchTimer = 0;
+      this.investigateNoise = null;
+      this.investigateTimer = 0;
     }
   }
 
@@ -213,7 +256,11 @@ export class MonsterAI {
     const playerCellX = Math.floor(playerPos.x / this.cellSize);
     const playerCellZ = Math.floor(playerPos.z / this.cellSize);
 
-    if (this.pathIndex >= this.path.length || this.path.length === 0) {
+    // Repath regularly so the monster follows a moving player instead of a
+    // stale snapshot (A* on 25x25 at 2Hz is cheap)
+    this.repathTimer += dt;
+    if (this.pathIndex >= this.path.length || this.path.length === 0 || this.repathTimer > 0.5) {
+      this.repathTimer = 0;
       this.path = this.maze.findPath(myCellX, myCellZ, playerCellX, playerCellZ);
       this.pathIndex = 0;
     }
@@ -243,7 +290,9 @@ export class MonsterAI {
       const myCellZ = Math.floor(this.position.z / this.cellSize);
       const playerCellX = Math.floor(playerPos.x / this.cellSize);
       const playerCellZ = Math.floor(playerPos.z / this.cellSize);
-      if (this.pathIndex >= this.path.length || this.path.length === 0) {
+      this.repathTimer += dt;
+      if (this.pathIndex >= this.path.length || this.path.length === 0 || this.repathTimer > 0.5) {
+        this.repathTimer = 0;
         this.path = this.maze.findPath(myCellX, myCellZ, playerCellX, playerCellZ);
         this.pathIndex = 0;
       }
