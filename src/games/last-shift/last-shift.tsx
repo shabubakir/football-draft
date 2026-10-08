@@ -541,6 +541,8 @@ export default function LastShift() {
     };
     let stamina = 100;
     let tension = 0;
+    let roomLights = 1; // свет в комнате: гаснет при выходе, загорается при входе
+    let lastRoomZone = zoneAt(px, py).name;
     let ambientTimer = 5;
     let heartTimer = 0;
     const fuseSpots: Fuse[] = [];
@@ -589,6 +591,13 @@ export default function LastShift() {
     const move = (dx: number, dy: number) => {
       if (!w(px + dx, py)) px += dx;
       if (!w(px, py + dy)) py += dy;
+      // Свет в комнате: при заходе — щелчок и плавно включается, при выходе — гаснет
+      const zoneNow = zoneAt(px, py).name;
+      if (zoneNow !== lastRoomZone) {
+        lastRoomZone = zoneNow;
+        roomLights = 0;
+        soundRef.current(1150, 0.045, "square", 0.03);
+      }
     };
 
     const interact = () => {
@@ -631,9 +640,9 @@ export default function LastShift() {
 
     const normalizeCode = (code: string): string => {
       const codes: Record<string, string> = {
-        KeyW: "w",
+        KeyW: "s", // W/S были перепутаны: W — назад, S — вперёд
         KeyA: "a",
-        KeyS: "s",
+        KeyS: "w",
         KeyD: "d",
         KeyE: "e",
         KeyF: "f",
@@ -778,7 +787,7 @@ export default function LastShift() {
       ctx.fillRect(0, 0, W, H / 2);
       for (let y = 0; y < H / 2; y += 4) {
         const t = (y / (H / 2)); // 0 top -> 1 horizon
-        const shade = Math.max(28, 88 - t * 48);
+        const shade = Math.max(40, 106 - t * 52); // комната светлее — видно, где ты
         ctx.fillStyle = `rgb(${(shade + 6) | 0},${(shade + 3) | 0},${(shade * 0.58) | 0})`;
         ctx.fillRect(0, y, W, 4);
       }
@@ -813,7 +822,7 @@ export default function LastShift() {
       ctx.fillRect(0, H / 2, W, H / 2);
       for (let y = H / 2; y < H; y += 4) {
         const t = (y - H / 2) / (H / 2); // 0 horizon -> 1 bottom
-        const shade = Math.max(30, 62 + t * 30);
+        const shade = Math.max(42, 78 + t * 34); // пол светлее — видно, где ты
         ctx.fillStyle = `rgb(${(shade + 8) | 0},${(shade + 2) | 0},${(shade * 0.5) | 0})`;
         ctx.fillRect(0, y, W, 4);
       }
@@ -830,9 +839,9 @@ export default function LastShift() {
         const top = H / 2 - wh / 2;
         const side = Math.abs(Math.sin(rayAng)) > 0.7 ? 0.82 : 1;
 
-        // Backrooms ambient: dim, warm, fades with distance. Flashlight adds a soft center cone.
-        const ambient = Math.max(0.1, 0.5 - d / 13) * flashlightFlicker * side;
-        const boost = flashlight ? Math.min(1, ambient * 1.1 + (1 - Math.abs(i / cols - 0.5) * 2) * 0.18) : ambient;
+        // Backrooms ambient: warm, fades with distance. Flashlight adds a soft center cone.
+        const ambient = Math.max(0.18, 0.62 - d / 14) * flashlightFlicker * roomLights * side;
+        const boost = flashlight ? Math.min(1, ambient * 1.25 + (1 - Math.abs(i / cols - 0.5) * 2) * 0.25) : ambient;
         const zone = zoneAt(r.tx, r.ty);
 
         // Base yellow wallpaper
@@ -845,7 +854,7 @@ export default function LastShift() {
             ctx.fillRect(i * 2, top + wh * 0.3, 3, wh * 0.4);
           }
         } else {
-          const rgb = zone.base.map((c) => Math.min(255, Math.floor(c * (0.22 + boost * 0.72))));
+          const rgb = zone.base.map((c) => Math.min(255, Math.floor(c * (0.32 + boost * 0.85))));
           ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
         }
         ctx.fillRect(i * 2, top, 3, wh);
@@ -854,9 +863,9 @@ export default function LastShift() {
         if (wh > 26) {
           const stripeOn = Math.floor((r.tx + r.ty * 3) * 2.2) % 2 === 0;
           if (stripeOn) {
-            const s = Math.min(255, Math.floor((zone.accent[0] + 26) * (0.22 + boost * 0.72)));
-            const s2 = Math.min(255, Math.floor((zone.accent[1] + 24) * (0.22 + boost * 0.72)));
-            const s3 = Math.min(255, Math.floor((zone.accent[2] + 14) * (0.22 + boost * 0.72)));
+            const s = Math.min(255, Math.floor((zone.accent[0] + 26) * (0.32 + boost * 0.85)));
+            const s2 = Math.min(255, Math.floor((zone.accent[1] + 24) * (0.32 + boost * 0.85)));
+            const s3 = Math.min(255, Math.floor((zone.accent[2] + 14) * (0.32 + boost * 0.85)));
             ctx.fillStyle = `rgba(${s},${s2},${s3},0.55)`;
             ctx.fillRect(i * 2, top + wh * 0.08, 3, wh * 0.86);
           }
@@ -872,9 +881,9 @@ export default function LastShift() {
           ctx.fillRect(i * 2, top + wh * 0.72, 3, wh * 0.2);
         }
 
-        // Distance fog — warm dark, closes in quickly
+        // Distance fog — warm dark, closes in quickly (мягче: близко видно)
         if (d < 13) {
-          ctx.fillStyle = `rgba(34,31,16,${Math.min(0.62, d / 14)})`;
+          ctx.fillStyle = `rgba(34,31,16,${Math.min(0.62, Math.max(0, d - 0.8) / 13)})`;
           ctx.fillRect(i * 2, top, 3, wh);
         }
       }
@@ -1109,8 +1118,12 @@ export default function LastShift() {
       elapsed += dt;
       animTime += dt;
       
-      // Flashlight flicker
-      flashlightFlicker = flashlight ? 0.9 + Math.sin(animTime * 8) * 0.08 + Math.random() * 0.02 : 0;
+      // Свет комнаты: плавно включается при входе, гаснет при выходе
+      roomLights += ((zoneAt(px, py).name === lastRoomZone ? 1 : 0) - roomLights) * Math.min(1, dt * 1.4);
+      if (roomLights < 0.02) roomLights = 0;
+
+      // Flashlight flicker — свет НЕ гасит комнату полностью (иначе ничего не видно)
+      flashlightFlicker = flashlight ? 0.9 + Math.sin(animTime * 8) * 0.08 + Math.random() * 0.02 : 1;
       
       // Throttle: only update React state once per second to avoid re-render storms
       if (Math.floor(elapsed) !== Math.floor(elapsed - dt)) {

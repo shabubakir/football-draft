@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Input } from "./Input";
-import { MazeGenerator } from "../maze/MazeGenerator";
+import { MazeGenerator, RNG } from "../maze/MazeGenerator";
 import { MazeRenderer } from "../maze/MazeRenderer";
 import { Player } from "../player/Player";
 import { Monster } from "../monster/Monster";
@@ -102,22 +102,22 @@ export class Game {
     const ambient = new THREE.AmbientLight(0x111122, 0.5);
     this.scene.add(ambient);
 
-    // Place items
-    this.placeItems(diff.batteryCount, diff.fuseCount);
-
-    // Exit position (far corner)
+    // Exit position (far corner) — must be set before placeItems
     this.exitPosition = new THREE.Vector3(
       (this.maze.size - 1) * CELL_SIZE + CELL_SIZE / 2,
       0,
       (this.maze.size - 1) * CELL_SIZE + CELL_SIZE / 2
     );
 
+    // Place items
+    this.placeItems(diff.batteryCount, diff.fuseCount);
+
     this.resize();
     window.addEventListener("resize", this.resize);
   }
 
   private placeItems(batteryCount: number, fuseCount: number) {
-    const rng = new (require("../maze/MazeGenerator").RNG)(this.state.seed + 999);
+    const rng = new RNG(this.state.seed + 999);
     this.items = [];
 
     for (let i = 0; i < batteryCount; i++) {
