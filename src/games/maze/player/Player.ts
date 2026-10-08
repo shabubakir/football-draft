@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Input } from "../core/Input";
+import { MazeGenerator, WALL_N, WALL_E, WALL_S, WALL_W } from "../maze/MazeGenerator";
 
 const WALK_SPEED = 4;
 const RUN_SPEED = 7;
@@ -8,6 +9,8 @@ const STAMINA_MAX = 100;
 const STAMINA_DRAIN = 20; // per second while running
 const STAMINA_REGEN = 15; // per second when not running
 const STAMINA_EXHAUST_THRESHOLD = 15;
+const PLAYER_RADIUS = 0.35;
+const WALL_THICKNESS = 0.3;
 
 export class Player {
   mesh: THREE.Group;
@@ -35,7 +38,7 @@ export class Player {
     this.mesh = new THREE.Group();
 
     // Flashlight
-    this.flashlight = new THREE.SpotLight(0xfff4e0, 3, 20, Math.PI / 6, 0.5, 1.5);
+    this.flashlight = new THREE.SpotLight(0xfff4e0, 5, 24, Math.PI / 6, 0.5, 1.5);
     this.flashlight.position.set(0.2, -0.2, 0);
     this.flashlight.target.position.set(0, -0.2, -5);
     this.mesh.add(this.flashlight);
@@ -45,18 +48,24 @@ export class Player {
     this.mesh.position.copy(this.position);
   }
 
-  update(dt: number, input: Input, mazeBounds: { min: THREE.Vector3; max: THREE.Vector3 }) {
+  update(
+    dt: number,
+    input: Input,
+    mazeBounds: { min: THREE.Vector3; max: THREE.Vector3 },
+    maze: MazeGenerator | null = null,
+    cellSize = 4
+  ) {
     // Mouse look
     const { x, y } = input.consumeMouse();
     this.rotationY -= x * 0.002;
     this.rotationX -= y * 0.002;
     this.rotationX = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, this.rotationX));
 
-    // Movement
+    // Movement basis: camera looks along -Z, so forward is (-sinY, 0, -cosY)
     const forward = new THREE.Vector3(
-      Math.sin(this.rotationY),
+      -Math.sin(this.rotationY),
       0,
-      Math.cos(this.rotationY)
+      -Math.cos(this.rotationY)
     );
     const right = new THREE.Vector3(
       Math.cos(this.rotationY),
@@ -64,7 +73,7 @@ export class Player {
       -Math.sin(this.rotationY)
     );
 
-    let move = new THREE.Vector3();
+    const move = new THREE.Vector3();
     if (input.isDown("KeyW")) move.add(forward);
     if (input.isDown("KeyS")) move.sub(forward);
     if (input.isDown("KeyA")) move.sub(right);
@@ -74,10 +83,14 @@ export class Player {
     if (moving) move.normalize();
 
     // Crouch
-    this.isCrouching = input.isDown("ControlLeft") || input.isDown("KeyC");
+    this.isCrouching =
+      input.isDown("ControlLeft") || input.isDown("ControlRight") || input.isDown("KeyC");
 
     // Run
-    const wantsRun = input.isDown("ShiftLeft") && moving && !this.staminaExhausted;
+    const wantsRun =
+      (input.isDown("ShiftLeft") || input.isDown("ShiftRight")) &&
+      moving &&
+      !this.staminaExhausted;
     this.isRunning = wantsRun;
 
     // Stamina
@@ -108,13 +121,12 @@ export class Player {
     this.position.x = Math.max(mazeBounds.min.x, Math.min(mazeBounds.max.x, this.position.x));
     this.position.z = Math.max(mazeBounds.min.z, Math.min(mazeBounds.max.z, this.position.z));
 
-    // Collision with walls (simple: check if we're inside a wall cell)
-    this.resolveCollisions();
+    // Collision with maze walls (axis-separated push-out so the player
+    // slides along walls instead of sticking to them)
+    this.resolveCollisions(maze, cellSize);
 
-    // Flashlight
-    if (input.keys.has("KeyF") && input.keys.size <= 1) {
-      // Toggle on press (simplified)
-    }
+    // Flashlight (toggled via Input.onPress -> Game.toggleFlashlight,
+    // so holding F can't strobe it 60x/sec)
     this.flashlight.visible = this.flashlightOn && this.flashlightBattery > 0;
 
     // Battery drain
@@ -129,7 +141,7 @@ export class Player {
     // Flicker
     if (this.flashlight.visible) {
       const flicker = 0.9 + 0.1 * Math.sin(Date.now() * 0.01) * Math.random();
-      this.flashlight.intensity = 3 * flicker;
+      this.flashlight.intensity = 5 * flicker;
     }
 
     // Update camera
@@ -151,18 +163,76 @@ export class Player {
     this.mesh.rotation.x = this.rotationX;
   }
 
-  private resolveCollisions() {
-    // Simple wall collision: check 4 surrounding points
-    const margin = 0.3;
-    const points = [
-      new THREE.Vector3(this.position.x - margin, 0, this.position.z - margin),
-      new THREE.Vector3(this.position.x + margin, 0, this.position.z - margin),
-      new THREE.Vector3(this.position.x - margin, 0, this.position.z + margin),
-      new THREE.Vector3(this.position.x + margin, 0, this.position.z + margin),
-    ];
+  private resolveCollisions(maze: MazeGenerator | null, cellSize: number) {
+    if (!maze) return;
+    const R = PLAYER_RADIUS;
+    const T = WALL_THICKNESS;
+    const p = this.position;
 
-    // This is simplified — in a real implementation, you'd check against maze walls
-    // For now, just clamp to bounds
+    for (let iter = 0; iter < 2; iter++) {
+      const cx = Math.floor(p.x / cellSize);
+      const cz = Math.floor(p.z / cellSize);
+      for (let gx = cx - 1; gx <= cx + 1; gx++) {
+        for (let gz = cz - 1; gz <= cz + 1; gz++) {
+          if (gx < 0 || gz < 0 || gx >= maze.size || gz >= maze.size) continue;
+          const cell = maze.cells[maze.idx(gx, gz)];
+          // North wall of the cell
+          if (cell.walls & WALL_N) {
+            this.pushOutOfBox(
+              gx * cellSize, gx * cellSize + cellSize,
+              gz * cellSize - T / 2, gz * cellSize + T / 2, R
+            );
+          }
+          // West wall of the cell
+          if (cell.walls & WALL_W) {
+            this.pushOutOfBox(
+              gx * cellSize - T / 2, gx * cellSize + T / 2,
+              gz * cellSize, gz * cellSize + cellSize, R
+            );
+          }
+          // Border walls (covered by neighbours elsewhere, but the outer
+          // rim has no neighbour on the outside)
+          if (gz === maze.size - 1 && cell.walls & WALL_S) {
+            this.pushOutOfBox(
+              gx * cellSize, gx * cellSize + cellSize,
+              (gz + 1) * cellSize - T / 2, (gz + 1) * cellSize + T / 2, R
+            );
+          }
+          if (gx === maze.size - 1 && cell.walls & WALL_E) {
+            this.pushOutOfBox(
+              (gx + 1) * cellSize - T / 2, (gx + 1) * cellSize + T / 2,
+              gz * cellSize, gz * cellSize + cellSize, R
+            );
+          }
+        }
+      }
+    }
+  }
+
+  private pushOutOfBox(minX: number, maxX: number, minZ: number, maxZ: number, r: number) {
+    const p = this.position;
+    const nx = Math.max(minX, Math.min(maxX, p.x));
+    const nz = Math.max(minZ, Math.min(maxZ, p.z));
+    const dx = p.x - nx;
+    const dz = p.z - nz;
+    const d2 = dx * dx + dz * dz;
+    if (d2 >= r * r) return;
+    if (d2 > 1e-9) {
+      const d = Math.sqrt(d2);
+      p.x = nx + (dx / d) * r;
+      p.z = nz + (dz / d) * r;
+    } else {
+      // Center inside the wall box: push out along min penetration axis
+      const pl = p.x - minX;
+      const pr = maxX - p.x;
+      const pt = p.z - minZ;
+      const pb = maxZ - p.z;
+      const m = Math.min(pl, pr, pt, pb);
+      if (m === pl) p.x = minX - r;
+      else if (m === pr) p.x = maxX + r;
+      else if (m === pt) p.z = minZ - r;
+      else p.z = maxZ + r;
+    }
   }
 
   private updateNoise(moving: boolean) {

@@ -35,7 +35,10 @@ export class Game {
   private aiTimer = 0;
   private aiInterval = 0.1; // 10 FPS for AI
   private items: { type: string; position: THREE.Vector3; collected: boolean }[] = [];
+  private itemMeshes: THREE.Mesh[] = [];
+  private exitMesh: THREE.Mesh | null = null;
   private exitPosition: THREE.Vector3;
+  private loopRunning = false;
 
   // Room lights: each room has a PointLight; lights turn on when the player
   // enters the room and fade off when they leave it.
@@ -54,18 +57,25 @@ export class Game {
 
   constructor(private container: HTMLElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0a0f);
-    this.scene.fog = new THREE.FogExp2(0x0a0a0f, 0.04);
+    this.scene.background = new THREE.Color(0x16161f);
+    this.scene.fog = new THREE.FogExp2(0x16161f, 0.028);
 
     this.camera = new THREE.PerspectiveCamera(70, 1, 0.1, 100);
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Nothing in the scene casts shadows (all lights are non-shadow
+    // PointLights + one SpotLight), so skip the shadow pass entirely.
+    this.renderer.shadowMap.enabled = false;
     this.renderer.domElement.style.width = "100%";
     this.renderer.domElement.style.height = "100%";
     container.appendChild(this.renderer.domElement);
 
     this.input = new Input();
+    // F toggles the flashlight (edge-triggered in Input, no strobing)
+    this.input.onPress = (code) => {
+      if (code === "KeyF" && this.state.phase === "playing" && !this.paused) {
+        this.toggleFlashlight();
+      }
+    };
     this.audio = new AudioManager();
 
     this.state = loadGameState();
@@ -110,7 +120,7 @@ export class Game {
     this.scene.add(this.monster.group);
 
     // Ambient light
-    const ambient = new THREE.AmbientLight(0x111122, 0.5);
+    const ambient = new THREE.AmbientLight(0x2a2a3a, 1.1);
     this.scene.add(ambient);
 
     // Exit position (far corner) — must be set before placeItems
@@ -128,6 +138,21 @@ export class Game {
   }
 
   private placeItems(batteryCount: number, fuseCount: number) {
+    // Restart-safe: remove the previous run's meshes before adding new ones
+    for (const m of this.itemMeshes) {
+      this.scene.remove(m);
+      m.geometry.dispose();
+      const mat = m.material as THREE.Material;
+      mat.dispose();
+    }
+    this.itemMeshes = [];
+    if (this.exitMesh) {
+      this.scene.remove(this.exitMesh);
+      this.exitMesh.geometry.dispose();
+      (this.exitMesh.material as THREE.Material).dispose();
+      this.exitMesh = null;
+    }
+
     const rng = new RNG(this.state.seed + 999);
     this.items = [];
 
@@ -178,6 +203,7 @@ export class Game {
       }
       mesh.position.copy(item.position);
       this.scene.add(mesh);
+      this.itemMeshes.push(mesh);
     });
 
     // Exit marker
@@ -187,6 +213,7 @@ export class Game {
     );
     exitMesh.position.copy(this.exitPosition);
     this.scene.add(exitMesh);
+    this.exitMesh = exitMesh;
   }
 
   // Scan room lights for the current maze and reset the light state
@@ -295,11 +322,19 @@ export class Game {
 
     this.setupRoomLights();
 
-    requestAnimationFrame(this.loop);
+    // Never run two loops: a double-click on start/restart only resets the
+    // state above while the already-running loop picks it up next frame.
+    if (!this.loopRunning) {
+      this.loopRunning = true;
+      requestAnimationFrame(this.loop);
+    }
   }
 
   private loop = (time: number) => {
-    if (this.state.phase !== "playing") return;
+    if (this.state.phase !== "playing") {
+      this.loopRunning = false;
+      return;
+    }
 
     const dt = Math.min((time - this.lastTime) / 1000, 0.1);
     this.lastTime = time;
@@ -313,7 +348,7 @@ export class Game {
 
     this.state.elapsed += dt;
 
-    // Player update
+    // Player update (with the live maze for wall collision)
     const bounds = {
       min: new THREE.Vector3(0.5, 0, 0.5),
       max: new THREE.Vector3(
@@ -322,7 +357,7 @@ export class Game {
         this.maze.size * CELL_SIZE - 0.5
       ),
     };
-    this.player.update(dt, this.input, bounds);
+    this.player.update(dt, this.input, bounds, this.maze, CELL_SIZE);
 
     // Generate noise from player
     if (this.player.currentNoise > 0) {
@@ -331,6 +366,14 @@ export class Game {
         intensity: this.player.currentNoise,
         timestamp: time,
       });
+    }
+    // Noises older than ~1.5s are forgotten: the monster investigates fresh
+    // sounds only, and this array can't grow without bound anymore.
+    if (this.noises.length > 0) {
+      const cutoff = time - 1500;
+      if (this.noises[0].timestamp <= cutoff) {
+        this.noises = this.noises.filter((n) => n.timestamp > cutoff);
+      }
     }
 
     // AI update at 10 FPS
@@ -364,6 +407,9 @@ export class Game {
 
     // Room lights: on when the player enters a room, off in corridors
     this.updateRoomLights(dt);
+
+    // Corridor/room bulb flicker
+    this.mazeRenderer.update(this.state.elapsed);
 
     // Audio update
     const proximity = this.monsterAI.getProximity(this.player.position);
@@ -408,6 +454,7 @@ export class Game {
   private win() {
     this.state.phase = "won";
     this.audio.playWin();
+    this.audio.stopAmbient();
     if (this.state.bestTime === null || this.state.elapsed < this.state.bestTime) {
       this.state.bestTime = this.state.elapsed;
     }
@@ -422,6 +469,7 @@ export class Game {
   private lose() {
     this.state.phase = "lost";
     this.audio.playDeath();
+    this.audio.stopAmbient();
     this.state.deaths++;
     saveGameState(this.state);
     this.input.releaseLock();
@@ -443,6 +491,8 @@ export class Game {
 
   dispose() {
     this.paused = false;
+    this.loopRunning = false;
+    this.noises = [];
     this.renderer.dispose();
     this.audio.dispose();
     this.input.detach();
