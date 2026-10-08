@@ -411,7 +411,7 @@ export class Game {
     const lightProximity = this.computeLightProximity();
     this.audio.update(
       dt,
-      this.player.currentNoise > 0,
+      this.player.moving,
       this.player.isRunning,
       proximity,
       lightProximity

@@ -29,6 +29,8 @@ export class Player {
 
   // Noise level (0-1) based on current action
   currentNoise = 0;
+  /** True on the frame the player actually moved (for footsteps, independent of noise) */
+  moving = false;
 
   camera: THREE.PerspectiveCamera;
   flashlight: THREE.SpotLight;
@@ -82,6 +84,7 @@ export class Player {
     if (input.isDown("KeyD")) move.add(right);
 
     const moving = move.lengthSq() > 0;
+    this.moving = moving;
     if (moving) move.normalize();
 
     // Crouch
