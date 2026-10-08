@@ -39,6 +39,15 @@ export const WALL_W = 8;
 export interface MazeCell {
   walls: number;
   visited: boolean;
+  room: number; // -1 = corridor, 0..N-1 = room id
+}
+
+export interface Room {
+  id: number;
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number; // inclusive bounds in cells
 }
 
 export class MazeGenerator {
@@ -46,6 +55,7 @@ export class MazeGenerator {
   cells: MazeCell[];
   rng: RNG;
   seed: number;
+  rooms: Room[] = [];
 
   constructor(size: number, seed: number) {
     this.size = size;
@@ -54,6 +64,7 @@ export class MazeGenerator {
     this.cells = Array.from({ length: size * size }, () => ({
       walls: 15,
       visited: false,
+      room: -1,
     }));
   }
 
@@ -121,30 +132,80 @@ export class MazeGenerator {
 
   private createRooms(count: number) {
     for (let r = 0; r < count; r++) {
-      const rw = this.rng.nextInt(3, 5);
-      const rh = this.rng.nextInt(3, 5);
+      const rw = this.rng.nextInt(4, 7);
+      const rh = this.rng.nextInt(4, 7);
       const rx = this.rng.nextInt(1, this.size - rw - 1);
       const ry = this.rng.nextInt(1, this.size - rh - 1);
+
+      const room: Room = { id: r, x0: rx, y0: ry, x1: rx + rw - 1, y1: ry + rh - 1 };
 
       for (let x = rx; x < rx + rw; x++) {
         for (let y = ry; y < ry + rh; y++) {
           if (x < 0 || x >= this.size || y < 0 || y >= this.size) continue;
           const cell = this.cells[this.idx(x, y)];
+          cell.room = r;
           // Remove internal walls
           if (x < rx + rw - 1) cell.walls &= ~WALL_E;
           if (x > rx) cell.walls &= ~WALL_W;
           if (y < ry + rh - 1) cell.walls &= ~WALL_S;
           if (y > ry) cell.walls &= ~WALL_N;
-          // Ensure connection to rest
-          if (x === rx && this.rng.next() < 0.5) cell.walls &= ~WALL_W;
-          if (x === rx + rw - 1 && this.rng.next() < 0.5)
-            cell.walls &= ~WALL_E;
-          if (y === ry && this.rng.next() < 0.5) cell.walls &= ~WALL_N;
-          if (y === ry + rh - 1 && this.rng.next() < 0.5)
-            cell.walls &= ~WALL_S;
         }
       }
+
+      // Exactly one exit per room: a random border cell of the room
+      // (a hole in the outer wall, always on a cell border so the renderer draws it)
+      const side = this.rng.nextInt(0, 3);
+      let ex = 0;
+      let ey = 0;
+      if (side === 0) {
+        ex = this.rng.nextInt(rx, rx + rw - 1);
+        ey = ry;
+        this.cells[this.idx(ex, ey)].walls &= ~WALL_N;
+      } else if (side === 1) {
+        ex = this.rng.nextInt(rx, rx + rw - 1);
+        ey = ry + rh - 1;
+        this.cells[this.idx(ex, ey)].walls &= ~WALL_S;
+      } else if (side === 2) {
+        ex = rx;
+        ey = this.rng.nextInt(ry, ry + rh - 1);
+        this.cells[this.idx(ex, ey)].walls &= ~WALL_W;
+      } else {
+        ex = rx + rw - 1;
+        ey = this.rng.nextInt(ry, ry + rh - 1);
+        this.cells[this.idx(ex, ey)].walls &= ~WALL_E;
+      }
+      // If the exit is on the maze edge, push it one cell inside so the room can't be sealed
+      if (ex === 0) { ex = 1; this.cells[this.idx(1, ey)].walls &= ~WALL_W; }
+      else if (ex === this.size - 1) { ex = this.size - 2; this.cells[this.idx(this.size - 2, ey)].walls &= ~WALL_E; }
+      else if (ey === 0) { ey = 1; this.cells[this.idx(ex, 1)].walls &= ~WALL_N; }
+      else if (ey === this.size - 1) { ey = this.size - 2; this.cells[this.idx(ex, this.size - 2)].walls &= ~WALL_S; }
+
+      room.x0 = rx;
+      this.rooms.push(room);
     }
+  }
+
+  roomAt(x: number, y: number): number {
+    const cell = this.cells[this.idx(x, y)];
+    return cell ? cell.room : -1;
+  }
+
+  // Cell centers (world units) of the three largest rooms — good spots for the fuses
+  roomCenters(): { x: number; z: number }[] {
+    const cellCenter = (cx: number, cy: number) => ({
+      x: cx * 4 + 2,
+      z: cy * 4 + 2,
+    });
+    return this.rooms
+      .map((r) => {
+        const cx = (r.x0 + r.x1) / 2;
+        const cy = (r.y0 + r.y1) / 2;
+        const size = (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1);
+        return { ...cellCenter(Math.floor(cx), Math.floor(cy)), size };
+      })
+      .sort((a, b) => b.size - a.size)
+      .slice(0, 3)
+      .map(({ x, z }) => ({ x, z }));
   }
 
   // A* pathfinding on the maze grid

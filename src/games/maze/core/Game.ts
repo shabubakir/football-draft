@@ -37,6 +37,12 @@ export class Game {
   private items: { type: string; position: THREE.Vector3; collected: boolean }[] = [];
   private exitPosition: THREE.Vector3;
 
+  // Room lights: each room has a PointLight; lights turn on when the player
+  // enters the room and fade off when they leave it.
+  private roomLightBulbs: { room: number; light: THREE.PointLight }[] = [];
+  private roomLightLevel = new Map<number, number>();
+  private lastRoom = -1;
+
   onWin: ((time: number) => void) | null = null;
   onLose: (() => void) | null = null;
   onHudUpdate: ((hud: { stamina: number; battery: number; fuses: number; fusesTotal: number }) => void) | null = null;
@@ -134,15 +140,18 @@ export class Game {
       });
     }
 
+    // Fuses live in the rooms (one per room) — you must go inside to grab them
+    const roomCenters = this.maze.roomCenters();
     for (let i = 0; i < fuseCount; i++) {
-      const x = rng.nextInt(1, this.maze.size - 2);
-      const z = rng.nextInt(1, this.maze.size - 2);
+      const rc = roomCenters[i % roomCenters.length];
+      const x = Math.floor(rc.x / CELL_SIZE) + (rng.next() < 0.5 ? -1 : 1);
+      const z = Math.floor(rc.z / CELL_SIZE) + (rng.next() < 0.5 ? -1 : 1);
       this.items.push({
         type: "fuse",
         position: new THREE.Vector3(
-          x * CELL_SIZE + CELL_SIZE / 2,
+          THREE.MathUtils.clamp(x, 1, this.maze.size - 2) * CELL_SIZE + CELL_SIZE / 2,
           0.5,
-          z * CELL_SIZE + CELL_SIZE / 2
+          THREE.MathUtils.clamp(z, 1, this.maze.size - 2) * CELL_SIZE + CELL_SIZE / 2
         ),
         collected: false,
       });
@@ -173,6 +182,44 @@ export class Game {
     );
     exitMesh.position.copy(this.exitPosition);
     this.scene.add(exitMesh);
+  }
+
+  // Scan room lights for the current maze and reset the light state
+  private setupRoomLights() {
+    this.roomLightBulbs = [];
+    this.mazeRenderer.group.traverse((obj) => {
+      if (obj instanceof THREE.PointLight && obj.userData.baseIntensity === 6) {
+        const cellX = Math.floor(obj.position.x / CELL_SIZE);
+        const cellY = Math.floor(obj.position.z / CELL_SIZE);
+        const room = this.maze.roomAt(cellX, cellY);
+        if (room >= 0) {
+          this.roomLightBulbs.push({ room, light: obj });
+          this.roomLightLevel.set(room, 0);
+        }
+      }
+    });
+    this.lastRoom = -1;
+  }
+
+  // Update room lights: on when the player is in the room, fade in/out otherwise.
+  // Plays a short click when the lights of the new room switch on.
+  private updateRoomLights(dt: number) {
+    const cellX = Math.floor(this.player.position.x / CELL_SIZE);
+    const cellY = Math.floor(this.player.position.z / CELL_SIZE);
+    const room = this.maze.roomAt(cellX, cellY);
+
+    for (const rl of this.roomLightBulbs) {
+      const target = rl.room === room ? 1 : 0;
+      const level = this.roomLightLevel.get(rl.room) ?? 0;
+      const next = target === 1 ? Math.min(1, level + dt * 2.5) : Math.max(0, level - dt * 2.5);
+      this.roomLightLevel.set(rl.room, next);
+      rl.light.userData.baseIntensity = 6 * next;
+    }
+
+    if (room !== this.lastRoom) {
+      this.lastRoom = room;
+      if (room >= 0) this.audio.playRoomLight();
+    }
   }
 
   start() {
@@ -225,6 +272,8 @@ export class Game {
       DIFFICULTIES[this.state.difficulty].batteryCount,
       DIFFICULTIES[this.state.difficulty].fuseCount
     );
+
+    this.setupRoomLights();
 
     requestAnimationFrame(this.loop);
   }
@@ -284,6 +333,9 @@ export class Game {
       this.lose();
       return;
     }
+
+    // Room lights: on when the player enters a room, off in corridors
+    this.updateRoomLights(dt);
 
     // Audio update
     const proximity = this.monsterAI.getProximity(this.player.position);

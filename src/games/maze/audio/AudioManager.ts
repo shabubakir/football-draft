@@ -147,6 +147,38 @@ export class AudioManager {
     osc.stop(t + 0.2);
   }
 
+  // ---------- Room light switch: short click + fluorescent buzz-in ----------
+  playRoomLight() {
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+
+    // Switch click
+    const click = this.ctx.createOscillator();
+    click.type = "square";
+    click.frequency.value = 1200;
+    const clickGain = this.ctx.createGain();
+    clickGain.gain.setValueAtTime(0.08, t);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    click.connect(clickGain).connect(this.masterGain);
+    click.start(t);
+    click.stop(t + 0.05);
+
+    // Fluorescent buzz (a few cycles of 120Hz)
+    const buzz = this.ctx.createOscillator();
+    buzz.type = "sawtooth";
+    buzz.frequency.value = 120;
+    const buzzFilter = this.ctx.createBiquadFilter();
+    buzzFilter.type = "lowpass";
+    buzzFilter.frequency.value = 900;
+    const buzzGain = this.ctx.createGain();
+    buzzGain.gain.setValueAtTime(0.0001, t + 0.05);
+    buzzGain.gain.exponentialRampToValueAtTime(0.05, t + 0.25);
+    buzzGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    buzz.connect(buzzFilter).connect(buzzGain).connect(this.masterGain);
+    buzz.start(t);
+    buzz.stop(t + 0.5);
+  }
+
   // ---------- Door/generator sound ----------
   playMechanical() {
     if (!this.ctx || !this.masterGain) return;
