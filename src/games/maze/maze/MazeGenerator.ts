@@ -192,6 +192,24 @@ export class MazeGenerator {
     return cell ? cell.room : -1;
   }
 
+  // SolidAtWorld analogue from the Backrooms engine: true when (x, z) in
+  // world units is inside a maze wall. Used for the flashlight's
+  // auto-dim against close surfaces.
+  solidAtWorld(x: number, z: number, cellSize = 4): boolean {
+    const sx = Math.floor(x / cellSize);
+    const sy = Math.floor(z / cellSize);
+    if (sx < 0 || sy < 0 || sx >= this.size || sy >= this.size) return true;
+    const cx = x - sx * cellSize;
+    const cz = z - sy * cellSize;
+    const w = this.cells[this.idx(sx, sy)].walls;
+    const t = 0.3; // wall thickness (matches MazeRenderer WALL_THICKNESS)
+    if (w & WALL_N && cz < t) return true;
+    if (w & WALL_E && cx > cellSize - t) return true;
+    if (w & WALL_S && cz > cellSize - t) return true;
+    if (w & WALL_W && cx < t) return true;
+    return false;
+  }
+
   // Cell centers (world units) of the three largest rooms — good spots for the fuses
   roomCenters(): { x: number; z: number }[] {
     const cellCenter = (cx: number, cy: number) => ({

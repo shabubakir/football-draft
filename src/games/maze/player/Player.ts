@@ -24,6 +24,8 @@ export class Player {
   isCrouching = false;
   flashlightOn = true;
   flashlightBattery = 100;
+  // Backrooms-style auto-dim: 0..1 scale for surfaces close to the beam
+  private torchDim = 1;
 
   // Noise level (0-1) based on current action
   currentNoise = 0;
@@ -138,10 +140,35 @@ export class Player {
       }
     }
 
-    // Flicker
+    // Backrooms-style auto-dim: a wall half a meter out catches
+    // inverse-square intensity and clips to a pure white disc. March the
+    // aim ray to the first wall (and floor/ceiling) and scale the torch so
+    // close surfaces stay textured instead of blowing out.
+    const DIM_RANGE = 6.2;
+    let aimDist = DIM_RANGE;
+    if (maze) {
+      const cosP = Math.cos(this.rotationX);
+      const dx = -Math.sin(this.rotationY) * cosP;
+      const dz = -Math.cos(this.rotationY) * cosP;
+      for (let d = 0.25; d < DIM_RANGE; d += 0.22) {
+        if (maze.solidAtWorld(this.position.x + dx * d, this.position.z + dz * d, cellSize)) {
+          aimDist = d;
+          break;
+        }
+      }
+      const eyeY = this.isCrouching ? 1.2 : 1.7;
+      const dirY = Math.sin(this.rotationX);
+      if (dirY < -0.05) aimDist = Math.min(aimDist, eyeY / -dirY);
+      else if (dirY > 0.05) aimDist = Math.min(aimDist, (3.5 - eyeY) / dirY);
+    }
+    const dimTarget = Math.max(0.05, Math.min(1, Math.pow(aimDist / 6, 1.5)));
+    this.torchDim += (dimTarget - this.torchDim) * Math.min(1, dt * 9);
+
+    // Flicker + subtle breathing + auto-dim (Backrooms player.ts recipe)
     if (this.flashlight.visible) {
       const flicker = 0.9 + 0.1 * Math.sin(Date.now() * 0.01) * Math.random();
-      this.flashlight.intensity = 5 * flicker;
+      const subtle = 0.96 + Math.sin(performance.now() / 1000 * 47) * 0.012;
+      this.flashlight.intensity = 5 * flicker * subtle * this.torchDim;
     }
 
     // Update camera

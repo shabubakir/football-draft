@@ -65,6 +65,10 @@ export class Game {
     // Nothing in the scene casts shadows (all lights are non-shadow
     // PointLights + one SpotLight), so skip the shadow pass entirely.
     this.renderer.shadowMap.enabled = false;
+    // Same tonemapping as the Backrooms engine: soft shoulder keeps
+    // close surfaces from clipping to a white disc.
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.2;
     this.renderer.domElement.style.width = "100%";
     this.renderer.domElement.style.height = "100%";
     container.appendChild(this.renderer.domElement);
