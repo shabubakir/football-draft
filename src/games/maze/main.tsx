@@ -14,6 +14,7 @@ export function MazeGame() {
   const [showMenu, setShowMenu] = useState(true);
   const [showGameOver, setShowGameOver] = useState(false);
   const [won, setWon] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [hud, setHud] = useState({ stamina: 100, battery: 100, fuses: 0, fusesTotal: 0 });
   const [stats, setStats] = useState(() => loadGameState());
 
@@ -24,6 +25,12 @@ export function MazeGame() {
 
     const game = gameRef.current;
     if (!game) return;
+
+    // Esc (pointer unlock) pauses the game — show the pause menu
+    game.input.onUnlock = () => {
+      if (!game.isPaused) game.togglePause();
+    };
+    game.onPause = (p) => setPaused(p);
 
     game.state.difficulty = difficulty;
     game.onWin = (time) => {
@@ -40,7 +47,16 @@ export function MazeGame() {
 
     setShowMenu(false);
     setShowGameOver(false);
+    setPaused(false);
     game.start();
+  }, []);
+
+  const resume = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    game.togglePause();
+    // Re-lock the pointer (allowed: Esc counts as a user activation)
+    setTimeout(() => game.input.requestLock(game.renderer.domElement), 50);
   }, []);
 
   const restart = useCallback(() => {
@@ -49,6 +65,10 @@ export function MazeGame() {
   }, [startGame]);
 
   const goMenu = useCallback(() => {
+    const game = gameRef.current;
+    if (game && game.isPaused) game.togglePause();
+    game?.input.releaseLock();
+    setPaused(false);
     setShowGameOver(false);
     setShowMenu(true);
     setStats(loadGameState());
@@ -75,6 +95,29 @@ export function MazeGame() {
           deaths={stats.deaths}
           onStart={startGame}
         />
+      )}
+
+      {paused && !showMenu && !showGameOver && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
+          <div className="border border-stone-700 bg-stone-950/95 px-10 py-8 text-center shadow-2xl">
+            <div className="mb-6 text-2xl font-black tracking-[4px] text-stone-200">ПАУЗА</div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={resume}
+                className="border border-stone-600 bg-stone-900 px-6 py-2 font-mono text-sm tracking-widest text-stone-200 hover:bg-stone-800"
+              >
+                ПРОДОЛЖИТЬ
+              </button>
+              <button
+                onClick={goMenu}
+                className="border border-stone-700 bg-stone-900/50 px-6 py-2 font-mono text-sm tracking-widest text-stone-400 hover:bg-stone-800"
+              >
+                В МЕНЮ
+              </button>
+            </div>
+            <p className="mt-5 text-[10px] tracking-widest text-stone-600">ESC — ПАУЗА / СВОБОДА КУРСОРА</p>
+          </div>
+        </div>
       )}
 
       {showGameOver && (

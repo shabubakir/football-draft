@@ -46,6 +46,11 @@ export class Game {
   onWin: ((time: number) => void) | null = null;
   onLose: (() => void) | null = null;
   onHudUpdate: ((hud: { stamina: number; battery: number; fuses: number; fusesTotal: number }) => void) | null = null;
+  onPause: ((paused: boolean) => void) | null = null;
+  private paused = false;
+  get isPaused() {
+    return this.paused;
+  }
 
   constructor(private container: HTMLElement) {
     this.scene = new THREE.Scene();
@@ -222,7 +227,22 @@ export class Game {
     }
   }
 
+  togglePause() {
+    if (this.state.phase !== "playing" && !this.paused) return;
+    this.paused = !this.paused;
+    if (this.paused) this.input.releaseLock();
+    this.onPause?.(this.paused);
+  }
+
+  // Called from the UI when the pointer is released (Esc) — pause the game
+  handlePointerUnlock() {
+    if (this.state.phase === "playing" && !this.paused) {
+      this.togglePause();
+    }
+  }
+
   start() {
+    this.paused = false;
     this.state.phase = "playing";
     this.state.seed = Math.floor(Math.random() * 1000000);
     this.state.fusesCollected = 0;
@@ -283,6 +303,14 @@ export class Game {
 
     const dt = Math.min((time - this.lastTime) / 1000, 0.1);
     this.lastTime = time;
+
+    // Paused (Esc): freeze the game, keep rendering
+    if (this.paused) {
+      this.renderer.render(this.scene, this.camera);
+      requestAnimationFrame(this.loop);
+      return;
+    }
+
     this.state.elapsed += dt;
 
     // Player update
@@ -414,6 +442,7 @@ export class Game {
   };
 
   dispose() {
+    this.paused = false;
     this.renderer.dispose();
     this.audio.dispose();
     this.input.detach();
